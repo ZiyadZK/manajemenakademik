@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model data_akuns {
+  id_akun       String   @id @db.VarChar(255)
+  email_akun    String?  @unique(map: "email_akun") @db.VarChar(255)
+  password_akun String?  @db.VarChar(255)
+  nama_akun     String?  @db.VarChar(255)
+  role_akun     String?  @db.VarChar(255)
+  createdAt     DateTime @db.DateTime(0)
+  updatedAt     DateTime @db.DateTime(0)
+}
+
+model data_ijazahs {
+  no             Int       @id @default(autoincrement())
+  no_ijazah      String?   @db.VarChar(10)
+  tgl_diambil    DateTime? @db.Date
+  nama_lulusan   String?   @db.VarChar(100)
+  nisn           String?   @db.VarChar(100)
+  nama_pengambil String?   @db.VarChar(100)
+  kelas          String?   @db.VarChar(100)
+  rombel         String?   @db.VarChar(100)
+  tahun_lulus    Int?
+  sudah_diambil  Boolean
+  createdAt      DateTime? @db.DateTime(0)
+  updatedAt      DateTime? @db.DateTime(0)
+}
+
+model data_pegawais {
+  id_pegawai           Int      @id
+  nama_pegawai         String?  @db.VarChar(255)
+  jabatan              String?  @db.VarChar(255)
+  status_kepegawaian   String?  @db.VarChar(255)
+  nip                  String?  @db.VarChar(255)
+  nuptk                String?  @db.VarChar(255)
+  tmpt_lahir           String?  @db.VarChar(255)
+  tgl_lahir            String?  @db.VarChar(255)
+  tmt                  String?  @db.VarChar(255)
+  pendidikan_terakhir  String?  @db.VarChar(255)
+  sekolah_pendidikan   String?  @db.VarChar(255)
+  sarjana_universitas  String?  @db.VarChar(255)
+  sarjana_fakultas     String?  @db.VarChar(255)
+  sarjana_prodi        String?  @db.VarChar(255)
+  magister_universitas String?  @db.VarChar(255)
+  magister_fakultas    String?  @db.VarChar(255)
+  magister_prodi       String?  @db.VarChar(255)
+  sertifikat_pendidik  String?  @db.VarChar(255)
+  sertifikat_teknik    String?  @db.VarChar(255)
+  sertifikat_magang    String?  @db.VarChar(255)
+  sertifikat_asesor    String?  @db.VarChar(255)
+  keterangan           String?  @db.VarChar(255)
+  pensiun              Boolean?
+  createdAt            DateTime @db.DateTime(0)
+  updatedAt            DateTime @db.DateTime(0)
+}
+
+model data_siswas {
+  id_siswa           Int?
+  nisn               String    @id @db.VarChar(10)
+  aktif              Boolean?
+  nis                Int?
+  kelas              Int?
+  id_rombel          String?   @db.VarChar(45)
+  no_rombel          Int?
+  nama_siswa         String?   @db.VarChar(40)
+  email_sekolah      String?   @db.VarChar(10)
+  jk_siswa           String?   @db.VarChar(11)
+  tempat_lahir_siswa String?   @db.VarChar(23)
+  tgl_lahir_siswa    String?   @db.VarChar(10)
+  alamat_siswa       String?   @db.VarChar(137)
+  no_telp_siswa      String?   @db.VarChar(25)
+  asal_sekolah       String?   @db.VarChar(32)
+  no_ijazah          String?   @db.VarChar(50)
+  tgl_ijazah         String?   @db.VarChar(100)
+  no_kk              BigInt?
+  agama              String?   @db.VarChar(9)
+  kategori           String?   @db.VarChar(34)
+  nik                BigInt?
+  tahun_masuk        Int?
+  nama_ayah          String?   @db.VarChar(25)
+  no_telp_ayah       String?   @db.VarChar(15)
+  nama_ibu           String?   @db.VarChar(25)
+  no_telp_ibu        String?   @db.VarChar(15)
+  nik_ayah           String?   @db.VarChar(17)
+  tempat_lahir_ayah  String?   @db.VarChar(16)
+  tanggal_lahir_ayah String?   @db.VarChar(10)
+  nik_ibu            String?   @db.VarChar(17)
+  tempat_lahir_ibu   String?   @db.VarChar(16)
+  tanggal_lahir_ibu  String?   @db.VarChar(10)
+  createdAt          DateTime? @default(now()) @db.Timestamp(0)
+  updatedAt          DateTime? @default(now()) @db.Timestamp(0)
+}
