@@ -2,7 +2,7 @@
 
 import { nunito, quicksand } from "@/config/fonts";
 import { loginAkun } from "@/lib/model/akunModel";
-import { faEnvelope, faKey, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faEnvelope, faExclamationCircle, faKey, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -133,6 +133,15 @@ export default function LoginPage() {
                         </div>
                     </div>
                 </form>
+                <div className="text-zinc-800 grid grid-cols-12 gap-5 md:hidden">
+                    <div className="w-full flex justify-center col-span-2">
+                        <FontAwesomeIcon icon={faExclamationCircle} className="w-5 h-5 text-red-500" />
+                    </div>
+                    <div className="w-full col-span-10 text-sm">
+                        <p className="font-bold">Perhatian!</p>
+                        <p>Dianjurkan untuk menggunakan <b>Laptop</b> atau <b>PC</b> untuk menghasilkan tampilan yang maksimal!</p>
+                    </div>
+                </div>
             </div>
         </div>
     )

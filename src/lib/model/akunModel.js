@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { prisma } from "../prisma"
 import jwt from 'jsonwebtoken'
 
+
 export const loginAkun = async (email, password) => {
     // Ambil datanya
     const data = await prisma.data_akuns.findFirst({
@@ -22,6 +23,12 @@ export const loginAkun = async (email, password) => {
     return data;
 }
 
+export const logoutAkun = async () => {
+    if(cookies().has('userdata')){
+        cookies().delete('userdata');
+    }
+}
+
 export const validateCookie = async () => {
     const cookie = cookies().get('userdata').value
     const result = await prisma.data_akuns.findFirst({
@@ -33,5 +40,21 @@ export const validateCookie = async () => {
         return false;
     } else {
         return true;
+    }
+}
+
+export const getAllAkun = async () => {
+    const result = await prisma.data_akuns.findMany();
+    return result;
+}
+
+export const createAkun = async (dataBody) => {
+    try {
+        await prisma.data_akuns.createMany({
+            data: dataBody
+        })
+        return true;
+    } catch (error) {
+        return false;
     }
 }

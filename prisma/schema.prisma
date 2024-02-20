@@ -13,8 +13,6 @@ model data_akuns {
   password_akun String?  @db.VarChar(255)
   nama_akun     String?  @db.VarChar(255)
   role_akun     String?  @db.VarChar(255)
-  createdAt     DateTime @db.DateTime(0)
-  updatedAt     DateTime @db.DateTime(0)
 }
 
 model data_ijazahs {
@@ -28,8 +26,6 @@ model data_ijazahs {
   rombel         String?   @db.VarChar(100)
   tahun_lulus    Int?
   sudah_diambil  Boolean
-  createdAt      DateTime? @db.DateTime(0)
-  updatedAt      DateTime? @db.DateTime(0)
 }
 
 model data_pegawais {
@@ -56,8 +52,6 @@ model data_pegawais {
   sertifikat_asesor    String?  @db.VarChar(255)
   keterangan           String?  @db.VarChar(255)
   pensiun              Boolean?
-  createdAt            DateTime @db.DateTime(0)
-  updatedAt            DateTime @db.DateTime(0)
 }
 
 model data_siswas {
@@ -93,6 +87,4 @@ model data_siswas {
   nik_ibu            String?   @db.VarChar(17)
   tempat_lahir_ibu   String?   @db.VarChar(16)
   tanggal_lahir_ibu  String?   @db.VarChar(10)
-  createdAt          DateTime? @default(now()) @db.Timestamp(0)
-  updatedAt          DateTime? @default(now()) @db.Timestamp(0)
 }
