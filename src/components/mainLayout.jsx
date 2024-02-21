@@ -1,13 +1,17 @@
 'use client'
 
-import { nunito, quicksand } from "@/config/fonts";
+// import { nunito, quicksand } from "@/config/fonts";
 import { logoutAkun } from "@/lib/model/akunModel";
 import { faCertificate, faClipboard, faHouse, faSignOut, faUserShield, faUserTie, faUsersRectangle, faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Nunito, Quicksand } from "next/font/google";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+
+const nunito = Nunito({subsets: ['latin']})
+const quicksand = Quicksand({subsets: ['latin']})
 
 const mySwal = withReactContent(Swal)
 const menuLink = [

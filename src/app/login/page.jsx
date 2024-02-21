@@ -1,13 +1,17 @@
 'use client'
 
-import { nunito, quicksand } from "@/config/fonts";
+
 import { loginAkun } from "@/lib/model/akunModel";
 import { faEnvelope, faExclamationCircle, faKey, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Nunito, Quicksand } from "next/font/google";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+
+const nunito = Nunito({subsets: ['latin']})
+const quicksand = Quicksand({subsets: ['latin']})
 
 export default function LoginPage() {
     const router = useRouter();

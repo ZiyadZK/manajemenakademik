@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken'
 
 export const loginAkun = async (email, password) => {
     // Ambil datanya
+
     const data = await prisma.data_akuns.findFirst({
         where: {
             password_akun: password,
@@ -55,6 +56,58 @@ export const createAkun = async (dataBody) => {
         })
         return true;
     } catch (error) {
+        return false;
+    }
+}
+
+export const deleteSingleAkunById = async (id) => {
+    try {
+        await prisma.data_akuns.delete({
+            where: {
+                id_akun: id
+            }
+        })
+        return true
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+export const updateSingleAkun = async (akun) => {
+    const newData = {
+        nama_akun: akun.nama_akun,
+        email_akun: akun.email_akun,
+        password_akun: akun.password_akun,
+        role_akun: akun.role_akun
+    }
+    try {
+        await prisma.data_akuns.update({
+            where: {
+                id_akun: akun.id_akun
+            },
+            data: newData
+        })
+        return true
+    } catch (error) {
+        console.log(error)
+        return false
+    }
+}
+
+export const deleteMultipleAkunById = async (arrayOfId) => {
+    try {
+        await prisma.data_akuns.deleteMany({
+            where: {
+                id_akun: {
+                    in: arrayOfId
+                }
+            }
+        })
+
+        return true;
+    } catch (error) {
+        console.log(error)
         return false;
     }
 }
