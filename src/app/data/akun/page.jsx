@@ -4,7 +4,7 @@ import MainLayoutPage from "@/components/mainLayout"
 import { nunito, space } from "@/config/fonts";
 import { debounce } from "@/lib/functions";
 import { createAkun, getAllAkun } from "@/lib/model/akunModel";
-import { faCheck, faClockRotateLeft, faEllipsis, faInfo, faInfoCircle, faPlusSquare, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faAlignLeft, faAngleLeft, faAngleRight, faCheck, faClockRotateLeft, faEdit, faEllipsis, faInfo, faInfoCircle, faPlusSquare, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { nanoid } from "nanoid";
 import { Suspense, useEffect, useState } from "react";
@@ -14,11 +14,14 @@ import withReactContent from "sweetalert2-react-content";
 
 const mySwal = withReactContent(Swal)
 export default function DataAkunPage() {
+    // let selectedAkun = []
     const [newFormData, setNewFormData] = useState([])
     const [akunList, setAkunList] = useState([])
     const [filteredAkunList, setFilteredAkunList] = useState([])
     const [filterRole, setFilterRole] = useState('All')
     const [searchValue, setSearchValue] = useState('');
+    const [selectedAkun, setSelectedAkun] = useState([])
+    
     // const [lastUpdate, setLastUpdate] = useState(new Date())
 
     const addNewFormData = () => {
@@ -34,6 +37,25 @@ export default function DataAkunPage() {
         }
         const updatedFormData = [...newFormData, newForm];
         setNewFormData(updatedFormData);
+    }
+
+    const handleSelectAkun = (id) => {
+        // Check if there's an ID inside the selectedAkun
+        
+        if(selectedAkun.includes(id)) {
+            // Hapus
+            const updatedSelectedAkun = selectedAkun.filter(item_id => item_id !== id);
+            setSelectedAkun(updatedSelectedAkun)
+        }else{
+            // Buat
+            const newSelectedAkun = [...selectedAkun, id];
+            setSelectedAkun(newSelectedAkun)
+        }
+    }
+
+    const handleSelectAllAkun = () => {
+        const akunIdList = filteredAkunList.map(({id_akun}) => id_akun)
+        
     }
 
     const deleteFormData = (id) => {
@@ -199,8 +221,9 @@ export default function DataAkunPage() {
                         </select>
                     </div>
                 </div>
-                <div  className="grid grid-cols-12 bg-zinc-800 text-white py-2 rounded mt-3">
-                    <div className="col-span-3 px-2">
+                <div className="grid grid-cols-12 bg-zinc-800 text-white py-2 rounded mt-3 sticky top-0">
+                    <div className="col-span-3 px-2 flex items-center gap-3">
+                        <input type="checkbox" name="" className="accent-orange-600" />
                         Nama
                     </div>
                     <div className="col-span-3 px-2">
@@ -218,11 +241,12 @@ export default function DataAkunPage() {
                 </div>
                 <div className={"divide-y-2 " + nunito.className}>
                     <Suspense fallback={<p className="text-zinc-800">Loading..</p>}>
-                        {filteredAkunList.map(({nama_akun, email_akun, password_akun, role_akun}, index) => (
-                            <div className="grid grid-cols-12 text-sm">
-                                <p className="py-2 w-full col-span-3 px-2">
+                        {filteredAkunList.map(({id_akun, nama_akun, email_akun, password_akun, role_akun}, index) => (
+                            <div key={index} className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
+                                <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
+                                    <input type="checkbox" name="" checked={selectedAkun.includes(id_akun) ? true : false} onChange={() => handleSelectAkun(id_akun)} id="" className="cursor-pointer" />
                                     {nama_akun}
-                                </p>
+                                </div>
                                 <p className="py-2 w-full col-span-3 px-2">
                                     {email_akun}
                                 </p>
@@ -232,10 +256,47 @@ export default function DataAkunPage() {
                                 <p className="py-2 w-full col-span-2 px-2">
                                     {role_akun}
                                 </p>
-                                <div className="flex items-center justify-center gap-2"></div>
+                                <div className="flex items-center justify-center gap-2">
+                                    <button className="w-6 h-6 text-zinc-800 rounded bg-red-400 hover:bg-red-500 flex items-center justify-center">
+                                        <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    <button className="w-6 h-6 text-zinc-800 rounded bg-orange-400 hover:bg-orange-500 flex items-center justify-center">
+                                        <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                     </Suspense>
+                </div>
+                <div className="rounded w-full flex items-center justify-between bg-zinc-800 py-2 text-white px-2 text-sm sticky bottom-0">
+                    <div className="flex items-center gap-5">
+                        <p>
+                            <b>{selectedAkun.length}</b> Item selected
+                        </p>
+                        {selectedAkun.length > 0 && <button className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold">
+                            Hapus
+                        </button>}
+                    </div>
+                    <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-3">
+                            <button className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700 text-zinc-300">
+                                <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
+                            </button>
+                            <p>
+                                2
+                            </p>
+                            <button className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700 text-zinc-300">
+                                <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
+                            </button>
+                        </div>
+                        <select name="" id="" className="py-1 px-2 rounded outline-none border bg-zinc-700 cursor-pointer">
+                            <option value="">10 Data</option>
+                            <option value="">30 Data</option>
+                            <option value="">50 Data</option>
+                            <option value="">100 Data</option>
+                            <option value="">Semua Data</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </MainLayoutPage>
