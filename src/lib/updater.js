@@ -27,4 +27,4 @@ class Updater {
     }
 }
 
-export default Updater;
+export const updaterEmitter = new Updater();
