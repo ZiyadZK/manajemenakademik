@@ -8,11 +8,11 @@ datasource db {
 }
 
 model data_akuns {
-  id_akun       String   @id @db.VarChar(255)
-  email_akun    String?  @unique(map: "email_akun") @db.VarChar(255)
-  password_akun String?  @db.VarChar(255)
-  nama_akun     String?  @db.VarChar(255)
-  role_akun     String?  @db.VarChar(255)
+  id_akun       String  @id @db.VarChar(255)
+  email_akun    String? @unique(map: "email_akun") @db.VarChar(255)
+  password_akun String? @db.VarChar(255)
+  nama_akun     String? @db.VarChar(255)
+  role_akun     String? @db.VarChar(255)
 }
 
 model data_ijazahs {
@@ -54,37 +54,31 @@ model data_pegawais {
   pensiun              Boolean?
 }
 
-model data_siswas {
-  id_siswa           Int?
-  nisn               String    @id @db.VarChar(10)
-  aktif              Boolean?
-  nis                Int?
-  kelas              Int?
-  id_rombel          String?   @db.VarChar(45)
-  no_rombel          Int?
-  nama_siswa         String?   @db.VarChar(40)
-  email_sekolah      String?   @db.VarChar(10)
-  jk_siswa           String?   @db.VarChar(11)
-  tempat_lahir_siswa String?   @db.VarChar(23)
-  tgl_lahir_siswa    String?   @db.VarChar(10)
-  alamat_siswa       String?   @db.VarChar(137)
-  no_telp_siswa      String?   @db.VarChar(25)
-  asal_sekolah       String?   @db.VarChar(32)
-  no_ijazah          String?   @db.VarChar(50)
-  tgl_ijazah         String?   @db.VarChar(100)
-  no_kk              BigInt?
-  agama              String?   @db.VarChar(9)
-  kategori           String?   @db.VarChar(34)
-  nik                BigInt?
-  tahun_masuk        Int?
-  nama_ayah          String?   @db.VarChar(25)
-  no_telp_ayah       String?   @db.VarChar(15)
-  nama_ibu           String?   @db.VarChar(25)
-  no_telp_ibu        String?   @db.VarChar(15)
-  nik_ayah           String?   @db.VarChar(17)
-  tempat_lahir_ayah  String?   @db.VarChar(16)
-  tanggal_lahir_ayah String?   @db.VarChar(10)
-  nik_ibu            String?   @db.VarChar(17)
-  tempat_lahir_ibu   String?   @db.VarChar(16)
-  tanggal_lahir_ibu  String?   @db.VarChar(10)
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model data_siswa {
+  kelas                 String? @db.VarChar(10)
+  nama_siswa            String? @db.VarChar(44)
+  nis                   Int?
+  nisn                  String? @db.VarChar(11)
+  nik                   String? @db.VarChar(16)
+  no_kk                 String? @db.VarChar(19)
+  tempat_lahir          String? @db.VarChar(17)
+  tanggal_lahir         String? @db.VarChar(10)
+  jenis_kelamin         String? @db.VarChar(9)
+  agama                 String? @db.VarChar(17)
+  status_dalam_keluarga String? @db.VarChar(16)
+  anak_ke               String? @db.VarChar(1)
+  alamat                String? @db.VarChar(126)
+  no_hp_siswa           String? @db.VarChar(15)
+  asal_sekolah          String? @db.VarChar(43)
+  kategori              String? @db.VarChar(34)
+  tahun_masuk           String? @db.VarChar(4)
+  nama_ayah             String? @db.VarChar(32)
+  nama_ibu              String? @db.VarChar(30)
+  telp_ortu             String? @db.VarChar(15)
+  pekerjaan_ayah        String? @db.VarChar(26)
+  pekerjaan_ibu         String? @db.VarChar(21)
+  aktif                 String? @db.VarChar(5)
+
+  @@ignore
 }

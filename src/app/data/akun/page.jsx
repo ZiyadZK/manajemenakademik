@@ -5,12 +5,14 @@ import { downloadCSV } from "@/lib/csvDownload";
 // import { nunito, space } from "@/config/fonts";
 import { debounce } from "@/lib/functions";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
+import { updaterEmitter } from "@/lib/updater";
 import { faAlignLeft, faAngleLeft, faAngleRight, faCheck, faClockRotateLeft, faEdit, faEllipsis, faInfo, faInfoCircle, faPlusSquare, faPrint, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { nanoid } from "nanoid";
 import { Nunito, Quicksand } from "next/font/google";
 import { Suspense, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
+import { io } from "socket.io-client";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
@@ -19,6 +21,8 @@ const quicksand = Quicksand({subsets: ['latin']})
 
 const mySwal = withReactContent(Swal)
 export default function DataAkunPage() {
+    const socket = io()
+
     // let selectedAkun = []
     const [newFormData, setNewFormData] = useState([])
     const [akunList, setAkunList] = useState([])
@@ -150,6 +154,15 @@ export default function DataAkunPage() {
     }, [])
 
     useEffect(() => {
+        const updaterConnection = () => {
+            socket.on('connect', () => {
+                console.log(socket.id)
+            })
+        }
+        updaterConnection()
+    }, [])
+
+    useEffect(() => {
         const filterAkunList = () => {
             // Check if the search Value is unknown or ''
             if(filterRole === 'All') {
@@ -233,7 +246,6 @@ export default function DataAkunPage() {
     }
 
     const ExportCSV = () => {
-        console.log(akunList);
         downloadCSV(akunList);
     }
     

@@ -3,6 +3,8 @@
 import { cookies } from "next/headers";
 import { prisma } from "../prisma"
 import jwt from 'jsonwebtoken'
+import { updaterEmitter } from "../updater";
+import { io } from "socket.io-client";
 
 
 export const loginAkun = async (email, password) => {
@@ -16,9 +18,9 @@ export const loginAkun = async (email, password) => {
     })
     if(data !== null){
         cookies().set('userdata', data.id_akun, {
-            secure: true,
-            httpOnly: true
-        });
+            httpOnly: true,
+            sameSite: true
+        })
     }
 
     return data;
@@ -50,10 +52,17 @@ export const getAllAkun = async () => {
 }
 
 export const createAkun = async (dataBody) => {
+
+    const socket = io();
+
     try {
         await prisma.data_akuns.createMany({
             data: dataBody
         })
+
+        socket.emit('test connect', 'Hello');
+
+        
         return true;
     } catch (error) {
         return false;

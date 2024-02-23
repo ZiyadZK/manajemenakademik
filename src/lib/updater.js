@@ -1,6 +1,6 @@
 class Updater {
     constructor() {
-        this.events = {}
+        this.events = []
     }
 
     on(eventName, listener) {
