@@ -3,10 +3,10 @@
 import { cookies } from "next/headers";
 import { prisma } from "../prisma"
 import jwt from 'jsonwebtoken'
-import { updaterEmitter } from "../updater";
 import { io } from "socket.io-client";
+import EventEmitter from "events";
 
-
+const emitter = new EventEmitter()
 export const loginAkun = async (email, password) => {
     // Ambil datanya
 
@@ -60,7 +60,8 @@ export const createAkun = async (dataBody) => {
             data: dataBody
         })
 
-        socket.emit('test connect', 'Hello');
+        const updatedAkun = await getAllAkun()
+        emitter.emit('create akun', updatedAkun)
 
         
         return true;

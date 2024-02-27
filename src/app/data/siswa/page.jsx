@@ -1,14 +1,78 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { faAngleLeft, faAngleRight, faClockRotateLeft, faEdit, faEllipsis, faInfoCircle, faMale, faPlusSquare, faPrint, faSearch, faTrash } from "@fortawesome/free-solid-svg-icons"
+import { debounce } from "@/lib/functions"
+import { getAllSiswa } from "@/lib/model/siswaModel"
+import { faAngleLeft, faAngleRight, faClockRotateLeft, faEdit, faEllipsis, faInfoCircle, faMale, faPlusSquare, faPrint, faSearch, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
 
 
 export default function DataSiswaMainPage() {
     const router = useRouter();
+    const [siswaList, setSiswaList] = useState([])
+    const [filteredSiswaList, setFilteredSiswaList] = useState([])
+    const [loadingFetch, setLoadingFetch] = useState(false)
+    const [kelas, setKelas] = useState(0)
+    const [rombel, setRombel] = useState('All')
+    const [noRombel, setNoRombel] = useState(0)
+    const [searchValue, setSearchValue] = useState('')
+    const [searchCriteria, setSearchCriteria] = useState('nama_siswa')
+    const [selectedSiswa, setSelectedSiswa] = useState([])
+    const [selectAll, setSelectAll] = useState(false)
+    const [pagination, setPagination] = useState(1)
+    const [totalList, setTotalList] = useState(10)
+
+    const getSiswa = async () => {
+        setLoadingFetch(state => state = true);
+        const data = await getAllSiswa()
+        setSiswaList(data)
+        setFilteredSiswaList(data)
+        setLoadingFetch(state => state = false)
+    }
+
+    useEffect(() => {
+        getSiswa()
+    }, [])
+
+    const handleSelectedSiswa = (nis) => {
+        if(!selectedSiswa.includes(nis)){
+            const newData = [...selectedSiswa, nis]
+            setSelectedSiswa(newData)
+        }else{
+            const newData = selectedSiswa.filter(item => item !== nis);
+            setSelectedSiswa(newData)
+        }
+    }
+
+    const handleSubmitFilter = () => {
+        const valueFilterKelas = `${kelas != 0 ? kelas+' ' : ''}${rombel != 'All' ? rombel+' ' : ''}${noRombel != 0 ? noRombel : ''}`
+        if(kelas === 0 && rombel === 'All' && noRombel === 0) {
+            const newData = siswaList.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
+            
+            return setFilteredSiswaList(newData)
+        }
+        const newData = siswaList.filter(siswa => siswa['kelas'].includes(valueFilterKelas) && siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
+        return setFilteredSiswaList(state => state = newData)
+        
+    }
+
+    const handleSelectAll = () => {
+        if(selectAll) {
+            setSelectAll(false)
+            return setSelectedSiswa([])
+        }else{
+            setSelectAll(true)
+            const filteredSiswa = filteredSiswaList.map(({nis}) => nis)
+            return setSelectedSiswa(filteredSiswa)
+        }
+    }
+
+    useEffect(() => {
+        handleSubmitFilter()
+    }, [kelas, rombel, noRombel, searchValue, searchCriteria])
     return (
         <MainLayoutPage>
             <Toaster />
@@ -47,14 +111,14 @@ export default function DataSiswaMainPage() {
                     </div>
                 </div>
                 <div className="grid grid-cols-12 gap-5 my-2">
-                    <select className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
+                    <select value={kelas} onChange={e => setKelas(e.target.value)} className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
                         <option value="" disabled>-- Pilih Kelas --</option>
-                        <option value="10">Kelas 10</option>
-                        <option value="11">Kelas 11</option>
-                        <option value="12">Kelas 12</option>
-                        <option value="All">Semua Kelas</option>
+                        <option value={'X'}>Kelas 10</option>
+                        <option value={'XI'}>Kelas 11</option>
+                        <option value={'XII'}>Kelas 12</option>
+                        <option value={0}>Semua Kelas</option>
                     </select>
-                    <select className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
+                    <select value={rombel} onChange={e => setRombel(e.target.value)} className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
                         <option value="" disabled>-- Pilih Jurusan --</option>
                         <option value="TKJ">TKJ</option>
                         <option value="DPIB">DPIB</option>
@@ -64,19 +128,21 @@ export default function DataSiswaMainPage() {
                         <option value="TITL">TITL</option>
                         <option value="All">Semua Kelas</option>
                     </select>
-                    <select className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
+                    <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
                         <option value="" disabled>-- No Rombel --</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                        <option value={4}>4</option>
+                        <option value={0}>Semua Rombel</option>
                     </select>
                     <div className="flex col-span-6 w-full items-center justify-end gap-5">
-                        <input type="text" className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800" placeholder="Cari data disini" />
-                        <select className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
+                        <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800" placeholder="Cari data disini" />
+                        <select value={searchCriteria} onChange={e => setSearchCriteria(e.target.value)} className="px-3 py-1 rounded border outline-none cursor-pointer col-span-2 text-sm hover:scale-95 transition-all duration-300 hover:border-zinc-600 focus:border-zinc-800">
                             <option value="" disabled>-- Kriteria --</option>
                             <option value="nis">NIS</option>
                             <option value="nisn">NISN</option>
-                            <option value="nama">Nama</option>
+                            <option value="nama_siswa">Nama</option>
                             <option value="nik">NIK</option>
                             <option value="no_hp_siswa">No Telp</option>   
                         </select>    
@@ -84,7 +150,7 @@ export default function DataSiswaMainPage() {
                 </div>
                 <div className="grid grid-cols-12 bg-zinc-800 text-white py-2 rounded mt-3 sticky top-0 text-sm">
                     <div className="col-span-3 px-2 flex items-center gap-3">
-                        <input type="checkbox"  className="accent-orange-600 cursor-pointer outline-none" />
+                        <input type="checkbox" checked={selectAll ? true : false} onChange={() => handleSelectAll()}  className="accent-orange-600 cursor-pointer outline-none" />
                         Nama
                     </div>
                     <div className="col-span-2 px-2">
@@ -96,11 +162,11 @@ export default function DataSiswaMainPage() {
                     <div className=" px-2">
                         Gender
                     </div>
-                    <div className=" px-2">
+                    <div className="col-span-2 px-2">
                         No HP
                     </div>
-                    <div className="col-span-2 px-2">
-                        Tahun Masuk
+                    <div className=" px-2">
+                        Tahun
                     </div>
                     <div className="px-2">
                         Status
@@ -109,29 +175,44 @@ export default function DataSiswaMainPage() {
                         <FontAwesomeIcon icon={faEllipsis} className="w-4 h-4 text-inherit" />
                     </div>
                 </div>
+                {loadingFetch === true && (
+                        <div className="flex w-full justify-center gap-5 my-3">
+                            <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 text-zinc-600 animate-spin" />
+                            <p className="text-sm text-zinc-800">
+                                Sedang loading..
+                            </p>
+                        </div>
+                )}
+                {siswaList.length === 0 && loadingFetch === false && (
+                    <div className="flex w-full justify-center gap-5 my-3">
+                        <p className="text-sm text-zinc-800">
+                            Data kosong
+                        </p>
+                    </div>
+                )}
                 <div className="divide-y-2 my-1">
-                    <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
+                    {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (<div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
                         <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
-                            <input type="checkbox" name="" id="" />
-                            Ziyad Jahizh Kartiwa
+                            <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} name="" id="" className="cursor-pointer " />
+                            {siswa.nama_siswa}
                         </div>
                         <div className="py-2 w-full col-span-2 px-2">
-                            10211615 / 0061085056
+                            {siswa.nis} / {siswa.nisn}
                         </div>
                         <div className="py-2 w-full  px-2">
-                            XII DPIB 1
-                        </div>
-                        <div className="p-2 flex items-center gap-2">
-                            Laki-laki
+                            {siswa.kelas}
                         </div>
                         <div className="p-2 ">
-                            0831127251
+                            {siswa.jenis_kelamin}
                         </div>
-                        <p className="p-2 col-span-2">
-                            2021
+                        <div className="p-2 col-span-2">
+                            {siswa.no_hp_siswa}
+                        </div>
+                        <p className="p-2 ">
+                            {siswa.tahun_masuk}
                         </p>
                         <p className="p-2">
-                            Aktif
+                            {siswa.aktif === 'aktif' ? 'Aktif' : 'Tidak Aktif'}
                         </p>
                         <div className="col-span-1 flex w-full items-center justify-center gap-1">
                             <button type="button" className="w-6 h-6 text-zinc-800 rounded bg-orange-400 hover:bg-orange-500 flex items-center justify-center" title="Ubah Data">
@@ -140,72 +221,38 @@ export default function DataSiswaMainPage() {
                             <button type="button" className="w-6 h-6 text-zinc-800 rounded bg-blue-400 hover:bg-blue-500 flex items-center justify-center" title="Lihat lebih detail">
                                 <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
                             </button>
-                            <button type="button"  className="w-6 h-6 text-zinc-800 rounded bg-red-400 hover:bg-red-500 flex items-center justify-center">
+                            <button type="button"  className="w-6 h-6 text-zinc-800 rounded bg-red-400 hover:bg-red-500 flex items-center justify-center" title="Hapus data">
                                 <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                             </button>
                         </div>
-                    </div>
-                    <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
-                        <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
-                            <input type="checkbox" name="" id="" />
-                            Ziyad Jahizh Kartiwa
-                        </div>
-                        <div className="py-2 w-full col-span-2 px-2">
-                            10211615 / 0061085056
-                        </div>
-                        <div className="py-2 w-full  px-2">
-                            XII DPIB 1
-                        </div>
-                        <div className="p-2 flex items-center gap-2">
-                            Laki-laki
-                        </div>
-                        <div className="p-2 ">
-                            0831127251
-                        </div>
-                        <p className="p-2 col-span-2">
-                            2021
-                        </p>
-                        <p className="p-2">
-                            Aktif
-                        </p>
-                        <div className="col-span-1 flex w-full items-center justify-center gap-1">
-                            <button type="button" className="w-6 h-6 text-zinc-800 rounded bg-orange-400 hover:bg-orange-500 flex items-center justify-center" title="Ubah Data">
-                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <button type="button" className="w-6 h-6 text-zinc-800 rounded bg-blue-400 hover:bg-blue-500 flex items-center justify-center" title="Lihat lebih detail">
-                                <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <button type="button"  className="w-6 h-6 text-zinc-800 rounded bg-red-400 hover:bg-red-500 flex items-center justify-center">
-                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
-                            </button>
-                        </div>
-                    </div>
+                    </div>))}
+                    
                 </div>
                 <div className="rounded w-full flex items-center justify-between bg-zinc-800 py-2 text-white px-2 text-sm sticky bottom-0">
                     <div className="flex items-center gap-5">
                         <p>
-                            <b>0</b> Item selected
+                            <b>{selectedSiswa.length}</b> Item selected
                         </p>
-                        <button type="button"  className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold">
+                        {selectedSiswa.length > 0 && <button type="button"  className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold">
                             Hapus
-                        </button>
+                        </button>}
                     </div>
                     <div className="flex items-center gap-5">
                         <div className="flex items-center gap-3">
                             <p className="text-xs text-white">
-                                Total <b>1</b> items
+                                Total <b>{siswaList.length}</b> items
                             </p>
-                            <button type="button" className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700 text-zinc-300">
+                            <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700 text-zinc-300">
                                 <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
                             </button>
                             <p>
-                                1
+                                {pagination}
                             </p>
-                            <button type="button"  className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700 text-zinc-300">
+                            <button type="button" onClick={() => setPagination(state => state = state + 1)}  className="w-6 h-6 flex items-center justify-center rounded hover:bg-zinc-700 text-zinc-300">
                                 <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
                             </button>
                         </div>
-                        <select className="py-1 px-2 rounded outline-none border bg-zinc-700 cursor-pointer">
+                        <select value={totalList} onChange={e => setTotalList(e.target.value)} className="py-1 px-2 rounded outline-none border bg-zinc-700 cursor-pointer">
                             <option value={10}>10 Data</option>
                             <option value={30}>30 Data</option>
                             <option value={50}>50 Data</option>

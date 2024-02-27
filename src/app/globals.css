@@ -35,3 +35,11 @@ body {
 *::-webkit-scrollbar {
   display: none;
 }
+
+.button:hover {
+  @apply scale-95
+}
+
+.button:focus {
+  @apply scale-95
+}

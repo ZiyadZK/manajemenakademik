@@ -3,11 +3,10 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { downloadCSV } from "@/lib/csvDownload";
 // import { nunito, space } from "@/config/fonts";
-import { debounce } from "@/lib/functions";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
-import { updaterEmitter } from "@/lib/updater";
 import { faAlignLeft, faAngleLeft, faAngleRight, faCheck, faClockRotateLeft, faEdit, faEllipsis, faInfo, faInfoCircle, faPlusSquare, faPrint, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {EventEmitter} from "events";
 import { nanoid } from "nanoid";
 import { Nunito, Quicksand } from "next/font/google";
 import { Suspense, useEffect, useState } from "react";
@@ -19,9 +18,14 @@ import withReactContent from "sweetalert2-react-content";
 const nunito = Nunito({subsets: ['latin']})
 const quicksand = Quicksand({subsets: ['latin']})
 
+const emitter = new EventEmitter()
+
 const mySwal = withReactContent(Swal)
 export default function DataAkunPage() {
     const socket = io()
+    emitter.on('create akun', async(data) => {
+        await getAkun()
+    })
 
     // let selectedAkun = []
     const [newFormData, setNewFormData] = useState([])
@@ -127,6 +131,7 @@ export default function DataAkunPage() {
                 const createDone = await createAkun(newFormData);
                 if(createDone) {
                     mySwal.close();
+
                     toast.success('Berhasil menambahkan data!');
                     setNewFormData([])
                     getAkun()

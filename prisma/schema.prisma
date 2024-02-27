@@ -58,8 +58,8 @@ model data_pegawais {
 model data_siswa {
   kelas                 String? @db.VarChar(10)
   nama_siswa            String? @db.VarChar(44)
-  nis                   Int?
-  nisn                  String? @db.VarChar(11)
+  nis                   Int     @id
+  nisn                  String? @unique(map: "nisn") @db.VarChar(11)
   nik                   String? @db.VarChar(16)
   no_kk                 String? @db.VarChar(19)
   tempat_lahir          String? @db.VarChar(17)
@@ -79,6 +79,4 @@ model data_siswa {
   pekerjaan_ayah        String? @db.VarChar(26)
   pekerjaan_ibu         String? @db.VarChar(21)
   aktif                 String? @db.VarChar(5)
-
-  @@ignore
 }
