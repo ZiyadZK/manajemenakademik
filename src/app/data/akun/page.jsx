@@ -2,7 +2,6 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { downloadCSV } from "@/lib/csvDownload";
-// import { nunito, space } from "@/config/fonts";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
 import { faAlignLeft, faAngleLeft, faAngleRight, faCheck, faClockRotateLeft, faEdit, faEllipsis, faInfo, faInfoCircle, faPlusSquare, faPrint, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
