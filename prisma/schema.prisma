@@ -80,3 +80,29 @@ model data_siswa {
   pekerjaan_ibu         String? @db.VarChar(21)
   aktif                 String? @db.VarChar(5)
 }
+
+model data_alumni {
+  kelas                 String? @db.VarChar(10)
+  nama_siswa            String? @db.VarChar(44)
+  nis                   String  @id
+  nisn                  String? @unique(map: "nisn") @db.VarChar(11)
+  nik                   String? @db.VarChar(16)
+  no_kk                 String? @db.VarChar(19)
+  tempat_lahir          String? @db.VarChar(17)
+  tanggal_lahir         String? @db.VarChar(10)
+  jenis_kelamin         String? @db.VarChar(9)
+  agama                 String? @db.VarChar(17)
+  status_dalam_keluarga String? @db.VarChar(16)
+  anak_ke               String? @db.VarChar(1)
+  alamat                String? @db.VarChar(126)
+  no_hp_siswa           String? @db.VarChar(15)
+  asal_sekolah          String? @db.VarChar(43)
+  kategori              String? @db.VarChar(34)
+  tahun_masuk           String
+  nama_ayah             String? @db.VarChar(32)
+  nama_ibu              String? @db.VarChar(30)
+  telp_ortu             String? @db.VarChar(15)
+  pekerjaan_ayah        String? @db.VarChar(26)
+  pekerjaan_ibu         String? @db.VarChar(21)
+  aktif                 String? @db.VarChar(5)
+}

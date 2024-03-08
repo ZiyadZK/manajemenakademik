@@ -1,15 +1,16 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { debounce } from "@/lib/functions"
-import { getAllSiswa } from "@/lib/model/siswaModel"
-import { faAngleLeft, faAngleRight, faClockRotateLeft, faEdit, faEllipsis, faInfoCircle, faMale, faPlusSquare, faPrint, faSearch, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons"
+import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa } from "@/lib/model/siswaModel"
+import { faAngleLeft, faAngleRight, faAngleUp, faClockRotateLeft, faEdit, faEllipsis, faInfoCircle, faMale, faPlusSquare, faPrint, faSearch, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
+import Swal from "sweetalert2"
+import withReactContent from "sweetalert2-react-content"
 
-
+const mySwal = withReactContent(Swal)
 export default function DataSiswaMainPage() {
     const router = useRouter();
     const [siswaList, setSiswaList] = useState([])
@@ -65,7 +66,7 @@ export default function DataSiswaMainPage() {
             return setSelectedSiswa([])
         }else{
             setSelectAll(true)
-            const filteredSiswa = filteredSiswaList.map(({nis}) => nis)
+            const filteredSiswa = filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map(({nis}) => nis)
             return setSelectedSiswa(filteredSiswa)
         }
     }
@@ -73,6 +74,89 @@ export default function DataSiswaMainPage() {
     useEffect(() => {
         handleSubmitFilter()
     }, [kelas, rombel, noRombel, searchValue, searchCriteria])
+
+    const deleteSingle = async (nis) => {
+        mySwal.fire({
+            title: 'Apakah anda yakin?',
+            text: 'Anda akan menghapus data tersebut!',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(async result => {
+            if(result.isConfirmed) {
+                mySwal.fire({
+                    title: 'Sedang memproses data..',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 10000,
+                    didOpen: async () => {
+                        const response = await deleteSingleSiswaByNis(nis)
+                        if(response.success) {
+                            await getSiswa()
+                            mySwal.fire({
+                                icon: 'success',
+                                title: 'Berhasil memproses data!',
+                                text: 'Anda berhasil menghapus data tersebut',
+                                timer: 2000
+                            })
+                        }else{
+                            mySwal.fire({
+                                icon: 'error',
+                                title: 'Gagal memproses data!',
+                                text: 'Tampaknya terdapat error, silahkan coba beberapa saat lagi!',
+                                timer: 2000
+                            })
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+    const deleteSelectedSiswa = () => {
+        mySwal.fire({
+            title: 'Apakah anda yakin?',
+            icon: 'question',
+            text: 'Anda akan menghapus beberapa siswa yang sudah di seleksi',
+            showCancelButton: true,
+            cancelButtonText: 'Tidak',
+            confirmButtonText: 'Ya',
+            allowOutsideClick: false
+        }).then(async result => {
+            if(result.isConfirmed) {
+                mySwal.fire({
+                    title: 'Sedang memproses data..',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 10000,
+                    didOpen: async () => {
+                        const response = await deleteMultiSiswaByNis(selectedSiswa)
+                        if(response.success) {
+                            setSelectedSiswa([])
+                            mySwal.fire({
+                                icon: 'success',
+                                title: 'Berhasil memproses data!',
+                                timer: 2000,
+                            }).finally(async () => {
+                                await getSiswa()
+                            })
+                        }else{
+                            mySwal.fire({
+                                icon: 'error',
+                                title: 'Gagal memproses data!',
+                                timer: 2000
+                            })
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+    const naikKelasSemua = async () => {
+        await naikkanKelasSiswa()
+    }
+
     return (
         <MainLayoutPage>
             <Toaster />
@@ -176,12 +260,12 @@ export default function DataSiswaMainPage() {
                     </div>
                 </div>
                 {loadingFetch === true && (
-                        <div className="flex w-full justify-center gap-5 my-3">
-                            <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 text-zinc-600 animate-spin" />
-                            <p className="text-sm text-zinc-800">
-                                Sedang loading..
-                            </p>
-                        </div>
+                    <div className="flex w-full justify-center gap-5 my-3">
+                        <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 text-zinc-600 animate-spin" />
+                        <p className="text-sm text-zinc-800">
+                            Sedang loading..
+                        </p>
+                    </div>
                 )}
                 {siswaList.length === 0 && loadingFetch === false && (
                     <div className="flex w-full justify-center gap-5 my-3">
@@ -191,49 +275,50 @@ export default function DataSiswaMainPage() {
                     </div>
                 )}
                 <div className="divide-y-2 my-1">
-                    {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (<div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
-                        <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
-                            <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} name="" id="" className="cursor-pointer " />
-                            {siswa.nama_siswa}
+                    {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (
+                        <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
+                            <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
+                                <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} name="" id="" className="cursor-pointer " />
+                                {siswa.nama_siswa}
+                            </div>
+                            <div className="py-2 w-full col-span-2 px-2">
+                                {siswa.nis} / {siswa.nisn}
+                            </div>
+                            <div className="py-2 w-full  px-2">
+                                {siswa.kelas}
+                            </div>
+                            <div className="p-2 ">
+                                {siswa.jenis_kelamin}
+                            </div>
+                            <div className="p-2 col-span-2">
+                                {siswa.no_hp_siswa}
+                            </div>
+                            <p className="p-2 ">
+                                {siswa.tahun_masuk}
+                            </p>
+                            <p className="p-2">
+                                {siswa.aktif === 'aktif' ? 'Aktif' : 'Tidak Aktif'}
+                            </p>
+                            <div className="col-span-1 flex w-full items-center justify-center gap-1">
+                                <button type="button" onClick={() => router.push(`/data/siswa/update/${siswa.nis}`)} className="w-6 h-6 text-zinc-800 rounded bg-orange-400 hover:bg-orange-500 flex items-center justify-center" title="Ubah Data">
+                                    <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                </button>
+                                <button type="button" onClick={() => router.push(`/data/siswa/nis/${siswa.nis}`)} className="w-6 h-6 text-zinc-800 rounded bg-blue-400 hover:bg-blue-500 flex items-center justify-center" title="Lihat lebih detail">
+                                    <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
+                                </button>
+                                <button type="button" onClick={() => deleteSingle(siswa.nis)}  className="w-6 h-6 text-zinc-800 rounded bg-red-400 hover:bg-red-500 flex items-center justify-center" title="Hapus data">
+                                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                </button>
+                            </div>
                         </div>
-                        <div className="py-2 w-full col-span-2 px-2">
-                            {siswa.nis} / {siswa.nisn}
-                        </div>
-                        <div className="py-2 w-full  px-2">
-                            {siswa.kelas}
-                        </div>
-                        <div className="p-2 ">
-                            {siswa.jenis_kelamin}
-                        </div>
-                        <div className="p-2 col-span-2">
-                            {siswa.no_hp_siswa}
-                        </div>
-                        <p className="p-2 ">
-                            {siswa.tahun_masuk}
-                        </p>
-                        <p className="p-2">
-                            {siswa.aktif === 'aktif' ? 'Aktif' : 'Tidak Aktif'}
-                        </p>
-                        <div className="col-span-1 flex w-full items-center justify-center gap-1">
-                            <button type="button" onClick={() => router.push(`/data/siswa/update/${siswa.nis}`)} className="w-6 h-6 text-zinc-800 rounded bg-orange-400 hover:bg-orange-500 flex items-center justify-center" title="Ubah Data">
-                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <button type="button" onClick={() => router.push(`/data/siswa/nis/${siswa.nis}`)} className="w-6 h-6 text-zinc-800 rounded bg-blue-400 hover:bg-blue-500 flex items-center justify-center" title="Lihat lebih detail">
-                                <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <button type="button"  className="w-6 h-6 text-zinc-800 rounded bg-red-400 hover:bg-red-500 flex items-center justify-center" title="Hapus data">
-                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
-                            </button>
-                        </div>
-                    </div>))}
-                    
+                    ))}
                 </div>
                 <div className="rounded w-full flex items-center justify-between bg-zinc-800 py-2 text-white px-2 text-sm sticky bottom-0">
                     <div className="flex items-center gap-5">
                         <p>
                             <b>{selectedSiswa.length}</b> Item selected
                         </p>
-                        {selectedSiswa.length > 0 && <button type="button"  className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold">
+                        {selectedSiswa.length > 0 && <button onClick={() => deleteSelectedSiswa()} type="button"  className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold">
                             Hapus
                         </button>}
                     </div>
@@ -267,6 +352,15 @@ export default function DataSiswaMainPage() {
                         </div>
                     </div>
                 </div>
+                <hr className="my-2 opacity-0" />
+                <h1 className="w-fit px-2 py-1 rounded-full text-xs font-bold text-white bg-zinc-800">
+                    Kenaikan Kelas
+                </h1>
+                <hr className="my-2 opacity-0" />
+                <button type="button" onClick={() => naikKelasSemua()} className="px-2 py-1 rounded border border-zinc-800 text-zinc-800 font-bold flex items-center justify-center gap-2 text-sm hover:scale-95 focus:scale-95 hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white transition-all duration-300 hover:shadow-lg focus:shadow-lg">
+                    <FontAwesomeIcon icon={faAngleUp} className="w-3 h-3 text-inherit" />
+                    Naikkan Semua Kelas
+                </button>
             </div>
         </MainLayoutPage>
     )

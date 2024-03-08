@@ -54,3 +54,76 @@ export const updateSiswaByNIS = async (nis, payload) => {
         }
     }
 }
+
+export const createSingleSiswa = async (payload) => {
+    try {
+        await prisma.data_siswa.create({
+            data: payload
+        })
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.error(error)
+        return {
+            success: false
+        }
+    }
+}
+
+export const deleteSingleSiswaByNis = async (nis) => {
+    try {
+        await prisma.data_siswa.delete({
+            where: {
+                nis
+            }
+        })
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.error(error)
+        return {
+            success: false
+        }
+    }
+}
+
+export const deleteMultiSiswaByNis = async arrayNis => {
+    try {
+        await prisma.data_siswa.deleteMany({
+            where: {
+                nis: {
+                    in: arrayNis
+                }
+            }
+        })
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.error(error)
+        return {
+            success: false
+        }
+    }
+}
+
+export const naikkanKelasSiswa = async () => {
+    try {
+        // Naikkan kelas 12 menjadi Alumni
+        const dataKelas12 = await prisma.data_siswa.findMany({
+            where: {
+                kelas: {
+                    startsWith: 'XII '
+                }
+            }
+        })
+        const nisKelas12 = dataKelas12.map(({nis}) => nis)
+        await prisma.data_alumni.createMany({
+            data: dataKelas12
+        })
+    } catch (error) {
+        console.log(error)
+    }
+}
