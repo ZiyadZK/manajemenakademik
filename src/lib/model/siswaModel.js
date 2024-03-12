@@ -109,21 +109,55 @@ export const deleteMultiSiswaByNis = async arrayNis => {
     }
 }
 
-export const naikkanKelasSiswa = async () => {
+export const naikkanKelasSiswa = async (nisTidakNaikKelas) => {
     try {
-        // Naikkan kelas 12 menjadi Alumni
-        const dataKelas12 = await prisma.data_siswa.findMany({
-            where: {
-                kelas: {
-                    startsWith: 'XII '
-                }
-            }
-        })
-        const nisKelas12 = dataKelas12.map(({nis}) => nis)
+        // Dapatkan Semua data kelas 10 11 12
+        let dataSiswa = await prisma.data_siswa.findMany();
+        let siswaTidakNaik;
+
+        // Kalau ada siswa tidak naik, di filter dulu
+        if(nisTidakNaikKelas && nisTidakNaikKelas.length > 0) {
+            const daftarNisTidakNaikKelas = nisTidakNaikKelas.map(({nis}) => nis)
+            siswaTidakNaik = dataSiswa.filter(siswa => daftarNisTidakNaikKelas.includes(siswa.nis))
+            dataSiswa = dataSiswa.filter(siswa => !daftarNisTidakNaikKelas.includes(siswa.nis))
+        }
+
+        const dataKelas10 = dataSiswa.filter(siswa => siswa.kelas.includes('X '))
+        const dataKelas11 = dataSiswa.filter(siswa => siswa.kelas.includes('XI '))
+        const dataKelas12 = dataSiswa.filter(siswa => siswa.kelas.includes('XII '))
+        
+
+        // menghapus semua data siswa dari tabel data siswa
+        await prisma.data_siswa.deleteMany();
+
+        // Memasukkan dataKelas12 ke dalam tabel alumni
         await prisma.data_alumni.createMany({
             data: dataKelas12
         })
+
+        // Mengupdate dataKelas 11 menjadi kelas 12, dan kelas 10 menjadi kelas 11
+        const newDataKelas12 = dataKelas11.map(siswa => ({...siswa, kelas: siswa.kelas.replace('XI ', 'XII ')}))
+        const newDataKelas11 = dataKelas10.map(siswa => ({...siswa, kelas: siswa.kelas.replace('X ', 'XI ')}))
+
+        // Insert data ke tabel siswa
+        await prisma.data_siswa.createMany({
+            data: [...newDataKelas11, ...newDataKelas12]
+        })
+
+        if(siswaTidakNaik && siswaTidakNaik.length > 0) {
+            await prisma.data_siswa.createMany({
+                data: siswaTidakNaik
+            })
+        }
+
+        return {
+            success: true
+        }
+        
     } catch (error) {
         console.log(error)
+        return {
+            success: false
+        }
     }
 }

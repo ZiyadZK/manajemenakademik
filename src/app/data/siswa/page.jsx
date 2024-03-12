@@ -2,11 +2,11 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa } from "@/lib/model/siswaModel"
-import { faAngleLeft, faAngleRight, faAngleUp, faClockRotateLeft, faEdit, faEllipsis, faInfoCircle, faMale, faPlusSquare, faPrint, faSearch, faSpinner, faTrash } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faAngleUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faClockRotateLeft, faEdit, faEllipsis, faExclamationCircle, faInfoCircle, faMale, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Toaster } from "react-hot-toast"
+import toast, { Toaster } from "react-hot-toast"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
@@ -25,6 +25,8 @@ export default function DataSiswaMainPage() {
     const [selectAll, setSelectAll] = useState(false)
     const [pagination, setPagination] = useState(1)
     const [totalList, setTotalList] = useState(10)
+    const [kriteriaNaikKelas, setKriteriaNaiKelas] = useState('');
+    const [siswaTidakNaikKelas, setSiswaTidakNaikKelas] = useState([])
 
     const getSiswa = async () => {
         setLoadingFetch(state => state = true);
@@ -153,8 +155,76 @@ export default function DataSiswaMainPage() {
         })
     }
 
-    const naikKelasSemua = async () => {
-        await naikkanKelasSiswa()
+    const naikKelasSemua = async (kecualiSiswa) => {
+        mySwal.fire({
+            title: 'Apakah anda yakin?',
+            icon: 'question',
+            text: kecualiSiswa && kecualiSiswa.length > 0 ? 'Anda akan menaikkan semua kelas kecuali siswa yang terpilih' : 'Anda akan menaikkan semua kelas',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(async result => {
+            if(result.isConfirmed){
+                mySwal.fire({
+                    title: 'Sedang memproses data',
+                    allowOutsideClick: false,
+                    timer: 20000,
+                    showConfirmButton: false,
+                    didOpen: async () => {
+                        const response = await naikkanKelasSiswa(siswaTidakNaikKelas)
+                        if(response.success) {
+                            mySwal.fire({
+                                icon: 'success',
+                                title: 'Berhasil memproses data!',
+                                text: 'Anda berhasil menaikkan semua kelas',
+                                confirmButtonText: 'Baik',
+                                timer: 5000
+                            }).then(async () => {
+                                await getSiswa()
+                                setSiswaTidakNaikKelas([])
+                            })
+                        }else{
+                            mySwal.fire({
+                                title: 'Gagal memproses data!',
+                                text: 'Tampaknya terdapat error disaat anda memproses data',
+                                icon: 'error',
+                                timer: 5000
+                            })
+                        }
+                    }
+                })
+            }
+        })
+    }
+
+    const addSiswaTidakNaikKelas = (nama_siswa, kelas, nis) => {
+        // Cari udah ada atau belum
+        const isExist = siswaTidakNaikKelas.find(siswa => siswa.nis === nis);
+        if(typeof(isExist) === 'undefined') {
+            const newData = { nama_siswa, kelas, nis}
+            const updatedData = [...siswaTidakNaikKelas, newData]
+            setSiswaTidakNaikKelas(updatedData)
+            setKriteriaNaiKelas('beberapa')
+        }else{
+            toast.error(`Anda sudah menambahkan ${nama_siswa}!`)
+        }
+
+    }
+
+    const removeSiswaTidakNaikKelas = (nis) => {
+        const updatedData = siswaTidakNaikKelas.filter(siswa => siswa.nis !== nis);
+        setSiswaTidakNaikKelas(updatedData)
+    }
+
+    useEffect(() => {
+        if(kriteriaNaikKelas === 'semua') {
+            setSiswaTidakNaikKelas([])
+        }
+    }, [kriteriaNaikKelas])
+
+    const batalNaikKelas = () => {
+        if(siswaTidakNaikKelas.length > 0) setSiswaTidakNaikKelas([])
+        setKriteriaNaiKelas('') 
     }
 
     return (
@@ -235,13 +305,14 @@ export default function DataSiswaMainPage() {
                 <div className="grid grid-cols-12 bg-zinc-800 text-white py-2 rounded mt-3 sticky top-0 text-sm">
                     <div className="col-span-3 px-2 flex items-center gap-3">
                         <input type="checkbox" checked={selectAll ? true : false} onChange={() => handleSelectAll()}  className="accent-orange-600 cursor-pointer outline-none" />
+                        <FontAwesomeIcon icon={faCircleArrowDown} className="w-4 h-4 text-white" />
                         Nama
                     </div>
                     <div className="col-span-2 px-2">
                         NIS / NISN
                     </div>
                     <div className=" px-2">
-                        Jurusan
+                        Kelas
                     </div>
                     <div className=" px-2">
                         Gender
@@ -276,9 +347,12 @@ export default function DataSiswaMainPage() {
                 )}
                 <div className="divide-y-2 my-1">
                     {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (
-                        <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100">
+                        <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100 group">
                             <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
                                 <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} name="" id="" className="cursor-pointer " />
+                                <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.nis)}>
+                                    <FontAwesomeIcon icon={faCircleArrowDown} className="w-4 h-4 text-zinc-300 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:text-zinc-800" />
+                                </button>
                                 {siswa.nama_siswa}
                             </div>
                             <div className="py-2 w-full col-span-2 px-2">
@@ -318,9 +392,13 @@ export default function DataSiswaMainPage() {
                         <p>
                             <b>{selectedSiswa.length}</b> Item selected
                         </p>
-                        {selectedSiswa.length > 0 && <button onClick={() => deleteSelectedSiswa()} type="button"  className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold">
-                            Hapus
-                        </button>}
+                        {selectedSiswa.length > 0 && 
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => deleteSelectedSiswa()} type="button"  className="px-2 py-1 rounded bg-red-400 hover:bg-red-500 text-xs text-zinc-800 font-bold" title="Hapus data yang terpilih">
+                                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                </button>             
+                            </div>
+                        }
                     </div>
                     <div className="flex items-center gap-5">
                         <div className="flex items-center gap-3">
@@ -353,14 +431,156 @@ export default function DataSiswaMainPage() {
                     </div>
                 </div>
                 <hr className="my-2 opacity-0" />
-                <h1 className="w-fit px-2 py-1 rounded-full text-xs font-bold text-white bg-zinc-800">
-                    Kenaikan Kelas
-                </h1>
-                <hr className="my-2 opacity-0" />
-                <button type="button" onClick={() => naikKelasSemua()} className="px-2 py-1 rounded border border-zinc-800 text-zinc-800 font-bold flex items-center justify-center gap-2 text-sm hover:scale-95 focus:scale-95 hover:bg-zinc-800 hover:text-white focus:bg-zinc-800 focus:text-white transition-all duration-300 hover:shadow-lg focus:shadow-lg">
-                    <FontAwesomeIcon icon={faAngleUp} className="w-3 h-3 text-inherit" />
-                    Naikkan Semua Kelas
-                </button>
+                <div className="grid grid-cols-2 gap-5">
+                    <div className="w-full">
+                        <h1 className="w-fit px-2 py-1 rounded-full text-xs font-bold text-white bg-zinc-800">
+                            Kenaikan Kelas
+                        </h1>
+                        <hr className="my-2 opacity-0" />
+                        <p className="font-medium text-sm"> 
+                            Kriteria
+                        </p>
+                        <div className="flex justify-between items-center w-full">
+                            <select value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(state => e.target.value)} className="px-2 py-1 rounded border text-sm bg-zinc-100 border-zinc-300 font-semibold cursor-pointer outline-none hover:border-zinc-700 focus:border-zinc-700">
+                                <option value="" disabled>-- Pilih Kriteria --</option>
+                                <option value="semua">Semua Siswa sepenuhnya</option>
+                                <option value="beberapa">Semua Siswa, kecuali...</option>
+                            </select>
+                            {kriteriaNaikKelas !== '' && <div className="flex items-center gap-2">
+                                {kriteriaNaikKelas === 'beberapa' && siswaTidakNaikKelas.length > 0 && (
+                                    <button type="button" onClick={() => naikKelasSemua(siswaTidakNaikKelas)} className="flex justify-center items-center px-2 py-1 rounded bg-green-500 hover:bg-green-400 focus:bg-green-600 text-white font-bold gap-2 text-sm">
+                                        <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3 text-inherit" />
+                                        Naikkan Kelas
+                                    </button>
+                                )}
+                                {kriteriaNaikKelas === 'semua' && siswaTidakNaikKelas.length < 1 && (
+                                    <button type="button" onClick={() => naikKelasSemua()} className="flex justify-center items-center px-2 py-1 rounded bg-green-500 hover:bg-green-400 focus:bg-green-600 text-white font-bold gap-2 text-sm">
+                                        <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3 text-inherit" />
+                                        Naikkan Kelas
+                                    </button>
+                                )}
+                                <button type="button" onClick={() => batalNaikKelas()} className="flex justify-center items-center py-1 px-2 rounded bg-red-500 hover:bg-red-600 focus:bg-red-700 text-white text-sm font-bold gap-2">
+                                    <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-white" />
+                                    Batal
+                                </button>
+                            </div>}
+                        </div>
+                        {kriteriaNaikKelas === 'beberapa' && <div className="mt-3">
+                            <h1 className=" font-bold text-sm">
+                                Daftar Siswa yang tidak naik kelas
+                            </h1>
+                            <div className="">
+                                <div className="grid grid-cols-4 w-full px-2 py-1 text-sm rounded bg-zinc-200">
+                                    <div className="flex items-center gap-2 col-span-2">
+                                        <button type="button" className="text-zinc-400 hover:text-zinc-800 transition-all duration-300">
+                                            <FontAwesomeIcon icon={faCircleArrowUp} className="w-4 h-4 text-inherit" />
+                                        </button>
+                                        <h1 className="text-sm font-bold text-zinc-700">
+                                            Nama
+                                        </h1>
+                                    </div>
+                                    <div className="text-sm text-zinc-700 font-bold">
+                                        <h1>
+                                            Kelas
+                                        </h1>
+                                    </div>
+                                    <div className="text-sm text-zinc-700 font-bold">
+                                        <h1>
+                                            NIS
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="divide-y-2 my-1">
+                                {siswaTidakNaikKelas.map(siswa => (
+                                    <div className="grid grid-cols-4 w-full py-1 px-2 text-xs text-zinc-800 font-semibold">
+                                        <div className="flex items-center gap-2 col-span-2">
+                                            <button type="button" onClick={() => removeSiswaTidakNaikKelas(siswa.nis)} className="text-zinc-400 hover:text-zinc-800 transition-all duration-300">
+                                                <FontAwesomeIcon icon={faCircleArrowUp} className="w-4 h-4 text-inherit" />
+                                            </button>
+                                            <p>
+                                                {siswa.nama_siswa}
+                                            </p>
+                                        </div>
+                                        <p>
+                                            {siswa.kelas}
+                                        </p>
+                                        <p>
+                                            {siswa.nis}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>}
+                    </div>
+                    {selectedSiswa.length > 0 && (
+
+                        <div className="w-full">
+                            <h1 className="w-fit px-2 py-1 rounded-full text-xs font-bold text-white bg-zinc-800">
+                                Ubah Data terpilih
+                            </h1>
+                            <hr className="my-2 opacity-0" />
+                            <div className="grid grid-cols-4 gap-5 text-sm font-medium">
+                                <div className="w-full">
+                                    <p>Kelas</p>
+                                    <select name="" id="" className="py-0.5 px-1 rounded border outline-none w-full hover:border-zinc-800 transition-all duration-300 cursor-pointer hover:scale-95 focus:scale-95 focus:border-zinc-800">
+                                        <option value="" disabled>-- Kelas --</option>
+                                        <option value="">10</option>
+                                        <option value="">11</option>
+                                        <option value="">12</option>
+                                    </select>
+                                </div>
+                                <div className="w-full">
+                                    <p>Rombel</p>
+                                    <select name="" id="" className="py-0.5 px-1 rounded border outline-none w-full hover:border-zinc-800 transition-all duration-300 cursor-pointer hover:scale-95 focus:scale-95 focus:border-zinc-800">
+                                        <option value="" disabled>-- Rombel --</option>
+                                        <option value="">TKJ</option>
+                                        <option value="">DPIB</option>
+                                        <option value="">GEO</option>
+                                        <option value="">TKRO</option>
+                                        <option value="">TKR</option>
+                                        <option value="">TITL</option>
+                                    </select>
+                                </div>
+                                <div className="w-full">
+                                    <p>No Rombel</p>
+                                    <select name="" id="" className="py-0.5 px-1 rounded border outline-none w-full hover:border-zinc-800 transition-all duration-300 cursor-pointer hover:scale-95 focus:scale-95 focus:border-zinc-800">
+                                        <option value="" disabled>-- No --</option>
+                                        <option value="">1</option>
+                                        <option value="">2</option>
+                                        <option value="">3</option>
+                                        <option value="">4</option>
+                                    </select>
+                                </div>
+                                <div className="w-full">
+                                    <p>Status</p>
+                                    <select name="" id="" className="py-0.5 px-1 rounded border outline-none w-full hover:border-zinc-800 transition-all duration-300 cursor-pointer hover:scale-95 focus:scale-95 focus:border-zinc-800">
+                                        <option value="" disabled>-- Status --</option>
+                                        <option value="">Aktif</option>
+                                        <option value="">Tidak Aktif</option>
+                                        <option value="">Alumni</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="mt-5">
+                                <div className="flex w-full justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <FontAwesomeIcon icon={faExclamationCircle} className="w-3 h-3 text-zinc-700" />
+                                        <p className="text-xs font-bold text-zinc-500">
+                                            Perubahan ini akan mengefek <br /> pada data yang sudah dipilih
+                                        </p>
+                                    </div>
+                                    <button type="button" className="flex items-center justify-center gap-2 text-white bg-zinc-700 font-bold py-2 px-3 rounded text-xs hover:bg-green-600 hover:text-zinc-800 focus:bg-green-700 focus:text-zinc-800 hover:scale-95 focus:scale-95 transition-all duration-300 hover:shadow-xl focus:shadow-xl">
+                                        <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                        Simpan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                
             </div>
         </MainLayoutPage>
     )
