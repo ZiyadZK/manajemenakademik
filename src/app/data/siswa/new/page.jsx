@@ -97,7 +97,7 @@ export default function DataSiswaNewPage() {
                             Pembuatan Data Siswa Baru
                         </h1>
                     </div>
-                    <button type="button" className="flex items-center gap-3 justify-center rounded bg-blue-400 hover:bg-blue-500 focus:bg-blue-500 button text-white p-2 font-bold text-xs transition-all duration-300">
+                    <button type="button" onClick={() => router.push('/data/siswa/new/import')} className="flex items-center gap-3 justify-center rounded bg-blue-400 hover:bg-blue-500 focus:bg-blue-500 button text-white p-2 font-bold text-xs transition-all duration-300">
                         <FontAwesomeIcon icon={faUpload} className="w-4 h-4 text-inherit" />
                         Import dari CSV
                     </button>

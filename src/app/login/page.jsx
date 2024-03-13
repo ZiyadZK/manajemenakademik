@@ -54,14 +54,14 @@ export default function LoginPage() {
                     <div className="w-full">
                         <div className="flex w-full justify-center items-center gap-5">
                             <Image src={'/logo-sekolah.png'} width={40} height={40} alt="Logo sekolah" />
-                            <h1 className={`${nunito.className} text-3xl font-bold`}>
+                            <h1 className={`${nunito.className} text-3xl font-bold text-white`}>
                                 Sistem Manajemen <span className="text-orange-600">Akademik</span> <br />
-                                <span className="font-light text-lg">
+                                <span className="font-light text-lg text-white">
                                     SMK Pekerjaan Umum Negeri Bandung
                                 </span>
                             </h1>
                         </div>
-                        <div className="w-full flex justify-center mt-5">
+                        <div className="w-full flex justify-center mt-5 text-white">
                             <p className="font-extralight text-center">
                                 Sistem yang berfungsi untuk mengelola data-data <br />
                                 yang ada disekolah secara Efisien dan Efektif.
