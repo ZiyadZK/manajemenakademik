@@ -28,8 +28,8 @@ model data_ijazahs {
   sudah_diambil  Boolean
 }
 
-model data_pegawais {
-  id_pegawai           Int      @id
+model data_pegawai {
+  id_pegawai           Int   @id @default(autoincrement())
   nama_pegawai         String?  @db.VarChar(255)
   jabatan              String?  @db.VarChar(255)
   status_kepegawaian   String?  @db.VarChar(255)
