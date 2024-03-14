@@ -2,7 +2,7 @@
 
 // import { nunito, quicksand } from "@/config/fonts";
 import { logoutAkun } from "@/lib/model/akunModel";
-import { faCertificate, faClipboard, faHouse, faSignOut, faUserShield, faUserTie, faUsersRectangle, faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
+import { faCertificate, faClipboard, faHouse, faSignOut, faUserShield, faUserTie, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Nunito, Quicksand } from "next/font/google";
 import Image from "next/image";
@@ -21,10 +21,11 @@ const menuLink = [
 
 const dataLink = [
     { title: 'Siswa', icon: faUsersViewfinder, url: '/data/siswa'},
+    { title: 'Alumni', icon: faUsersBetweenLines, url: '/data/alumni'},
     { title: 'Pegawai', icon: faUserTie, url: '/data/pegawai'},
     { title: 'Ijazah', icon: faCertificate, url: '/data/ijazah'},
     { title: 'Kelas', icon: faUsersRectangle, url: '/data/kelas'},
-    { title: 'Akun', icon: faUserShield, url: '/data/akun'}
+    { title: 'Akun', icon: faUserShield, url: '/data/akun'},
 ]
 
 export default function MainLayoutPage({children}) {

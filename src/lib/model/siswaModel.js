@@ -71,6 +71,23 @@ export const createSingleSiswa = async (payload) => {
     }
 }
 
+export const createMultiSiswa = async (payload) => {
+    try {
+        await prisma.data_siswa.createMany({
+            data: payload
+        })
+
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false
+        }
+    }
+}
+
 export const deleteSingleSiswaByNis = async (nis) => {
     try {
         await prisma.data_siswa.delete({
