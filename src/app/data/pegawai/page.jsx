@@ -18,6 +18,7 @@ export default function DataPegawaiPage () {
     const [filterKepegawaian, setFilterKepegawaian] = useState('')
     const [filterPendidikan, setFilterPendidikan] = useState('')
     const [filterStatus, setFilterStatus] = useState('')
+    const [selectedPegawai, setSelectedPegawai] = useState([])
 
     const getPegawai = async () => {
         setLoadingFetch('loading');
@@ -32,7 +33,7 @@ export default function DataPegawaiPage () {
     }, [])
 
     const filterDataPegawai = () => {
-        const updatedData = filteredDataPegawai.filter(({jabatan, status_kepegawaian, pendidikan_terakhir, pensiun}) => 
+        const updatedData = dataPegawai.filter(({jabatan, status_kepegawaian, pendidikan_terakhir, pensiun}) => 
             jabatan.includes(filterJabatan) && status_kepegawaian.includes(filterKepegawaian) && pendidikan_terakhir.includes(filterPendidikan)
         )
         setFilteredDataPegawai(updatedData)
@@ -41,6 +42,16 @@ export default function DataPegawaiPage () {
     useEffect(() => {
         filterDataPegawai()
     }, [filterJabatan, filterKepegawaian, filterPendidikan, filterStatus])
+
+    const handleSelectedPegawai = (id_pegawai) => {
+        if(selectedPegawai.includes(id_pegawai)) {
+            const updatedData = selectedPegawai.filter(id => id !== id_pegawai)
+            setSelectedPegawai(updatedData)
+        }else{
+            const updatedData = [...selectedPegawai, id_pegawai]
+            setSelectedPegawai(updatedData)
+        }
+    }
 
     return (
         <MainLayoutPage>
@@ -75,7 +86,7 @@ export default function DataPegawaiPage () {
                                 <option value="Kepala Tata Usaha">Kepala Tata Usaha</option>
                                 <option value="Guru">Guru</option>
                                 <option value="Karyawan">Karyawan</option>
-                                <option value="Semua">Semua</option>
+                                <option value="">Semua</option>
                             </select>
                             <select value={filterKepegawaian} onChange={e => setFilterKepegawaian(e.target.value)} className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800 cursor-pointer">
                                 <option value="" disabled>-- Kepegawaian --</option>
@@ -83,7 +94,7 @@ export default function DataPegawaiPage () {
                                 <option value="PPPK">PPPK</option>
                                 <option value="HONDA">HONDA</option>
                                 <option value="HONKOM">HONKOM</option>
-                                <option value="Semua">Semua</option>
+                                <option value="">Semua</option>
                             </select>
                             <select value={filterPendidikan} onChange={e => setFilterPendidikan(e.target.value)} className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800 cursor-pointer">
                                 <option value="" disabled>-- Pendidikan Terakhir --</option>
@@ -94,13 +105,13 @@ export default function DataPegawaiPage () {
                                 <option value="D4">D4</option>
                                 <option value="S1">S1</option>
                                 <option value="S2">S2</option>
-                                <option value="Semua">Semua</option>
+                                <option value="">Semua</option>
                             </select>
                             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800 cursor-pointer">
                                 <option value="" disabled>-- Status --</option>
                                 <option value="Aktif">Aktif</option>
                                 <option value="Pensiun">Pensiun</option>
-                                <option value="Semua">Semua</option>
+                                <option value="">Semua</option>
                             </select>
                         </div>
                         <div className="flex items-center gap-2">
@@ -136,9 +147,9 @@ export default function DataPegawaiPage () {
                     </div>
                     <div className="divide-y-2 my-0.5">
                         {filteredDataPegawai.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((pegawai, index) => (
-                            <div key={index} className="grid grid-cols-12 px-3 py-2 hover:bg-zinc-50 text-xs font-medium text-zinc-800">
+                            <div key={index} className="grid grid-cols-12 px-3 py-2 hover:bg-zinc-50 text-xs font-medium text-zinc-800 odd:bg-zinc-100">
                                 <div className="col-span-3 flex items-center gap-2">
-                                    <input type="checkbox" name="" id="" />
+                                    <input type="checkbox" checked={selectedPegawai.includes(pegawai.id_pegawai)} onChange={() => handleSelectedPegawai(pegawai.id_pegawai)} className="cursor-pointer" />
                                     {pegawai.nama_pegawai}
                                 </div>
                                 <div className="col-span-2">
@@ -169,8 +180,12 @@ export default function DataPegawaiPage () {
                     </div>
                     <div className="px-3 py-2 rounded bg-zinc-800 flex w-full justify-between items-center sticky bottom-0 text-xs">
                         <div className="flex items-center gap-5">
-                            <p className="text-white"><b>0</b> Item terpilih</p>
-
+                            <p className="text-white"><b>{selectedPegawai.length}</b> Item terpilih</p>
+                            {selectedPegawai.length > 0 && (
+                                <button type="button" className="w-6 h-6 bg-red-600 rounded text-zinc-800 hover:bg-red-400 focus:bg-red-700 flex items-center justify-center">
+                                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                </button>
+                            )}
                         </div>
                         <div className="flex gap-2 text-white">
                             <div className="flex items-center gap-5">

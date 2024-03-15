@@ -347,7 +347,7 @@ export default function DataSiswaMainPage() {
                 )}
                 <div className="divide-y-2 my-1">
                     {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (
-                        <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-100 group">
+                        <div className="grid grid-cols-12 text-sm transition-all duration-300 hover:bg-zinc-50 group odd:bg-zinc-100">
                             <div className="py-2 w-full col-span-3 px-2 flex items-center gap-3">
                                 <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} name="" id="" className="cursor-pointer " />
                                 <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.nis)}>
