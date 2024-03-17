@@ -206,7 +206,7 @@ export default function DataSiswaMainPage() {
             setSiswaTidakNaikKelas(updatedData)
             setKriteriaNaiKelas('beberapa')
         }else{
-            toast.error(`Anda sudah menambahkan ${nama_siswa}!`)
+            toast.error(`Anda sudah menambahkan ${nama_siswa}!`);
         }
 
     }
