@@ -1,13 +1,20 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { getAllPegawai } from "@/lib/model/pegawaiModel"
+import { deleteManyPegawai, deleteSinglePegawai, getAllPegawai } from "@/lib/model/pegawaiModel"
 import { faAngleLeft, faAngleRight, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faPlusSquare, faPrint, faSearch, faTrash } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
+import Swal from "sweetalert2"
+import withReactContent from "sweetalert2-react-content"
+
+const mySwal = withReactContent(Swal)
 
 export default function DataPegawaiPage () {
+
+    const router = useRouter()
 
     const [dataPegawai, setDataPegawai] = useState([])
     const [loadingFetch, setLoadingFetch] = useState('')
@@ -17,8 +24,9 @@ export default function DataPegawaiPage () {
     const [filterJabatan, setFilterJabatan] = useState('')
     const [filterKepegawaian, setFilterKepegawaian] = useState('')
     const [filterPendidikan, setFilterPendidikan] = useState('')
-    const [filterStatus, setFilterStatus] = useState('')
     const [selectedPegawai, setSelectedPegawai] = useState([])
+    const [filterSearch, setFilterSearch] = useState('')
+    const [filterKriteria, setFilterKriteria] = useState('nama_pegawai')
 
     const getPegawai = async () => {
         setLoadingFetch('loading');
@@ -33,15 +41,16 @@ export default function DataPegawaiPage () {
     }, [])
 
     const filterDataPegawai = () => {
-        const updatedData = dataPegawai.filter(({jabatan, status_kepegawaian, pendidikan_terakhir, pensiun}) => 
+        const updatedData = dataPegawai.filter(({jabatan, status_kepegawaian, pendidikan_terakhir, pensiun, nama_pegawai, nip, nuptk}) => 
             jabatan.includes(filterJabatan) && status_kepegawaian.includes(filterKepegawaian) && pendidikan_terakhir.includes(filterPendidikan)
+            
         )
         setFilteredDataPegawai(updatedData)
     }
 
     useEffect(() => {
         filterDataPegawai()
-    }, [filterJabatan, filterKepegawaian, filterPendidikan, filterStatus])
+    }, [filterJabatan, filterKepegawaian, filterPendidikan])
 
     const handleSelectedPegawai = (id_pegawai) => {
         if(selectedPegawai.includes(id_pegawai)) {
@@ -51,6 +60,85 @@ export default function DataPegawaiPage () {
             const updatedData = [...selectedPegawai, id_pegawai]
             setSelectedPegawai(updatedData)
         }
+    }
+
+
+
+    const deletePegawai = async id_pegawai => {
+        mySwal.fire({
+            title: 'Apakah anda yakin?',
+            icon: 'question',
+            text: 'Anda akan menghapus data pegawai tersebut',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(async result => {
+            if(result.isConfirmed) {
+                mySwal.fire({
+                    title: 'Sedang memproses data..',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    timer: 1000
+                })
+                const response = await deleteSinglePegawai(id_pegawai);
+                if(response.success) {
+                    mySwal.fire({
+                        title: 'Berhasil',
+                        icon: 'success',
+                        text: "Berhasil menghapus data pegawai tersebut!",
+                        timer: 3000
+                    }).then(async () => {
+                        await getPegawai()
+                    })
+                }else{
+                    mySwal.fire({
+                        title: 'Gagal',
+                        icon: 'error',
+                        text: 'Tampaknya ada error disaat menghapus data pegawai tersebut!',
+                        timer: 3000
+                    })
+                }
+            }
+        })
+    }
+
+    const deleteSelectedPegawai = async () => {
+        mySwal.fire({
+            title: 'Apakah anda yakin?',
+            icon: 'question',
+            text: 'Anda akan menghapus data pegawai yang sudah dipilih',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(async result => {
+            if(result.isConfirmed) {
+                mySwal.fire({
+                    title: 'Sedang memproses data..',
+                    text: 'Mohon tunggu sebentar',
+                    allowOutsideClick: false,
+                    timer: 1000
+                })
+                const response = await deleteManyPegawai(selectedPegawai);
+                if(response.success) {
+                    mySwal.fire({
+                        title: 'Berhasil',
+                        icon: 'success',
+                        text: "Berhasil menghapus data pegawai tersebut!",
+                        timer: 3000
+                    }).then(async () => {
+                        setSelectedPegawai([])
+                        await getPegawai()
+                    })
+                }else{
+                    mySwal.fire({
+                        title: 'Gagal',
+                        icon: 'error',
+                        text: 'Tampaknya ada error disaat menghapus data pegawai tersebut!',
+                        timer: 3000
+                    })
+                }
+            }
+        })
     }
 
     return (
@@ -69,7 +157,7 @@ export default function DataPegawaiPage () {
                             </p>
                         </div>
                     </div>
-                    <button type="button" onClick={() => {}} className="px-2 py-1 rounded bg-zinc-800 text-xs font-bold text-white flex items-center justify-center gap-2 hover:bg-green-600 transition-all duration-300">
+                    <button type="button" onClick={() => router.push('/data/pegawai/new')} className="px-2 py-1 rounded bg-zinc-800 text-xs font-bold text-white flex items-center justify-center gap-2 hover:bg-green-600 transition-all duration-300">
                         <FontAwesomeIcon icon={faPlusSquare} className="w-3 h-3 text-inherit" />
                         Tambah Pegawai Baru
                     </button>
@@ -107,16 +195,10 @@ export default function DataPegawaiPage () {
                                 <option value="S2">S2</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800 cursor-pointer">
-                                <option value="" disabled>-- Status --</option>
-                                <option value="Aktif">Aktif</option>
-                                <option value="Pensiun">Pensiun</option>
-                                <option value="">Semua</option>
-                            </select>
                         </div>
                         <div className="flex items-center gap-2">
-                            <input type="text" className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800" placeholder="Cari data di sini" />
-                            <select className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800 cursor-pointer">
+                            <input onChange={e => setFilterSearch(e.target.value)} type="text" className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800" placeholder="Cari data di sini" />
+                            <select value={filterKriteria} onChange={e => setFilterKriteria(e.target.value)} className="border rounded font-medium outline-none text-xs hover:border-zinc-800 focus:border-zinc-800 px-2 py-0.5 text-zinc-800 cursor-pointer">
                                 <option value="" disabled>-- Kriteria --</option>
                                 <option value="nama_pegawai">Nama</option>
                                 <option value="nip">NIP</option>
@@ -165,13 +247,13 @@ export default function DataPegawaiPage () {
                                     {pegawai.nuptk}
                                 </div>
                                 <div className="col-span-1 flex justify-center items-center gap-1">
-                                    <button type="button" className="w-5 h-5 flex items-center justify-center rounded bg-blue-500 hover:bg-blue-400 focus:bg-blue-700 text-white">
+                                    <button type="button" className="w-5 h-5 flex items-center justify-center rounded bg-blue-500 hover:bg-blue-400 focus:bg-blue-700 text-zinc-800">
                                         <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <button type="button" className="w-5 h-5 flex items-center justify-center rounded bg-orange-500 hover:bg-orange-400 focus:bg-orange-700 text-white">
+                                    <button type="button" className="w-5 h-5 flex items-center justify-center rounded bg-orange-500 hover:bg-orange-400 focus:bg-orange-700 text-zinc-800">
                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <button type="button" className="w-5 h-5 flex items-center justify-center rounded bg-red-500 hover:bg-red-400 focus:bg-red-700 text-white">
+                                    <button type="button" onClick={() => deletePegawai(pegawai.id_pegawai)} className="w-5 h-5 flex items-center justify-center rounded bg-red-500 hover:bg-red-400 focus:bg-red-700 text-zinc-800">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
                                 </div>
@@ -182,7 +264,7 @@ export default function DataPegawaiPage () {
                         <div className="flex items-center gap-5">
                             <p className="text-white"><b>{selectedPegawai.length}</b> Item terpilih</p>
                             {selectedPegawai.length > 0 && (
-                                <button type="button" className="w-6 h-6 bg-red-600 rounded text-zinc-800 hover:bg-red-400 focus:bg-red-700 flex items-center justify-center">
+                                <button type="button" onClick={() => deleteSelectedPegawai()} className="w-6 h-6 bg-red-600 rounded text-zinc-800 hover:bg-red-400 focus:bg-red-700 flex items-center justify-center">
                                     <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                 </button>
                             )}

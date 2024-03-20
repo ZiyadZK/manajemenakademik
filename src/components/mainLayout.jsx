@@ -2,6 +2,7 @@
 
 // import { nunito, quicksand } from "@/config/fonts";
 import { logoutAkun } from "@/lib/model/akunModel";
+import { navigator } from "@/lib/navigator";
 import { faCertificate, faClipboard, faHouse, faSignOut, faUserShield, faUserTie, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Nunito, Quicksand } from "next/font/google";
@@ -76,7 +77,7 @@ export default function MainLayoutPage({children}) {
                         <p className="text-sm tracking-tighter text-zinc-400 font-bold">Data - Data</p>
                         <hr className="my-1 opacity-0" />
                         {dataLink.map(({title, icon, url}, index) => (
-                            <button key={index} type="button" onClick={() => router.push(url)} className={`w-full py-2 px-4 flex items-center gap-5 ${path !== url && 'hover:bg-zinc-300 hover:text-orange-600'} rounded-lg transition-all duration-300 ${path === url && 'bg-zinc-800 text-white'}`} disabled={path === url ? true : false}>
+                            <button key={index} type="button" onClick={() => router.push(url)} className={`w-full py-2 px-4 flex items-center gap-5 ${!path.includes(url) && 'hover:bg-zinc-300 hover:text-orange-600'} rounded-lg transition-all duration-300 ${path.includes(url) && 'bg-zinc-800 text-white'}`} disabled={path.includes(url) ? true : false}>
                                 <FontAwesomeIcon icon={icon} className="w-4 h-4 text-inherit" />
                                 {title}
                             </button>
