@@ -29,7 +29,7 @@ const navLink = [
 export default function MainLayoutPage({children}) {
     const router = useRouter()
     const path = usePathname();
-    const filteredPath = navLink.find(item => item.url === path)
+    const filteredPath = navLink.find(item => path === item.url || (path.startsWith(item.url) && item.url !== '/'))
 
     const [showSidebar, setShowSidebar] = useState(false)
 
@@ -68,10 +68,10 @@ export default function MainLayoutPage({children}) {
                 </div>
                 <div className="w-10/12 flex justify-between items-center">
                     <div className="flex items-center gap-3">   
-                        <button type="button" onClick={() => setShowSidebar(state => !state)} className="md:hidden flex items-center justify-center  text-zinc-600 btn btn-sm bg-transparent border-0">
-                            <FontAwesomeIcon icon={faBars} className="w-3 h-3 text-inherit" />
+                        <button type="button" onClick={() => setShowSidebar(state => !state)} className="md:hidden flex items-center justify-center swap swap-rotate  text-blue-600 btn btn-sm bg-transparent border-0">
+                            <FontAwesomeIcon icon={showSidebar ? faXmark : faBars} className="w-3 h-3 text-inherit" />
                         </button>
-                        <h1 className={`${rale.className} text-zinc-800 hidden md:flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
+                        <h1 className={`${rale.className} text-blue-800 hidden md:flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
                             <FontAwesomeIcon icon={filteredPath.icon} className="w-4 h-4 text-inherit" />
                             {filteredPath.page}
                         </h1>
@@ -96,7 +96,7 @@ export default function MainLayoutPage({children}) {
                 <div className="hidden md:block relative overflow-auto w-2/12 border-r border-zinc-300 h-full text-zinc-800 pt-16">
                     <hr className="my-1 opacity-0" />
                     {navLink.map(item => (
-                        <a key={item.title} href={`${item.url}`} className={`${rale.className} text-zinc-600 font-medium text-sm flex items-center gap-3 hover:gap-4 px-5 py-2 hover:bg-zinc-100 transition-all duration-300 ${item.url === path && 'border-r-2 border-r-orange-600'}`}>
+                        <a key={item.title} href={`${item.url}`} className={`${rale.className} ${path === item.url || (path.startsWith(item.url) && item.url !== '/') ? 'text-zinc-600' : 'text-zinc-400'} font-medium text-sm flex items-center gap-3 hover:gap-4 hover:text-zinc-600 px-5 py-2 hover:bg-zinc-100 transition-all duration-300 ${path === item.url || (path.startsWith(item.url) && item.url !== '/') ? 'border-r-2 border-r-orange-600' : ''}`}>
                             <FontAwesomeIcon icon={item.icon} className="w-3 h-3 text-inherit" />
                             {item.title}
                         </a>
@@ -122,7 +122,7 @@ function SidebarSection() {
             <hr className="mt-20 opacity-0" />
             <hr className="my-1 opacity-0" />
             {navLink.map(item => (
-                <a key={item.title} href={`${item.url}`} className={`${rale.className} text-zinc-600 font-medium text-sm flex items-center gap-3 hover:gap-4 px-5 py-2 hover:bg-zinc-100 transition-all duration-300 ${item.url === path && 'border-r-2 border-r-orange-600'}`}>
+                <a key={item.title} href={`${item.url}`} className={`${rale.className} text-zinc-600 font-medium text-sm flex items-center gap-3 hover:gap-4 px-5 py-2 hover:bg-zinc-100 transition-all duration-300 ${path === item.url || (path.startsWith(item.url) && item.url !== '/') ? 'border-r-2 border-r-orange-600' : ''}`}>
                     <FontAwesomeIcon icon={item.icon} className="w-3 h-3 text-inherit" />
                     {item.title}
                 </a>
