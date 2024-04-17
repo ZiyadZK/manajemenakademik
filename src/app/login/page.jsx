@@ -91,7 +91,7 @@ export default function LoginPage() {
                             </button>
                         </div>
                         <hr className="my-2 opacity-0" />
-                        <button type="submit" disabled={loginLoading ? true : false} className={`${rale.className} btn w-full text-white flex items-center justify-center gap-5 disabled:bg-zinc-800 disabled:text-white`}>
+                        <button type="submit" disabled={loginLoading ? true : false} className={`${rale.className} btn w-full text-white flex items-center justify-center gap-5 bg-zinc-800 disabled:bg-zinc-800 disabled:text-white hover:bg-zinc-500`}>
                             <FontAwesomeIcon icon={loginLoading ? faSpinner : faSignIn} className={`w-4 h-4 text-inherit ${loginLoading && 'animate-spin'}`} />
                             {!loginLoading && 'Masuk'}
                         </button>

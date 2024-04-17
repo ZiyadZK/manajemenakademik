@@ -1,9 +1,9 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { mont, rale } from "@/config/fonts"
+import { mont, open, rale } from "@/config/fonts"
 import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa } from "@/lib/model/siswaModel"
-import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -157,11 +157,11 @@ export default function DataSiswaMainPage() {
         })
     }
 
-    const naikKelasSemua = async (kecualiSiswa) => {
+    const naikKelasSemua = async () => {
         mySwal.fire({
             title: 'Apakah anda yakin?',
             icon: 'question',
-            text: kecualiSiswa && kecualiSiswa.length > 0 ? 'Anda akan menaikkan semua kelas kecuali siswa yang terpilih' : 'Anda akan menaikkan semua kelas',
+            text: siswaTidakNaikKelas && siswaTidakNaikKelas.length > 0 ? 'Anda akan menaikkan semua kelas kecuali siswa yang terpilih' : 'Anda akan menaikkan semua kelas',
             showCancelButton: true,
             confirmButtonText: 'Ya',
             cancelButtonText: 'Tidak'
@@ -227,6 +227,16 @@ export default function DataSiswaMainPage() {
     const batalNaikKelas = () => {
         if(siswaTidakNaikKelas.length > 0) setSiswaTidakNaikKelas([])
         setKriteriaNaiKelas('') 
+    }
+
+    const handleTotalList = (value) => {
+        // Cek kalau totalList melebihi Math Ceil
+        const maxPagination = Math.ceil(siswaList.length / value)
+        if(pagination > maxPagination) {
+            setPagination(state => state = maxPagination)
+        }
+        setTotalList(value)
+
     }
 
     return (
@@ -325,7 +335,7 @@ export default function DataSiswaMainPage() {
             
             {loadingFetch === '' && <LoadingFetchSkeleton />}
             {loadingFetch === 'loading' && (
-                <div className="flex w-full justify-center items-center gap-2 my-2">
+                <div className="flex w-full justify-center items-center gap-2 my-3">
                     <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 text-zinc-400 animate-spin" />
                     <h1 className="text-zinc-400">Sedang mendapatkan data..</h1>
                 </div>
@@ -339,7 +349,7 @@ export default function DataSiswaMainPage() {
                                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                                     <div className="flex-grow flex items-center gap-2">
                                         <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
-                                        <button type="button" className="opacity-40 hover:opacity-100 w-4 h-4 flex-shrink-0 bg-zinc-800 text-white rounded-full flex items-center justify-center">
+                                        <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.nis)} className="opacity-40 hover:opacity-100 w-4 h-4 flex-shrink-0 bg-zinc-800 text-white rounded-full flex items-center justify-center">
                                             <FontAwesomeIcon icon={faArrowDown} className="w-2 h-2 text-inherit" />
                                         </button>
                                         {siswa.nama_siswa}
@@ -371,7 +381,7 @@ export default function DataSiswaMainPage() {
                     </div>
                 </div>
             ) : (
-                <div className="w-full flex justify-center items-center gap-2">
+                <div className="w-full flex justify-center items-center gap-2 my-3">
                     <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-400" />
                     <h1 className="text-zinc-400">Data kosong</h1>
                 </div>
@@ -384,9 +394,52 @@ export default function DataSiswaMainPage() {
                             {selectedSiswa.length} Data terpilih
                         </p>
                     </div>
-                    <button type="button" className=" px-3 py-1 rounded text-xs font-medium flex items-center justify-center">
-                        <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
-                    </button>
+                    <div className=" dropdown dropdown-hover dropdown-bottom dropdown-end">
+                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2">
+                            <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
+                            Export
+                        </div>
+                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit">
+                            <li>
+                                <button type="button" className="flex items-center justify-start gap-2">
+                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-red-600" />
+                                    PDF
+                                </button>
+                                <button type="button" className="flex items-center justify-start gap-2">
+                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
+                                    XLSX
+                                </button>
+                                <button type="button" className="flex items-center justify-start gap-2">
+                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
+                                    CSV
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
+                    <p className={`${mont.className} px-2 text-xs`}>
+                        {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > siswaList.length ? siswaList.length : totalList * pagination} dari {siswaList.length} data
+                    </p>
+                    <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                            <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
+                        </button>
+                        <p className="font-medium text-zinc-600">
+                            {pagination}
+                        </p>
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(siswaList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                            <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
+                        </button>
+                    </div>
+                    <div className={`${mont.className} px-2 text-xs`}>
+                        <select defaultValue={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded">
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <hr className="my-3 opacity-0" />
@@ -396,12 +449,92 @@ export default function DataSiswaMainPage() {
                         <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
                             <FontAwesomeIcon icon={faAngleDoubleUp} className="w-4 h-4 text-inherit" />
                         </div>
-                        <h1 className={`${mont.className}`}>
+                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-zinc-800`}>
                             Kenaikan Kelas
                         </h1>
                     </div>
+                    <hr className="my-2 opacity-0" />
+                    <select defaultValue={kriteriaNaikKelas} value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer">
+                        <option value="" disabled>-- Pilih Data --</option>
+                        <option value="semua">Naikkan Semua Kelas</option>
+                        <option value="beberapa">Naikkan Semua Kelas, kecuali..</option>
+                    </select>
+                    <hr className="my-2 opacity-0" />
+                    {kriteriaNaikKelas === 'beberapa' && (
+                        <>
+                            <div className="grid grid-cols-10 px-1 py-2 border-y border-zinc-300 bg-zinc-50 text-xs">
+                                <p className="col-span-8 md:col-span-4 font-medium text-zinc-600">
+                                    Nama
+                                </p>
+                                <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                    Kelas
+                                </div>
+                                <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                    NIS
+                                </div>
+                                <div className="col-span-2  flex items-center justify-center"></div>
+                            </div>
+                            <div className={`${mont.className} divide-y relative overflow-auto w-full h-fit max-h-48`}>
+                                {siswaTidakNaikKelas.map(siswa => (
+                                    <div className="grid grid-cols-10 px-1 py-2  text-xs group">
+                                        <p className="col-span-8 md:col-span-4 font-medium text-zinc-600 flex items-center gap-2">
+                                            {siswa.nama_siswa}
+                                            
+                                        </p>
+                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                            {siswa.kelas}
+                                        </div>
+                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                            {siswa.nis}
+                                        </div>
+                                        <div className="col-span-2  flex items-center justify-center gap-1">
+                                            <a href={`/data/siswa/nis/${siswa.nis}`} target="_blank" className="w-5 h-5 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center hover:bg-blue-200 hover:text-blue-800 opacity-0 group-hover:opacity-100" title="Lihat detail">
+                                                <FontAwesomeIcon icon={faSearch} className="w-2 h-2 text-inherit" />
+                                            </a>
+                                            <button type="button" onClick={() => removeSiswaTidakNaikKelas(siswa.nis)} className="w-5 h-5 rounded-full bg-zinc-50 text-zinc-400 flex items-center justify-center hover:bg-zinc-200 hover:text-zinc-800">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    <hr className="my-2 opacity-0" />
+                    <div className="flex items-center gap-5">
+                        {kriteriaNaikKelas === 'semua' && (
+                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                                <FontAwesomeIcon icon={faAnglesUp} className="w-4 h-4 text-inherit" />
+                                Naikkan Kelas
+                            </button>
+                        )}
+                        {kriteriaNaikKelas === 'beberapa'  && siswaTidakNaikKelas.length > 0 && (
+                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                                <FontAwesomeIcon icon={faAnglesUp} className="w-4 h-4 text-inherit" />
+                                Naikkan Kelas
+                            </button>
+                        )}
+                        {kriteriaNaikKelas !== "" && (
+                            <button type="button" onClick={() => batalNaikKelas()} className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-400 font-medium flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-700">
+                                <FontAwesomeIcon icon={faXmarkCircle} className="w-4 h-4 text-inherit" />
+                                Batal
+                            </button>
+                        )}
+                    </div>
+
                 </div>
-                <div className="w-full md:w-1/2"></div>
+                <div className="w-full md:w-1/2">
+                    <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center">
+                            <FontAwesomeIcon icon={faWandMagicSparkles} className="w-4 h-4 text-inherit" />
+                        </div>
+                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-zinc-800`}>
+                            Ubah Data Bersamaan
+                        </h1>
+                    </div>
+                    <hr className="my-2 opacity-0" />
+                    
+                </div>
             </div>
 
         </MainLayoutPage>
