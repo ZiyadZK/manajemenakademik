@@ -2,8 +2,8 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, open, rale } from "@/config/fonts"
-import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa } from "@/lib/model/siswaModel"
-import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
+import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
+import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -21,6 +21,7 @@ export default function DataSiswaMainPage() {
     const [kelas, setKelas] = useState(0)
     const [rombel, setRombel] = useState('All')
     const [noRombel, setNoRombel] = useState(0)
+    const [status, setStatus] = useState('')
     const [searchValue, setSearchValue] = useState('')
     const [searchCriteria, setSearchCriteria] = useState('nama_siswa')
     const [selectedSiswa, setSelectedSiswa] = useState([])
@@ -29,6 +30,7 @@ export default function DataSiswaMainPage() {
     const [totalList, setTotalList] = useState(10)
     const [kriteriaNaikKelas, setKriteriaNaiKelas] = useState('');
     const [siswaTidakNaikKelas, setSiswaTidakNaikKelas] = useState([])
+    const [showSelected, setShowSelected] = useState(false)
 
     const getSiswa = async () => {
         setLoadingFetch('loading');
@@ -53,15 +55,26 @@ export default function DataSiswaMainPage() {
     }
 
     const handleSubmitFilter = () => {
+        let updatedFilter;
         const valueFilterKelas = `${kelas != 0 ? kelas+' ' : ''}${rombel != 'All' ? rombel+' ' : ''}${noRombel != 0 ? noRombel : ''}`
-        if(kelas === 0 && rombel === 'All' && noRombel === 0) {
-            const newData = siswaList.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
-            
-            return setFilteredSiswaList(newData)
-        }
-        const newData = siswaList.filter(siswa => siswa['kelas'].includes(valueFilterKelas) && siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
-        return setFilteredSiswaList(state => state = newData)
         
+        // Search Kelas
+        updatedFilter = siswaList.filter(siswa => siswa.kelas.toLowerCase().includes(valueFilterKelas.toLowerCase()))
+        
+        // Search Status
+        updatedFilter = updatedFilter.filter(siswa => siswa['aktif'].includes(status))
+        
+        // Search Value and Kriteria
+        updatedFilter = updatedFilter.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
+        
+        // Search Only Selected
+        if(showSelected) {
+            updatedFilter = updatedFilter.filter(siswa => selectedSiswa.includes(siswa.nis))
+            const maxPagination = Math.ceil(updatedFilter.length / totalList)
+            setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
+        }
+
+        setFilteredSiswaList(updatedFilter)
     }
 
     const handleSelectAll = () => {
@@ -77,7 +90,7 @@ export default function DataSiswaMainPage() {
 
     useEffect(() => {
         handleSubmitFilter()
-    }, [kelas, rombel, noRombel, searchValue, searchCriteria])
+    }, [kelas, rombel, noRombel, searchValue, searchCriteria, status, showSelected])
 
     const deleteSingle = async (nis) => {
         mySwal.fire({
@@ -236,7 +249,57 @@ export default function DataSiswaMainPage() {
             setPagination(state => state = maxPagination)
         }
         setTotalList(value)
+    }
 
+    const submitUpdateBersama = (e) => {
+        e.preventDefault()
+
+        const data = {
+            kelas: e.target[0].value,
+            no_rombel: e.target[1].value,
+            tahun_masuk: e.target[2].value,
+            rombel: e.target[3].value,
+            status: e.target[4].value
+        }
+
+        mySwal.fire({
+            title: 'Apakah anda yakin?',
+            text: `Anda akan mengubah data sebanyak ${selectedSiswa.length} dengan data yang sama`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(result => {
+            if(result.isConfirmed) {
+                mySwal.fire({
+                    title: 'Sedang memproses data..',
+                    text: 'Mohon tunggu sebentar lagi',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 15000,
+                    didOpen: async () => {
+                        const response = await updateBulkSiswa(selectedSiswa, data)
+                        if(response.success) {
+                            mySwal.fire({
+                                icon: 'success',
+                                text: 'Berhasil mengubah data tersebut!',
+                                title: 'Sukses'
+                            }).then(() => {
+                                setSelectedSiswa([])
+                                getSiswa()
+                            })
+                        }else{
+                            mySwal.fire({
+                                icon: 'error',
+                                text: 'Gagal mengubah data tersebut, terdapat error!',
+                                title: 'Error'
+                            })
+                        }
+                    }
+                })
+            }
+        })
+        
     }
 
     return (
@@ -264,13 +327,14 @@ export default function DataSiswaMainPage() {
                 <hr className="my-1 opacity-0" />
                 <div className="flex md:flex-row flex-col gap-5">
                     <div className="w-full md:w-1/2 flex gap-2">
-                        <select className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
-                            <option disabled>-- Kelas --</option>
+                        <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                            <option value="" disabled >-- Kelas --</option>
                             <option value="X">10</option>
                             <option value="XI">11</option>
                             <option value="XII">12</option>
+                            <option value="0">Semua</option>
                         </select>
-                        <select className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
                             <option disabled>-- Rombel --</option>
                             <option value="TKJ">TKJ</option>
                             <option value="TITL">TITL</option>
@@ -278,32 +342,35 @@ export default function DataSiswaMainPage() {
                             <option value="DPIB">DPIB</option>
                             <option value="TKR">TKR</option>
                             <option value="TPM">TPM</option>
+                            <option value="All">Semua</option>
                         </select>
                     </div>
                     <div className="w-full md:w-1/2 flex gap-2">
-                        <select className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
                             <option disabled>-- No Rombel --</option>
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
                             <option value="4">4</option>
+                            <option value="0">Semua</option>
                         </select>
-                        <select className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={status} onChange={e => setStatus(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
                             <option disabled>-- Status --</option>
                             <option value="aktif">Aktif</option>
-                            <option value="tidak aktif">Tidak Aktif</option>
+                            <option value="tidak">Tidak Aktif</option>
+                            <option value="">Semua</option>
                         </select>
                     </div>
                 </div>
             </div>
             <hr className="my-2 opacity-0" />
             <div className="flex items-center gap-5 w-full">
-                <input type="text" className=" bg-zinc-100 flex-grow md:flex-grow-0 md:w-80 px-3 py-2 text-xs md:text-lg rounded-xl border bg-transparent" placeholder="Cari data anda disini" />
-                <select className=" px-3 py-2 rounded-xl border text-xs md:text-lg bg-white  cursor-pointer">
+                <input type="text" onChange={e => setSearchValue(e.target.value)} className=" bg-zinc-100 flex-grow md:flex-grow-0 md:w-80 px-3 py-2 text-xs md:text-lg rounded-xl border bg-transparent" placeholder="Cari data anda disini" />
+                <select value={searchCriteria} onChange={e => setSearchCriteria(e.target.value)}  className=" px-3 py-2 rounded-xl border text-xs md:text-lg bg-white  cursor-pointer">
                     <option disabled>-- Kriteria --</option>
-                    <option value="aktif">Nama</option>
-                    <option value="tidak aktif">NISN</option>
-                    <option value="tidak aktif">NIS</option>
+                    <option value="nama_siswa">Nama</option>
+                    <option value="nisn">NISN</option>
+                    <option value="nis">NIS</option>
                 </select>
             </div>
             <hr className="my-2 opacity-0" />
@@ -345,7 +412,7 @@ export default function DataSiswaMainPage() {
                 <div className="relative w-full h-fit max-h-[300px] overflow-auto">
                     <div className="divide-y">
                         {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (
-                            <div className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
+                            <div key={siswa.nis} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
                                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                                     <div className="flex-grow flex items-center gap-2">
                                         <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
@@ -360,10 +427,15 @@ export default function DataSiswaMainPage() {
                                     {siswa.kelas}
                                 </div>
                                 <div className="hidden md:flex items-center col-span-2 gap-3">
-                                    2024
+                                    {siswa.tahun_masuk}
                                 </div>
-                                <div className="hidden md:flex items-center col-span-2">
-                                    12100065 / 12100065
+                                <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1`}>
+                                    <p className="px-2 py-1 rounded-full bg-zinc-100">
+                                        {siswa.nis}
+                                    </p>
+                                    <p className="px-2 py-1 rounded-full bg-zinc-100">
+                                        {siswa.nis}
+                                    </p>
                                 </div>
                                 <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2">
                                     <a href={`/data/siswa/nis/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center rounded md:rounded-lg text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
@@ -393,6 +465,15 @@ export default function DataSiswaMainPage() {
                         <p className="text-xs font-medium">
                             {selectedSiswa.length} Data terpilih
                         </p>
+                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
+                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                        </button>
+                        <button type="button" onClick={() => setShowSelected(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   ${showSelected ? 'bg-blue-200 text-blue-700 hover:bg-blue-300' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'} group transition-all duration-300`}>
+                            <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
+                        </button>
+                        <button type="button" onClick={() => setSelectedSiswa([])} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
+                            <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
+                        </button>
                     </div>
                     <div className=" dropdown dropdown-hover dropdown-bottom dropdown-end">
                         <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2">
@@ -433,7 +514,7 @@ export default function DataSiswaMainPage() {
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select defaultValue={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded">
+                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
@@ -443,7 +524,7 @@ export default function DataSiswaMainPage() {
                 </div>
             </div>
             <hr className="my-3 opacity-0" />
-            <div className="md:p-5 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5">
+            <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300">
                 <div className="w-full md:w-1/2">
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
@@ -454,7 +535,7 @@ export default function DataSiswaMainPage() {
                         </h1>
                     </div>
                     <hr className="my-2 opacity-0" />
-                    <select defaultValue={kriteriaNaikKelas} value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer">
+                    <select  value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer">
                         <option value="" disabled>-- Pilih Data --</option>
                         <option value="semua">Naikkan Semua Kelas</option>
                         <option value="beberapa">Naikkan Semua Kelas, kecuali..</option>
@@ -523,7 +604,7 @@ export default function DataSiswaMainPage() {
                     </div>
 
                 </div>
-                <div className="w-full md:w-1/2">
+                <form onSubmit={submitUpdateBersama} className="w-full md:w-1/2">
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center">
                             <FontAwesomeIcon icon={faWandMagicSparkles} className="w-4 h-4 text-inherit" />
@@ -533,8 +614,60 @@ export default function DataSiswaMainPage() {
                         </h1>
                     </div>
                     <hr className="my-2 opacity-0" />
-                    
-                </div>
+                    <div className={`${selectedSiswa && selectedSiswa.length < 1 ? 'flex' : 'hidden'} items-center gap-3`}>
+                        <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
+                        <h1 className="text-zinc-500">Silahkan pilih data diatas terlebih dahulu.</h1>
+                    </div>
+                    <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} gap-3 flex-col md:flex-row w-full`}>
+                        <div className="w-full md:w-1/2 space-y-3">
+                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                                <option value="" disabled>-- Pilih Kelas --</option>
+                                <option value="X">X</option>
+                                <option value="XI">XI</option>
+                                <option value="XII">XII</option>
+                            </select>
+                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                                <option value="" disabled>-- Pilih No Rombel --</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full" placeholder="Tahun Masuk" />
+                            <div className="flex w-full items-center gap-2">
+                                <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
+                                <h1 className="text-zinc-500 text-xs">Jangan di isi jika tidak ingin mengubah tahun masuk</h1>
+                            </div>
+                        </div>
+                        <div className="w-full md:w-1/2 space-y-3">
+                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                                <option value="" disabled>-- Pilih Rombel --</option>
+                                <option value="TKJ">TKJ</option>
+                                <option value="TITL">TITL</option>
+                                <option value="GEO">GEO</option>
+                                <option value="DPIB">DPIB</option>
+                                <option value="TKR">TKR</option>
+                                <option value="TPM">TPM</option>
+                            </select>
+                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                                <option value="" disabled>-- Pilih Status --</option>
+                                <option value="aktif">Aktif</option>
+                                <option value="tidak">Tidak Aktif</option>
+                            </select>
+                        </div>
+                    </div>
+                    <hr className="my-2 opacity-0" />
+                    <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center gap-3`}>
+                        <button type="submit"  className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                            <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
+                            Simpan Perubahan
+                        </button>
+                        <button type="button" onClick={() => setSelectedSiswa([])}  className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-700 font-medium md:hidden flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-800">
+                            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-inherit" />
+                            Batalkan
+                        </button>
+                    </div>
+                </form>
             </div>
 
         </MainLayoutPage>
