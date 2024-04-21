@@ -111,8 +111,8 @@ export default function DataSiswaNewPage() {
 
             <hr className="my-2 opacity-0" />
 
-            <div className="flex md:flex-row flex-col gap-5">
-                <div className="w-full pr-5 md:w-1/2">
+            <form onSubmit={submitForm} className="flex md:flex-row flex-col gap-5">
+                <div className="w-full md:pr-5 md:w-1/2">
                     <div className="flex items-center gap-2">
                         <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
                             Data Pribadi
@@ -124,7 +124,7 @@ export default function DataSiswaNewPage() {
                         <div className="grid grid-cols-3 gap-2 md:gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs">Kelas</h1>
-                                <select onChange={e => setKelasForm(state => [e.target.value, state[1], state[2]])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select onChange={e => setKelasForm(state => [e.target.value, state[1], state[2]])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="X" >X</option>
                                     <option value="XI" >XI</option>
                                     <option value="XII" >XII</option>
@@ -132,7 +132,7 @@ export default function DataSiswaNewPage() {
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">Rombel</h1>
-                                <select onChange={e => setKelasForm(state => [state[0], e.target.value, state[2]])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select onChange={e => setKelasForm(state => [state[0], e.target.value, state[2]])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="TKJ" >TKJ</option>
                                     <option value="GEO" >GEO</option>
                                     <option value="DPIB" >DPIB</option>
@@ -143,7 +143,7 @@ export default function DataSiswaNewPage() {
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">No Rombel</h1>
-                                <select onChange={e => setKelasForm(state => [state[0], state[1], e.target.value])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select onChange={e => setKelasForm(state => [state[0], state[1], e.target.value])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="1" >1</option>
                                     <option value="2" >2</option>
                                     <option value="3" >3</option>
@@ -154,31 +154,31 @@ export default function DataSiswaNewPage() {
                         <div className="flex md:flex-row flex-col gap-5">
                             <div className="space-y-1 w-full md:w-1/2">
                                 <h1 className="text-xs">No Induk Kependudukan</h1>
-                                <input required value={formData.nik} onChange={e => setFormData(state => ({...state, nik: e.target.value}))} type="text" className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan No Induk Kependudukan" />
+                                <input required value={formData.nik} onChange={e => setFormData(state => ({...state, nik: e.target.value}))} type="text" className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan No Induk Kependudukan" />
                             </div>
                             <div className="space-y-1 w-full md:w-1/2">
                                 <h1 className="text-xs">No Kartu Keluarga</h1>
-                                <input required value={formData.no_kk} onChange={e => setFormData(state => ({...state, no_kk: e.target.value}))} type="text" className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan No Kartu Keluarga" />
+                                <input required value={formData.no_kk} onChange={e => setFormData(state => ({...state, no_kk: e.target.value}))} type="text" className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan No Kartu Keluarga" />
                             </div>
                         </div>
                         <div className="space-y-1">
                             <h1 className="text-xs">Nama Panjang</h1>
-                            <input required value={formData.nama_siswa} onChange={e => setFormData(state => ({...state, nama_siswa: e.target.value}))} type="text" className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan Nama Panjang" />
+                            <input required value={formData.nama_siswa} onChange={e => setFormData(state => ({...state, nama_siswa: e.target.value}))} type="text" className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan Nama Panjang" />
                         </div>
                         <div className="grid grid-cols-2 gap-2 md:gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs">Tanggal Lahir</h1>
-                                <input type="date" required value={dateToIso(formData.tanggal_lahir)} onChange={e => setFormData(state => ({...state, tanggal_lahir: isoToDate(e.target.value)}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan Tanggal Lahir" />
+                                <input type="date" required value={dateToIso(formData.tanggal_lahir)} onChange={e => setFormData(state => ({...state, tanggal_lahir: isoToDate(e.target.value)}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan Tanggal Lahir" />
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">Tempat Lahir</h1>
-                                <input type="text" required value={formData.tempat_lahir} onChange={e => setFormData(state => ({...state, tempat_lahir: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan Tempat Lahir" />
+                                <input type="text" required value={formData.tempat_lahir} onChange={e => setFormData(state => ({...state, tempat_lahir: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan Tempat Lahir" />
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 md:gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs">Jenis Kelamin</h1>
-                                <select required value={formData.jenis_kelamin} onChange={e => setFormData(state => ({...state, jenis_kelamin: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select required value={formData.jenis_kelamin} onChange={e => setFormData(state => ({...state, jenis_kelamin: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="" disabled>-- Jenis Kelamin --</option>
                                     <option value="Laki Laki">Laki Laki</option>
                                     <option value="Perempuan">Perempuan</option>
@@ -186,7 +186,7 @@ export default function DataSiswaNewPage() {
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">Agama</h1>
-                                <select required value={formData.agama} onChange={e => setFormData(state => ({...state, agama: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select required value={formData.agama} onChange={e => setFormData(state => ({...state, agama: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="" disabled>-- Agama --</option>
                                     <option value="Islam">Islam</option>
                                     <option value="Kristen Protestan">Kristen Protestan</option>
@@ -200,14 +200,14 @@ export default function DataSiswaNewPage() {
                         <div className="grid grid-cols-2 gap-2 md:gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs">Status dalam Keluarga</h1>
-                                <select required value={formData.status_dalam_keluarga} onChange={e => setFormData(state => ({...state, status_dalam_keluarga: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select required value={formData.status_dalam_keluarga} onChange={e => setFormData(state => ({...state, status_dalam_keluarga: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="Anak Kandung">Anak Kandung</option>
                                     <option value="Anak Angkat">Anak Angkat</option>
                                 </select>
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">Anak Ke - </h1>
-                                <select required value={formData.anak_ke} onChange={e => setFormData(state => ({...state, anak_ke: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select required value={formData.anak_ke} onChange={e => setFormData(state => ({...state, anak_ke: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="" disabled>-- Anak Ke --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -220,24 +220,24 @@ export default function DataSiswaNewPage() {
                         </div>
                         <div className="space-y-1">
                             <h1 className="text-xs">Alamat</h1>
-                            <input type="text" required value={formData.alamat} onChange={e => setFormData(state => ({...state, alamat: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan Alamat" />
+                            <input type="text" required value={formData.alamat} onChange={e => setFormData(state => ({...state, alamat: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan Alamat" />
                         </div>
                         <div className="space-y-1">
                             <h1 className="text-xs">No Handphone Siswa</h1>
-                            <input type="text" required value={formData.no_hp_siswa} onChange={e => setFormData(state => ({...state, no_hp_siswa: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan No Handphone Siswa" />
+                            <input type="text" required value={formData.no_hp_siswa} onChange={e => setFormData(state => ({...state, no_hp_siswa: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan No Handphone Siswa" />
                         </div>
                         <div className="space-y-1">
                             <h1 className="text-xs">Asal Sekolah</h1>
-                            <input type="text" required value={formData.asal_sekolah} onChange={e => setFormData(state => ({...state, asal_sekolah: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Asal Sekolah" />
+                            <input type="text" required value={formData.asal_sekolah} onChange={e => setFormData(state => ({...state, asal_sekolah: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Asal Sekolah" />
                         </div>
                         <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs">Tahun Masuk</h1>
-                                <input type="text" required value={formData.tahun_masuk} onChange={e => setFormData(state => ({...state, tahun_masuk: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Tahun Masuk Siswa" />
+                                <input type="text" required value={formData.tahun_masuk} onChange={e => setFormData(state => ({...state, tahun_masuk: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Tahun Masuk Siswa" />
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">Kategori</h1>
-                                <select required value={formData.kategori} onChange={e => setFormData(state => ({...state, kategori: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400">
+                                <select required value={formData.kategori} onChange={e => setFormData(state => ({...state, kategori: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
                                     <option value="" disabled>-- Pilih Kategori --</option>
                                     <option value="PRIORITAS NILAI RAPOR UMUM">Prioritas Nilai Rapor Umum</option>
                                     <option value="PRIORITAS NILAI RAPOR UNGGULAN">Prioritas Nilai Rapor Unggulan</option>
@@ -250,16 +250,96 @@ export default function DataSiswaNewPage() {
                         <div className="grid grid-cols-2 gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs">NISN</h1>
-                                <input type="text" required value={formData.nisn} onChange={e => setFormData(state => ({...state, nisn: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan NISN" />
+                                <input type="text" required value={formData.nisn} onChange={e => setFormData(state => ({...state, nisn: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan NISN" />
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs">NIS</h1>
-                                <input type="text" required value={formData.nis} onChange={e => setFormData(state => ({...state, nis: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400" placeholder="Masukkan NISN" />
+                                <input type="text" required value={formData.nis} onChange={e => setFormData(state => ({...state, nis: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer" placeholder="Masukkan NISN" />
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                <div className="w-full md:pl-5 md:w-1/2">
+                    <div className="flex items-center gap-2">
+                        <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
+                            Data Keluarga
+                        </h1>
+                        <hr className="flex-grow" />
+                    </div>
+                    <hr className="my-2 opacity-0" />
+                    <div className="text-sm font-semibold space-y-5">
+                        <div className="space-y-1">
+                            <h1 className="text-xs">Telp Orang Tua</h1>
+                            <input type="text" required value={formData.telp_ortu} onChange={e => setFormData(state => ({...state, telp_ortu: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium bg-transparent cursor-pointer" placeholder="Masukkan Telp Orang Tua" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-5">
+                            <div className="space-y-1">
+                                <h1 className="text-xs">Nama Ayah</h1>
+                                <input type="text" required value={formData.nama_ayah} onChange={e => setFormData(state => ({...state, nama_ayah: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium bg-transparent cursor-pointer" placeholder="Masukkan Nama Ayah" />
+                            </div>
+                            <div className="space-y-1">
+                                <h1 className="text-xs">Pekerjaan Ayah</h1>
+                                <select required value={formData.pekerjaan_ayah} onChange={e => setFormData(state => ({...state, pekerjaan_ayah: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium bg-transparent cursor-pointer">
+                                    <option value="Buruh">Buruh</option>
+                                    <option value="Buruh Harian Lepas">Buruh Harian Lepas</option>
+                                    <option value="Guru">Guru</option>
+                                    <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
+                                    <option value="Karyawan Swasta">Karyawan Swasta</option>
+                                    <option value="Mekanik">Mekanik</option>
+                                    <option value="Meninggal">Meninggal</option>
+                                    <option value="Ojek Online">Ojek Online</option>
+                                    <option value="Pedagang">Pedagang</option>
+                                    <option value="Pedagang Kecil">Pedagang Kecil</option>
+                                    <option value="Pegawai Negeri Sipil">Pegawai Negeri Sipil</option>
+                                    <option value="Pensiun">Pensiun</option>
+                                    <option value="Satpam">Satpam</option>
+                                    <option value="Sopir">Sopir</option>
+                                    <option value="Tidak Bekerja">Tidak Bekerja</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-5">
+                            <div className="space-y-1">
+                                <h1 className="text-xs">Nama Ibu</h1>
+                                <input type="text" required value={formData.nama_ibu} onChange={e => setFormData(state => ({...state, nama_ibu: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium bg-transparent cursor-pointer" placeholder="Masukkan Nama Ayah" />
+                            </div>
+                            <div className="space-y-1">
+                                <h1 className="text-xs">Pekerjaan Ibu</h1>
+                                <select required value={formData.pekerjaan_ibu} onChange={e => setFormData(state => ({...state, pekerjaan_ibu: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium bg-transparent cursor-pointer">
+                                    <option value="" disabled>-- Pekerjaan Ayah --</option>
+                                    <option value="Buruh">Buruh</option>
+                                    <option value="Buruh Harian Lepas">Buruh Harian Lepas</option>
+                                    <option value="Guru">Guru</option>
+                                    <option value="Ibu Rumah Tangga">Ibu Rumah Tangga</option>
+                                    <option value="Karyawan Swasta">Karyawan Swasta</option>
+                                    <option value="Mekanik">Mekanik</option>
+                                    <option value="Meninggal">Meninggal</option>
+                                    <option value="Ojek Online">Ojek Online</option>
+                                    <option value="Pedagang">Pedagang</option>
+                                    <option value="Pedagang Kecil">Pedagang Kecil</option>
+                                    <option value="Pegawai Negeri Sipil">Pegawai Negeri Sipil</option>
+                                    <option value="Pensiun">Pensiun</option>
+                                    <option value="Satpam">Satpam</option>
+                                    <option value="Sopir">Sopir</option>
+                                    <option value="Tidak Bekerja">Tidak Bekerja</option>
+                                    <option value="Lainnya">Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-5 flex items-center justify-center gap-5 md:flex-row flex-col">
+                        <button type="submit" className="w-full md:w-1/2 rounded-full bg-green-100 flex items-center justify-center gap-3 text-green-700 py-3 hover:bg-green-700 hover:text-white hover:shadow-2xl focus:bg-green-700 focus:text-white focus:shadow-2xl transition-all duration-300">
+                            <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
+                            Simpan Data
+                        </button>
+                        <button type="button" onClick={() => setFormData(siswaFormat)} className="w-full md:w-1/2 rounded-full bg-zinc-100 flex items-center justify-center gap-3 text-zinc-700 py-3 hover:bg-zinc-300  hover:shadow-2xl focus:bg-zinc-300 focus:shadow-2xl transition-all duration-300">
+                            <FontAwesomeIcon icon={faRecycle} className="w-4 h-4 text-inherit" />
+                            Bersihkan Form
+                        </button>
+                    </div>
+                </div>
+            </form>
         </MainLayoutPage>
     )
 }
@@ -493,15 +573,8 @@ function oldSection() {
                                 </div>
                             </div>
                         </div>
-                        <div className="mt-5 flex items-center justify-center gap-5">
-                            <button type="submit" className="w-1/3 px-2 py-1 rounded bg-green-400 hover:bg-green-500 focus:bg-green-600 text-white font-bold flex items-center justify-center gap-3 text-sm transition-all duration-300 hover:scale-95 focus:scale-95 hover:shadow-lg focus:shadow-lg">
-                                <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
-                                Simpan Data
-                            </button>
-                            <button type="button" onClick={() => setFormData(siswaFormat)} className="w-1/3 px-2 py-1 rounded bg-zinc-400 hover:bg-zinc-500 focus:bg-zinc-600 text-zinc-800 font-bold flex items-center justify-center gap-3 text-sm transition-all duration-300 hover:scale-95 focus:scale-95 hover:shadow-lg focus:shadow-lg">
-                                <FontAwesomeIcon icon={faRecycle} className="w-4 h-4 text-inherit" />
-                                Bersihkan
-                            </button>
+                        <div className="mt-5 flex items-center justify-center gap-5 md:flex-row flex-col">
+                            <button type="button" className="w-full md:w-1/2 rounded-full bg-green-200"></button>
                         </div>
                     </div>
                 </form>

@@ -11,6 +11,7 @@ import toast, { Toaster } from "react-hot-toast"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
+let listNoRombel = [];
 
 const mySwal = withReactContent(Swal)
 export default function DataSiswaMainPage() {
@@ -31,12 +32,22 @@ export default function DataSiswaMainPage() {
     const [kriteriaNaikKelas, setKriteriaNaiKelas] = useState('');
     const [siswaTidakNaikKelas, setSiswaTidakNaikKelas] = useState([])
     const [showSelected, setShowSelected] = useState(false)
+    const [sorting, setSorting] = useState({nama_siswa: '', tahun_masuk: ''})
 
     const getSiswa = async () => {
         setLoadingFetch('loading');
         const data = await getAllSiswa()
         setSiswaList(data)
         setFilteredSiswaList(data)
+        
+        // Get all No Rombel
+        data.filter(({kelas}) => {
+            let kelasArr = kelas.split(' ')
+            if(!listNoRombel.includes(kelasArr[2])) {
+                listNoRombel.push(kelasArr[2])
+            }
+        })
+
         setLoadingFetch('fetched')
     }
 
@@ -74,6 +85,42 @@ export default function DataSiswaMainPage() {
             setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
         }
 
+        let sortedFilter = [];
+        // Sorting
+        if(sorting.nama_siswa !== '') {
+            sortedFilter = updatedFilter.sort((a, b) => {
+                if(sorting.nama_siswa === 'asc') {
+                    if (a.nama_siswa < b.nama_siswa) return -1;
+                    if (a.nama_siswa > b.nama_siswa) return 1;
+                    return 0;
+                }
+                
+                if(sorting.nama_siswa === 'dsc') {
+                    if (a.nama_siswa < b.nama_siswa) return 1;
+                    if (a.nama_siswa > b.nama_siswa) return -1;
+                    return 0;
+                }
+            })
+        }
+
+        if(sorting.tahun_masuk !== '') {
+            sortedFilter = updatedFilter.sort((a, b) => {
+                if(sorting.tahun_masuk === 'asc') {
+                    if (a.tahun_masuk < b.tahun_masuk) return -1;
+                    if (a.tahun_masuk > b.tahun_masuk) return 1;
+                    return 0;
+                }
+                
+                if(sorting.tahun_masuk === 'dsc') {
+                    if (a.tahun_masuk < b.tahun_masuk) return 1;
+                    if (a.tahun_masuk > b.tahun_masuk) return -1;
+                    return 0;
+                }
+            })
+        }
+
+        updatedFilter = sortedFilter.length > 0 ? sortedFilter : updatedFilter
+
         setFilteredSiswaList(updatedFilter)
     }
 
@@ -90,7 +137,7 @@ export default function DataSiswaMainPage() {
 
     useEffect(() => {
         handleSubmitFilter()
-    }, [kelas, rombel, noRombel, searchValue, searchCriteria, status, showSelected])
+    }, [kelas, rombel, noRombel, searchValue, searchCriteria, status, showSelected, sorting])
 
     const deleteSingle = async (nis) => {
         mySwal.fire({
@@ -302,6 +349,18 @@ export default function DataSiswaMainPage() {
         
     }
 
+    const handleSorting = (key, otherKey) => {
+        if(sorting[key] === '') {  
+            return setSorting(state => ({...state, [key]: 'asc', [otherKey]: ''}))
+        }
+        if(sorting[key] === 'asc') {
+            return setSorting(state => ({...state, [key]: 'dsc', [otherKey]: ''}))
+        }
+        if(sorting[key] === 'dsc') {
+            return setSorting(state => ({...state, [key]: '', [otherKey]: ''}))
+        }
+    }
+
     return (
         <MainLayoutPage>
             <Toaster />
@@ -348,10 +407,9 @@ export default function DataSiswaMainPage() {
                     <div className="w-full md:w-1/2 flex gap-2">
                         <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
                             <option disabled>-- No Rombel --</option>
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
+                            {listNoRombel.map(no_rombel => (
+                                <option value={no_rombel}>{no_rombel}</option>
+                            ))}
                             <option value="0">Semua</option>
                         </select>
                         <select value={status} onChange={e => setStatus(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
@@ -379,8 +437,8 @@ export default function DataSiswaMainPage() {
                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                     <input type="checkbox" name="" id="" />
                     Nama
-                    <button type="button" className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3 text-inherit" />
+                    <button type="button" onClick={() => handleSorting('nama_siswa', 'tahun_masuk')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
+                        <FontAwesomeIcon icon={sorting.nama_siswa === '' ? faArrowsUpDown : (sorting.nama_siswa === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
                     </button>
                 </div>
                 <div className="hidden md:flex items-center col-span-2">
@@ -388,8 +446,8 @@ export default function DataSiswaMainPage() {
                 </div>
                 <div className="hidden md:flex items-center col-span-2 gap-3">
                     Tahun Masuk
-                    <button type="button" className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3 text-inherit" />
+                    <button type="button" onClick={() => handleSorting('tahun_masuk', 'nama_siswa')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
+                        <FontAwesomeIcon icon={sorting.tahun_masuk === '' ? faArrowsUpDown : (sorting.tahun_masuk === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
                     </button>
                 </div>
                 <div className="hidden md:flex items-center col-span-2">
@@ -438,13 +496,13 @@ export default function DataSiswaMainPage() {
                                     </p>
                                 </div>
                                 <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2">
-                                    <a href={`/data/siswa/nis/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center rounded md:rounded-lg text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
+                                    <a href={`/data/siswa/nis/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
                                         <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                                     </a>
-                                    <button type="button" onClick={() => deleteSingle(siswa.nis)} className="w-6 h-6 flex items-center justify-center rounded md:rounded-lg text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
+                                    <button type="button" onClick={() => deleteSingle(siswa.nis)} className="w-6 h-6 flex items-center justify-center  text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <a href={`/data/siswa/update/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center rounded md:rounded-lg text-white bg-amber-600 hover:bg-amber-800" title="Ubah data siswa ini">
+                                    <a href={`/data/siswa/update/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-amber-600 hover:bg-amber-800" title="Ubah data siswa ini">
                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                     </a>
                                 </div>
@@ -514,7 +572,7 @@ export default function DataSiswaMainPage() {
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded">
+                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
@@ -535,7 +593,7 @@ export default function DataSiswaMainPage() {
                         </h1>
                     </div>
                     <hr className="my-2 opacity-0" />
-                    <select  value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer">
+                    <select  value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer bg-transparent">
                         <option value="" disabled>-- Pilih Data --</option>
                         <option value="semua">Naikkan Semua Kelas</option>
                         <option value="beberapa">Naikkan Semua Kelas, kecuali..</option>
@@ -620,27 +678,27 @@ export default function DataSiswaMainPage() {
                     </div>
                     <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} gap-3 flex-col md:flex-row w-full`}>
                         <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
                                 <option value="" disabled>-- Pilih Kelas --</option>
                                 <option value="X">X</option>
                                 <option value="XI">XI</option>
                                 <option value="XII">XII</option>
                             </select>
-                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
                                 <option value="" disabled>-- Pilih No Rombel --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
                                 <option value="4">4</option>
                             </select>
-                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full" placeholder="Tahun Masuk" />
+                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full bg-transparent" placeholder="Tahun Masuk" />
                             <div className="flex w-full items-center gap-2">
                                 <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
                                 <h1 className="text-zinc-500 text-xs">Jangan di isi jika tidak ingin mengubah tahun masuk</h1>
                             </div>
                         </div>
                         <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
                                 <option value="" disabled>-- Pilih Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="TITL">TITL</option>
@@ -649,7 +707,7 @@ export default function DataSiswaMainPage() {
                                 <option value="TKR">TKR</option>
                                 <option value="TPM">TPM</option>
                             </select>
-                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer">
+                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
                                 <option value="" disabled>-- Pilih Status --</option>
                                 <option value="aktif">Aktif</option>
                                 <option value="tidak">Tidak Aktif</option>
