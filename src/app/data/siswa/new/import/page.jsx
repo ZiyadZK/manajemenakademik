@@ -1,7 +1,7 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { faAngleLeft, faAngleRight, faArrowLeft, faCheck, faDownload, faEllipsisH, faEllipsisV, faExclamation, faExclamationCircle, faFileCircleCheck, faSave, faSpinner, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faArrowLeft, faCheck, faCircleCheck, faDownload, faEllipsisH, faEllipsisV, faExclamation, faExclamationCircle, faEye, faFile, faFileCircleCheck, faSave, faSpinner, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
@@ -12,69 +12,178 @@ import withReactContent from "sweetalert2-react-content"
 import Swal from "sweetalert2"
 import { createMultiSiswa } from "@/lib/model/siswaModel"
 import { mont } from "@/config/fonts"
+import { formatFileSize } from "@/lib/formatFileSize"
+import * as XLSX from 'xlsx'
 
 const formatInputFile = {
-    kelas: 'tidak cocok',
-    nama_siswa: 'tidak cocok',
-    nis: 'tidak cocok',
-    nisn: 'tidak cocok',
-    nik: 'tidak cocok',
-    no_kk: 'tidak cocok',
-    tempat_lahir: 'tidak ada',
-    tanggal_lahir: 'tidak cocok',
-    jenis_kelamin: 'cocok',
-    agama: 'tidak cocok',
-    status_dalam_keluarga: 'tidak cocok',
-    anak_ke: 'tidak cocok',
-    alamat: 'tidak cocok',
-    no_hp_siswa: 'tidak cocok',
-    asal_sekolah: 'cocok',
-    kategori: 'tidak cocok',
-    tahun_masuk: 'tidak cocok',
-    nama_ayah: 'tidak cocok',
-    nama_ibu: 'tidak cocok',
-    telp_ortu: 'tidak cocok',
-    pekerjaan_ayah: 'tidak cocok',
-    pekerjaan_ibu: 'tidak cocok',
-    aktif: 'tidak cocok',
+    kelas: '',
+    nama_siswa: '',
+    nis: '',
+    nisn: '',
+    nik: '',
+    no_kk: '',
+    tempat_lahir: '',
+    tanggal_lahir: '',
+    jenis_kelamin: '',
+    agama: '',
+    status_dalam_keluarga: '',
+    anak_ke: '',
+    alamat: '',
+    no_hp_siswa: '',
+    asal_sekolah: '',
+    kategori: '',
+    tahun_masuk: '',
+    nama_ayah: '',
+    nama_ibu: '',
+    telp_ortu: '',
+    pekerjaan_ayah: '',
+    pekerjaan_ibu: '',
+    aktif: '',
   }
 
-const allowedFileTypes = ['text/csv', 'application/vnd.ms-excel']
+const allowedFileTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 const formatDataSiswa = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu', 'aktif']
+const formatInformasiFile = {status: '', ekstensi: '', size: '', jumlahData: ''}
 const mySwal = withReactContent(Swal)
 
 export default function DataSiswaNewImportPage() {
     const router = useRouter()
     const [file, setFile] = useState(null)
+    const [uploadedFile, setUploadedFile] = useState(null)
     const [data, setData] = useState([])
     const [totalList, setTotalList] = useState(10)
     const [pagination, setPagination] = useState(1);
     const [selectedSiswa, setSelectedSiswa] = useState([])
-
+    const [informasiFile, setInformasiFile] = useState(formatInformasiFile)
+    const [informasiKolom, setInformasiKolom] = useState(formatInputFile)
+    const [namaSheet, setNamaSheet] = useState('')
+    const [loadingReadFormat, setLoadingReadFormat] = useState('')
 
     const submitFile = async e => {
         e.preventDefault();
 
+        // Cek udah di isi atau belum
         if(!file) {
-            return toast.error('Harap masukkan file CSV terlebih dahulu!')
+            return toast.error('Harap masukkan file CSV / Excel terlebih dahulu!')
         }
 
-        if(!allowedFileTypes.includes(file.type)) {
-            return toast.error('Anda hanya bisa mengupload file CSV saja!')
-        }
+        // Ambil Informasi File
+        const fileName = file.name
+        const fileExtension = fileName.split('.').pop()
+        const fileSize = formatFileSize(file.size)
+        setInformasiFile(state => ({...state, size: fileSize, ekstensi: fileExtension}))
+        setLoadingReadFormat('loading')
 
-
-        Papa.parse(file, {
-            worker: true,
-            header: true,
-            complete: result => {
-                if(result.data.length < 1) return toast.error('CSV yang anda upload kosong!');
-                const uploadedColumns = Object.keys(result.data[0])
-                const missingColumns = formatDataSiswa.filter(col => !uploadedColumns.includes(col))
-                if(missingColumns.length > 0) return toast.error('Kolom-kolom yang ada di File CSV anda tidak sesuai dengan data yang sudah ada!');
-                setData(result.data)
+        if(fileExtension === 'xlsx') {
+            try {
+                let checkedKolomDataArr = ''
+                const response = await readXLSXFile(file)
+                
+                setInformasiFile(state => ({...state, jumlahData: response.data.length}))
+                const kolomDataArr = Object.keys(response.data[0])
+                kolomDataArr.map(kolomInput => {
+                    if(formatDataSiswa.includes(kolomInput)) {
+                        setInformasiKolom(state => ({...state, [kolomInput]: 'cocok'}))
+                    }else{
+                        setInformasiKolom(state => ({...state, [kolomInput]: 'tidak cocok'}))
+                        checkedKolomDataArr = 'tidak cocok'
+                    }
+                })
+    
+                setUploadedFile(state => state = file)
+                if(checkedKolomDataArr === 'tidak cocok') {
+                    setLoadingReadFormat('fetched')
+                    return toast.error('Terdapat kolom yang tidak sesuai!')
+                }
+                
+                setData(response.data)
+                setLoadingReadFormat('fetched')
+                return toast.success('Berhasil mengimport file excel')
+            } catch (error) {
+                console.log(error)
+                
+                setLoadingReadFormat('fetched')
+                return toast.error(error.message)
             }
-        })   
+        }
+
+        // Cek file kalau file pakai CSV
+        if(fileExtension === 'csv') {
+            Papa.parse(file, {
+                worker: true,
+                header: true,
+                complete: result => {
+                    let checkedKolomDataArr = ''
+                    setInformasiFile(state => ({...state, jumlahData: result.data.length}))
+
+                    const kolomDataArr = Object.keys(result.data[0])
+                    kolomDataArr.map(kolomInput => {
+                        if(formatDataSiswa.includes(kolomInput)) {
+                            setInformasiKolom(state => ({...state, [kolomInput]: 'cocok'}))
+                        }else{
+                            setInformasiKolom(state => ({...state, [kolomInput]: 'tidak cocok'}))
+                            checkedKolomDataArr = 'tidak cocok'
+                        }
+                    })
+
+                    if(checkedKolomDataArr === 'tidak cocok') {
+                        setLoadingReadFormat('fetched')
+                        return toast.error('Terdapat kolom yang tidak sesuai!')
+                    }
+                    setData(result.data)
+                    setLoadingReadFormat('fetched')
+                    return toast.success('Berhasil mengimport file excel')
+                }
+            })   
+        }
+
+
+    }
+
+    const readXLSXFile = file => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const worksheet = workbook.Sheets[namaSheet];
+                const records = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                if(typeof(worksheet) === 'undefined') {
+                    reject({
+                        success: false,
+                        message: 'Sheet tidak ada'
+                    })
+                }
+    
+                if (records.length > 1) {
+                    // Ambil nama kolom dari baris pertama
+                    const columns = records[0];
+                    // Buat array objek dari baris-baris selanjutnya
+                    const dataObjects = records.slice(1).map(row => {
+                        const obj = {};
+                        columns.forEach((column, index) => {
+                            obj[column] = row[index];
+                        });
+                        return obj;
+                    });
+                    resolve({
+                        success: true,
+                        message: 'Sheet ditemukan',
+                        data: dataObjects
+                    })
+                } else {
+                    resolve({
+                        success: true,
+                        message: 'Sheet ditemukan',
+                        data: []
+                    });
+                }
+            };
+    
+            reader.onerror = reject;
+    
+            reader.readAsArrayBuffer(file);
+        });
     }
 
     const submitData = async () => {
@@ -197,28 +306,38 @@ export default function DataSiswaNewImportPage() {
             <hr className="my-3 w-full" />
             <div className="flex items-center gap-5 flex-col md:flex-row">
 
-                <form className="flex items-center gap-5 flex-col md:flex-row">
-                    <input type="file" className=" rounded-l-xl border rounded-r-xl" />
-                    <button type="button" className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 w-full md:w-fit text-teal-600 hover:bg-teal-200 hover:text-teal-800">
-                        <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit" />
+                <form onSubmit={submitFile} className="flex items-center gap-5 flex-col md:flex-row">
+                    <input type="file" required onChange={e => setFile(e.target.files[0])} className=" border" />
+                    {file && file.name.split('.').pop() === 'xlsx' && (
+                        <input type="text" onChange={e => setNamaSheet(e.target.value)} required className="border rounded px-3 py-1 w-full md:w-fit" placeholder="Nama Sheet" />
+                    )}
+                    <button type="submit" disabled={loadingReadFormat === 'loading' ? true : false} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 w-full md:w-fit text-teal-600 hover:bg-teal-200 hover:text-teal-800">
+                        <FontAwesomeIcon icon={loadingReadFormat === 'loading' ? faSpinner : faUpload} className={`${loadingReadFormat === 'loading' && 'animate-spin'} w-3 h-3 text-inherit`} />
                         Upload
                     </button>
                 </form>
                 <div className="flex items-center gap-5 w-full">
-                    <button type="button" onClick={() => document.getElementById('informasi_file').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
-                        <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
-                        Cek File
-                    </button>
-                        <dialog id="informasi_file" className="modal">
+                    {uploadedFile && (
+                        <button type="button" onClick={() => document.getElementById('informasi_file').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
+                            <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
+                            Cek File
+                        </button>
+                    )}
+                    <dialog id="informasi_file" className="modal">
                         <div className="modal-box bg-white">
-                            <h3 className="font-bold text-lg">Informasi File</h3>
+                            <div className="flex items-center gap-3">
+                                <h3 className="font-bold text-lg">Informasi File</h3>
+                                <p className={`w-fit px-3 py-1 rounded-full text-xs bg-green-50 text-green-700`}>
+                                    Sukses
+                                </p>
+                            </div>
                             <article className={`${mont.className}  mt-3 flex gap-3`}>
                                 <div className="w-1/3">
                                     <p className="text-zinc-500 md:text-sm text-xs">
                                         Ekstensi
                                     </p>
                                     <p className="font-medium">
-                                        .xlsx
+                                        .{informasiFile.ekstensi}
                                     </p>
                                 </div>
                                 <div className="w-1/3">
@@ -226,7 +345,7 @@ export default function DataSiswaNewImportPage() {
                                         Ukuran
                                     </p>
                                     <p className="font-medium">
-                                        20 kb
+                                        {informasiFile.size}
                                     </p>
                                 </div>
                                 <div className="w-1/3">
@@ -234,7 +353,7 @@ export default function DataSiswaNewImportPage() {
                                         Jumlah data
                                     </p>
                                     <p className="font-medium">
-                                        1.000 baris
+                                        {informasiFile.jumlahData} baris
                                     </p>
                                 </div>
                             </article>
@@ -243,10 +362,12 @@ export default function DataSiswaNewImportPage() {
                             <button>close</button>
                         </form>
                     </dialog>
-                    <button type="button" onClick={() => document.getElementById('informasi_kolom').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
-                        <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
-                        Cek Kolom
-                    </button>
+                    {uploadedFile && (
+                        <button type="button" onClick={() => document.getElementById('informasi_kolom').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
+                            <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
+                            Cek Kolom
+                        </button>
+                    )}
                     <dialog id="informasi_kolom" className="modal">
                         <div className="modal-box bg-white">
                             <h3 className="font-bold text-lg">Informasi Kolom</h3>
@@ -277,7 +398,7 @@ export default function DataSiswaNewImportPage() {
                                             </div>
                                         </div>
                                         <div className="col-span-3">
-                                            {formatInputFile[format] === 'cocok' && (
+                                            {informasiKolom[format] === 'cocok' && (
                                                 <div className="flex items-center justify-center">
                                                     <div className="flex items-center justify-between px-3 py-1 text-xs text-green-700 bg-green-50 gap-3 rounded-full">
                                                         <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-green-700" />
@@ -285,7 +406,7 @@ export default function DataSiswaNewImportPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                            {formatInputFile[format] === 'tidak cocok' && (
+                                            {informasiKolom[format] === 'tidak cocok' && (
                                                 <div className="flex items-center justify-center">
                                                     <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-red-700" />
@@ -293,7 +414,7 @@ export default function DataSiswaNewImportPage() {
                                                     </div>
                                                 </div>
                                             )}
-                                           {formatInputFile[format] === 'tidak ada' && (
+                                           {informasiKolom[format] === 'tidak ada' && (
                                                 <div className="flex items-center justify-center">
                                                     <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full">
                                                         <FontAwesomeIcon icon={faExclamation} className="w-3 h-3 text-red-700" />
@@ -304,8 +425,6 @@ export default function DataSiswaNewImportPage() {
                                         </div>
                                     </div>
                                 ))}
-
-                                
                             </div>
                         </div>
                         <form method="dialog" className="modal-backdrop">
@@ -315,7 +434,106 @@ export default function DataSiswaNewImportPage() {
                 </div>
             </div>
             <hr className="my-3 w-full opacity-0" />
-            
+            <div className="grid grid-cols-12 w-full  bg-blue-500 *:px-2 *:py-3 text-white text-sm shadow-xl">
+                <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
+                    <input type="checkbox" name="" id="" />
+                    Nama
+                </div>
+                <div className="hidden md:flex items-center col-span-2">
+                    Kelas
+                </div>
+                <div className="hidden md:flex items-center col-span-2 gap-3">
+                    Tahun Masuk
+                </div>
+                <div className="hidden md:flex items-center col-span-2">
+                    NIS/NISN
+                </div>
+                <div className="flex justify-center items-center col-span-4 md:col-span-2">
+                    <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit" />
+                </div>
+            </div>
+            <div className="relative w-full h-fit max-h-[300px]">
+
+                <div className="divide-y">
+                    <div className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
+                        <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
+                            <div className="flex-grow flex items-center gap-2">
+                                <input type="checkbox" />
+                                Ziyad
+                            </div>
+                            <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 flex-shrink-0 text-green-600/50" />
+                        </div>
+                        <div className="hidden md:flex items-center col-span-2">
+                            XII TKJ 2
+                        </div>
+                        <div className="hidden md:flex items-center col-span-2 gap-3">
+                            2021
+                        </div>
+                        <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1`}>
+                            <p className="px-2 py-1 rounded-full bg-zinc-100">
+                                1221212121
+                            </p>
+                            <p className="px-2 py-1 rounded-full bg-zinc-100">
+                                1212121212
+                            </p>
+                        </div>
+                        <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2">
+                            <button type="button" className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
+                                <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
+                            </button>
+                            <button type="button" className="w-6 h-6 flex items-center justify-center  text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
+                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300">
+                <div className="flex-grow flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <p className="text-xs font-medium">
+                            0 Data terpilih
+                        </p>
+                        
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
+                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                        </button>
+                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300`}>
+                            <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
+                        </button>
+                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
+                            <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
+                        </button>
+                    </div>
+                </div>
+                <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
+                    <p className={`${mont.className} px-2 text-xs`}>
+                        10 - 20 dari 1000 data
+                    </p>
+                    <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
+                        <button type="button"  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                            <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
+                        </button>
+                        <p className="font-medium text-zinc-600">
+                            {pagination}
+                        </p>
+                        <button type="button"  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                            <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
+                        </button>
+                    </div>
+                    <div className={`${mont.className} px-2 text-xs`}>
+                        <select className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
         </MainLayoutPage>
     )
