@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, open, rale } from "@/config/fonts"
 import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
+import { exportToXLSX } from "@/lib/xlsxLibs"
 import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
@@ -134,6 +135,8 @@ export default function DataSiswaMainPage() {
             return setSelectedSiswa(filteredSiswa)
         }
     }
+
+    
 
     useEffect(() => {
         handleSubmitFilter()
@@ -407,8 +410,8 @@ export default function DataSiswaMainPage() {
                     <div className="w-full md:w-1/2 flex gap-2">
                         <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
                             <option disabled>-- No Rombel --</option>
-                            {listNoRombel.map(no_rombel => (
-                                <option value={no_rombel}>{no_rombel}</option>
+                            {listNoRombel.map((no_rombel, index) => (
+                                <option key={index} value={no_rombel}>{no_rombel}</option>
                             ))}
                             <option value="0">Semua</option>
                         </select>
@@ -615,7 +618,7 @@ export default function DataSiswaMainPage() {
                             </div>
                             <div className={`${mont.className} divide-y relative overflow-auto w-full h-fit max-h-48`}>
                                 {siswaTidakNaikKelas.map(siswa => (
-                                    <div className="grid grid-cols-10 px-1 py-2  text-xs group">
+                                    <div key={siswa} className="grid grid-cols-10 px-1 py-2  text-xs group">
                                         <p className="col-span-8 md:col-span-4 font-medium text-zinc-600 flex items-center gap-2">
                                             {siswa.nama_siswa}
                                             

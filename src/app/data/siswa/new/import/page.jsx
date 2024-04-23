@@ -1,9 +1,9 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { faAngleLeft, faAngleRight, faArrowLeft, faCheck, faCircleCheck, faDownload, faEllipsisH, faEllipsisV, faExclamation, faExclamationCircle, faEye, faFile, faFileCircleCheck, faSave, faSpinner, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faArrowLeft, faCheck, faCircleCheck, faDownload, faEllipsisH, faEllipsisV, faExclamation, faExclamationCircle, faEye, faFile, faFileCircleCheck, faHeadphonesSimple, faSave, faSpinner, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
 
 import Papa from 'papaparse'
@@ -14,6 +14,8 @@ import { createMultiSiswa } from "@/lib/model/siswaModel"
 import { mont } from "@/config/fonts"
 import { formatFileSize } from "@/lib/formatFileSize"
 import * as XLSX from 'xlsx'
+import { exportToXLSX } from "@/lib/xlsxLibs"
+import { exportToCSV } from "@/lib/csvLibs"
 
 const formatInputFile = {
     kelas: '',
@@ -41,6 +43,10 @@ const formatInputFile = {
     aktif: '',
   }
 
+
+const formatDataPribadi = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'aktif']
+const formatDataKeluarga = ['nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu']
+
 const allowedFileTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
 const formatDataSiswa = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu', 'aktif']
 const formatInformasiFile = {status: '', ekstensi: '', size: '', jumlahData: ''}
@@ -58,6 +64,9 @@ export default function DataSiswaNewImportPage() {
     const [informasiKolom, setInformasiKolom] = useState(formatInputFile)
     const [namaSheet, setNamaSheet] = useState('')
     const [loadingReadFormat, setLoadingReadFormat] = useState('')
+    const [listSheet, setListSheet] = useState([])
+    const [filteredData, setFilteredData] = useState([])
+    const [searchValue, setSearchValue] = useState('')
 
     const submitFile = async e => {
         e.preventDefault();
@@ -80,27 +89,39 @@ export default function DataSiswaNewImportPage() {
                 const response = await readXLSXFile(file)
                 
                 setInformasiFile(state => ({...state, jumlahData: response.data.length}))
-                const kolomDataArr = Object.keys(response.data[0])
-                kolomDataArr.map(kolomInput => {
-                    if(formatDataSiswa.includes(kolomInput)) {
-                        setInformasiKolom(state => ({...state, [kolomInput]: 'cocok'}))
-                    }else{
-                        setInformasiKolom(state => ({...state, [kolomInput]: 'tidak cocok'}))
-                        checkedKolomDataArr = 'tidak cocok'
-                    }
+                let updatedInformasiKolom = {}
+                let kolomInputDataArr = typeof(response.data[0]) === 'undefined' ? [] : Object.keys(response.data[0])
+
+                // Cek kolom yang cocok
+                formatDataSiswa.filter(format => kolomInputDataArr.includes(format)).map(format => {
+                    updatedInformasiKolom = {...updatedInformasiKolom, [format]: 'cocok'}
                 })
+
+                // Cek kolom yang tidak cocok
+                formatDataSiswa.filter(format => kolomInputDataArr.includes(format) === false).map(format => {
+                    updatedInformasiKolom = {...updatedInformasiKolom, [format]: 'tidak cocok'}
+                    checkedKolomDataArr = 'tidak cocok'
+                })
+
+                setInformasiKolom(updatedInformasiKolom)
     
                 setUploadedFile(state => state = file)
                 if(checkedKolomDataArr === 'tidak cocok') {
+                    setData([])
+                    setFilteredData([])
                     setLoadingReadFormat('fetched')
                     return toast.error('Terdapat kolom yang tidak sesuai!')
                 }
                 
                 setData(response.data)
+                setFilteredData(response.data)
                 setLoadingReadFormat('fetched')
                 return toast.success('Berhasil mengimport file excel')
             } catch (error) {
                 console.log(error)
+                setUploadedFile(null)
+                setData([])
+                setFilteredData([])
                 
                 setLoadingReadFormat('fetched')
                 return toast.error(error.message)
@@ -113,31 +134,67 @@ export default function DataSiswaNewImportPage() {
                 worker: true,
                 header: true,
                 complete: result => {
-                    let checkedKolomDataArr = ''
                     setInformasiFile(state => ({...state, jumlahData: result.data.length}))
+                    let checkedKolomDataArr;
 
-                    const kolomDataArr = Object.keys(result.data[0])
-                    kolomDataArr.map(kolomInput => {
-                        if(formatDataSiswa.includes(kolomInput)) {
-                            setInformasiKolom(state => ({...state, [kolomInput]: 'cocok'}))
-                        }else{
-                            setInformasiKolom(state => ({...state, [kolomInput]: 'tidak cocok'}))
-                            checkedKolomDataArr = 'tidak cocok'
-                        }
+                    let updatedInformasiKolom = {}
+                    let kolomInputDataArr = typeof(result.data[0]) === 'undefined' ? result.meta.fields : Object.keys(result.data[0])
+
+                    // Cek kolom yang cocok
+                    formatDataSiswa.filter(format => kolomInputDataArr.includes(format)).map(format => {
+                        updatedInformasiKolom = {...updatedInformasiKolom, [format]: 'cocok'}
                     })
+
+                    // Cek kolom yang tidak cocok
+                    formatDataSiswa.filter(format => kolomInputDataArr.includes(format) === false).map(format => {
+                        updatedInformasiKolom = {...updatedInformasiKolom, [format]: 'tidak cocok'}
+                        checkedKolomDataArr = 'tidak cocok'
+                    })
+
+                    setInformasiKolom(updatedInformasiKolom)
+
+                    setUploadedFile(state => state = file)
 
                     if(checkedKolomDataArr === 'tidak cocok') {
                         setLoadingReadFormat('fetched')
+                        setData([])
+                        setFilteredData([])
                         return toast.error('Terdapat kolom yang tidak sesuai!')
                     }
                     setData(result.data)
+                    setFilteredData(result.data)
                     setLoadingReadFormat('fetched')
                     return toast.success('Berhasil mengimport file excel')
+                },
+                error: (error, file) => {
+                    console.log(error)
+                    console.log(file)
+                    setData([])
+                    setFilteredData([])
+                    setLoadingReadFormat('fetched')
+                    return toast.error('Terdapat Error')
+
                 }
             })   
         }
 
 
+    }
+
+    const downloadFormatExample = async type => {
+        if(type === 'xlsx') {
+            return await exportToXLSX([], 'Format Data Siswa', {
+                header: formatDataSiswa,
+                sheetName: 'Format XSLX'
+            })
+        }
+
+        if(type === 'csv') {
+            return await exportToCSV([], 'Format Data Siswa', {
+                header: formatDataSiswa,
+                sheetName: 'Format CSV'
+            })
+        }
     }
 
     const readXLSXFile = file => {
@@ -162,7 +219,16 @@ export default function DataSiswaNewImportPage() {
                     const dataObjects = records.slice(1).map(row => {
                         const obj = {};
                         columns.forEach((column, index) => {
-                            obj[column] = row[index];
+                            if(column === 'tanggal_lahir') {
+                                const dateValue = new Date((row[index] - 25569) * 86400 * 1000)
+                                // Construct the date string in the format 'dd/MM/yyyy'
+                                const day = String(dateValue.getDate()).padStart(2, '0');
+                                const month = String(dateValue.getMonth() + 1).padStart(2, '0'); // Month is zero-based
+                                const year = dateValue.getFullYear();
+                                obj[column] = `${day}/${month}/${year}`;
+                            }else{
+                                obj[column] = String(row[index])
+                            }
                         });
                         return obj;
                     });
@@ -184,6 +250,21 @@ export default function DataSiswaNewImportPage() {
     
             reader.readAsArrayBuffer(file);
         });
+    }
+
+    const getXLSXSheets = file => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                resolve(workbook.Sheets)
+            };
+    
+            reader.onerror = reject;
+    
+            reader.readAsArrayBuffer(file);
+        })
     }
 
     const submitData = async () => {
@@ -242,14 +323,60 @@ export default function DataSiswaNewImportPage() {
         const updatedData = data.filter(siswa => !selectedSiswa.includes(siswa.nis));
         setSelectedSiswa([])
         setData(updatedData)
+        setFilteredData(updatedData)
     }
 
     const cancelImport = () => {
         setData([])
+        setFilteredData([])
+        setFile(null)
+        setUploadedFile(null)
         setPagination(1)
         setTotalList(10)
         setSelectedSiswa([])
     }
+
+    const handleChangeFile = async (file) => {
+        if(file) {
+            setFile(file)
+    
+            const fileName = file.name
+            const fileExtension = fileName.split('.').pop()
+            if(fileExtension === 'xlsx') {
+                const sheets = await getXLSXSheets(file)
+                setNamaSheet('')
+                setListSheet(Object.keys(sheets))
+            }
+        }else{
+            setListSheet([])
+        }
+    }
+
+    const handleSearchFilter = (value) => {
+        if(value === '') {
+            return setFilteredData(data)
+        }
+
+        const updatedData = data.filter((siswa, index, array) => 
+            siswa['nama_siswa'].toLowerCase().includes(value.toLowerCase()) ||
+            siswa['kelas'].toLowerCase().includes(value.toLowerCase()) ||
+            String(siswa['tahun_masuk']).toLowerCase().includes(value.toLowerCase()) ||
+            String(siswa['nis']).toLowerCase().includes(value.toLowerCase()) ||
+            String(siswa['nisn']).toLowerCase().includes(value.toLowerCase())
+        )
+        console.log(updatedData)
+        setFilteredData(updatedData)
+
+    }
+
+    const deleteSingleSiswa = (nis) => {
+        const updatedData = data.filter(siswa => siswa.nis !== nis)
+        setData(updatedData)
+    }
+
+    useEffect(() => {
+        handleSearchFilter(searchValue)
+    }, [searchValue])
 
     return (
         <MainLayoutPage>
@@ -280,7 +407,7 @@ export default function DataSiswaNewImportPage() {
                         <span className="text-zinc-300 font-bold">#</span> Contoh File Excel
                     </p>
                     <div className="flex items-center gap-3">
-                        <button className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
+                        <button type="button" onClick={() => downloadFormatExample('xlsx')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
                             <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                             Unduh
                         </button>
@@ -293,7 +420,7 @@ export default function DataSiswaNewImportPage() {
                         <span className="text-zinc-300 font-bold">#</span> Contoh File CSV
                     </p>
                     <div className="flex items-center gap-3">
-                        <button className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
+                        <button type="button" onClick={() => downloadFormatExample('csv')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
                             <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                             Unduh
                         </button>
@@ -307,9 +434,14 @@ export default function DataSiswaNewImportPage() {
             <div className="flex items-center gap-5 flex-col md:flex-row">
 
                 <form onSubmit={submitFile} className="flex items-center gap-5 flex-col md:flex-row">
-                    <input type="file" required onChange={e => setFile(e.target.files[0])} className=" border" />
+                    <input type="file"  required onChange={e => handleChangeFile(e.target.files[0])} className=" border" />
                     {file && file.name.split('.').pop() === 'xlsx' && (
-                        <input type="text" onChange={e => setNamaSheet(e.target.value)} required className="border rounded px-3 py-1 w-full md:w-fit" placeholder="Nama Sheet" />
+                        <select className="border rounded px-3 py-1 w-full md:w-fit" value={namaSheet} onChange={e => setNamaSheet(e.target.value)}>
+                            <option value={''} disabled>-- Pilih Sheets --</option>
+                            {listSheet.map(sheet => (
+                                <option key={sheet} value={`${sheet}`}>{sheet}</option>
+                            ))}
+                        </select>
                     )}
                     <button type="submit" disabled={loadingReadFormat === 'loading' ? true : false} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 w-full md:w-fit text-teal-600 hover:bg-teal-200 hover:text-teal-800">
                         <FontAwesomeIcon icon={loadingReadFormat === 'loading' ? faSpinner : faUpload} className={`${loadingReadFormat === 'loading' && 'animate-spin'} w-3 h-3 text-inherit`} />
@@ -449,83 +581,117 @@ export default function DataSiswaNewImportPage() {
                     NIS/NISN
                 </div>
                 <div className="flex justify-center items-center col-span-4 md:col-span-2">
-                    <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit" />
+                    <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full h-full rounded py-2 px-3 text-zinc-800" placeholder="Cari" />
                 </div>
             </div>
-            <div className="relative w-full h-fit max-h-[300px]">
-
-                <div className="divide-y">
-                    <div className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
+            <div className="relative w-full h-fit max-h-[300px] divide-y overflow-auto">
+                {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map(siswa => (
+                    <div key={siswa.nis} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
                         <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                             <div className="flex-grow flex items-center gap-2">
-                                <input type="checkbox" />
-                                Ziyad
+                                <input type="checkbox" checked={selectedSiswa.includes(siswa.nis)} onChange={() => addSelectedSiswa(siswa.nis)} />
+                                {siswa.nama_siswa}
                             </div>
                             <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 flex-shrink-0 text-green-600/50" />
                         </div>
                         <div className="hidden md:flex items-center col-span-2">
-                            XII TKJ 2
+                            {siswa.kelas}
                         </div>
                         <div className="hidden md:flex items-center col-span-2 gap-3">
-                            2021
+                            {siswa.tahun_masuk}
                         </div>
                         <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1`}>
                             <p className="px-2 py-1 rounded-full bg-zinc-100">
-                                1221212121
+                                {siswa.nis}
                             </p>
                             <p className="px-2 py-1 rounded-full bg-zinc-100">
-                                1212121212
+                                {siswa.nisn}
                             </p>
                         </div>
                         <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2">
-                            <button type="button" className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
+                            <button type="button" onClick={() => document.getElementById(`informasi_siswa_${siswa.nis}`).showModal()} className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
                                 <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                             </button>
-                            <button type="button" className="w-6 h-6 flex items-center justify-center  text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
-                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                            <dialog id={`informasi_siswa_${siswa.nis}`} className="modal">
+                                <div className="modal-box bg-white max-w-[64rem]">
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="font-bold text-lg">Informasi Siswa</h3>
+                                    </div>
+                                    <article className={`${mont.className}  mt-3 flex gap-3 md:flex-row flex-col font-normal`}>
+                                        <div className="md:w-1/2 w-full space-y-1">
+                                            {formatDataPribadi.map(format => (
+                                                <div key={format} className="w-full grid grid-cols-6 gap-2">
+                                                    <div className="col-span-2 text-zinc-400 font-normal">
+                                                        {format.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                                                    </div>
+                                                    <div className="col-span-4">
+                                                        {siswa[format]}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="md:w-1/2 w-full space-y-1">
+                                            {formatDataKeluarga.map(format => (
+                                                <div key={format} className="w-full grid grid-cols-6 gap-2">
+                                                    <div className="col-span-2 text-zinc-400 font-normal">
+                                                        {format.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
+                                                    </div>
+                                                    <div className="col-span-4">
+                                                        {siswa[format]}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </article>
+                                </div>
+                                <form method="dialog" className="modal-backdrop">
+                                    <button>close</button>
+                                </form>
+                            </dialog>
+                            <button type="button" onClick={() => deleteSingleSiswa(siswa.nis)} className="w-6 h-6 flex items-center justify-center  text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
+                                <FontAwesomeIcon icon={faTrash}  className="w-3 h-3 text-inherit" />
                             </button>
                         </div>
                     </div>
-                </div>
-
+                ))}
             </div>
             <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300">
                 <div className="flex-grow flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <p className="text-xs font-medium">
-                            0 Data terpilih
+                            {selectedSiswa.length} Data terpilih
                         </p>
                         
                     </div>
                     <div className="flex items-center gap-2">
-                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
+                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
                             <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                         </button>
                         <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300`}>
                             <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
-                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
+                        <button type="button" className={`w-7 h-7 ${selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
                             <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
                     </div>
                 </div>
                 <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
                     <p className={`${mont.className} px-2 text-xs`}>
-                        10 - 20 dari 1000 data
+                    {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > filteredData.length ? filteredData.length : totalList * pagination} dari {data.length} data
                     </p>
                     <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button"  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)}  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
                             <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
                         </button>
                         <p className="font-medium text-zinc-600">
                             {pagination}
                         </p>
-                        <button type="button"  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(filteredData.length / totalList) ? state + 1 : state)}  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
                             <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
+                        <select value={totalList} onChange={e => setTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
@@ -534,6 +700,22 @@ export default function DataSiswaNewImportPage() {
                     </div>
                 </div>
             </div>
+
+            <hr className="my-1 opacity-0" />
+            {data[0] && (
+                <div className="flex md:justify-between md:flex-row flex-col gap-3">
+                    <div className="flex items-center w-full md:w-1/3 gap-3">
+                        <button type="button" onClick={() => submitData()} className="flex items-center justify-center gap-3 py-2 w-full md:w-1/2 rounded-lg bg-green-500 text-white hover:bg-green-600 focus:bg-green-600 shadow-xl">
+                            <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
+                            Simpan
+                        </button>
+                        <button type="button" onClick={() => cancelImport()} className="flex items-center justify-center gap-3 py-2 w-full md:w-1/2 rounded-lg bg-red-500 text-white hover:bg-red-600 focus:bg-red-600 shadow-xl">
+                            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-inherit" />
+                            Batal
+                        </button>
+                    </div>
+                </div>
+            )}
 
         </MainLayoutPage>
     )
