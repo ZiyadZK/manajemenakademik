@@ -2,11 +2,12 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, space } from "@/config/fonts"
-import { getSiswaByNIS } from "@/lib/model/siswaModel"
+import { deleteSingleSiswaByNis, getSiswaByNIS } from "@/lib/model/siswaModel"
 import { faArrowLeft, faCheckCircle, faDownload, faEdit, faPrint, faTrash, faUserCheck, faUserTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import Swal from "sweetalert2"
 
 const formatDataPribadi = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'aktif']
 const formatDataKeluarga = ['nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu']
@@ -53,6 +54,43 @@ export default function DataSiswaNISPage({params}) {
         }
     }
 
+    const deleteThisSiswa = async () => {
+        Swal.fire({
+            title: 'Apakah anda yakin?',
+            text: 'Anda akan menghapus data siswa ini',
+            icon: 'question',
+            showCancelButton: true,
+            cancelButtonText: 'Tidak',
+            confirmButtonText: 'Ya'
+        }).then(async (result) => {
+            if(result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang memproses data',
+                    timer: 15000,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: async () => {
+                        const response = await deleteSingleSiswaByNis(dataSiswa.nis)
+                        if(response.success) {
+                            Swal.fire({
+                                title: 'Sukses',
+                                icon: 'success',
+                                text: 'Berhasil menghapus data siswa ini',
+                                timer: 3000
+                            }).then(() => router.push('/data/siswa'))
+                        }else{
+                            Swal.fire({
+                                title: 'Gagal',
+                                icon: 'error',
+                                text: 'Gagal menghapus data siswa ini, terdapat Error!',
+                            })
+                        }
+                    }
+                })
+            }
+        })
+    }
+
     useEffect(() => {
         getSiswa(params.nis)
     }, [])
@@ -83,11 +121,11 @@ export default function DataSiswaNISPage({params}) {
                                         <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                                         Export
                                     </button>
-                                    <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200" >
+                                    <button type="button" onClick={() => router.push(`/data/siswa/update/${dataSiswa.nis}`)} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200" >
                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                         Ubah
                                     </button>
-                                    <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-red-700 bg-red-100 rounded-full hover:bg-red-200" >
+                                    <button type="button" onClick={() => deleteThisSiswa()} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-red-700 bg-red-100 rounded-full hover:bg-red-200" >
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                         Hapus
                                     </button>
