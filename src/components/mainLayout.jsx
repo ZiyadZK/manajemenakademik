@@ -2,14 +2,14 @@
 
 import { rale } from "@/config/fonts";
 // import { nunito, quicksand } from "@/config/fonts";
-import { logoutAkun } from "@/lib/model/akunModel";
+import { getLoggedUserdata, logoutAkun } from "@/lib/model/akunModel";
 import { navigator } from "@/lib/navigator";
 import { faBars, faCertificate, faClipboard, faHouse, faSignOut, faUserShield, faUserTie, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Nunito, Quicksand } from "next/font/google";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
@@ -30,6 +30,16 @@ export default function MainLayoutPage({children}) {
     const router = useRouter()
     const path = usePathname();
     const filteredPath = navLink.find(item => path === item.url || (path.startsWith(item.url) && item.url !== '/'))
+    const [loggedAkun, setLoggedAkun] = useState(null)
+
+    const getLoggedAkun = async () => {
+        const userdata = await getLoggedUserdata()
+        setLoggedAkun(userdata)
+    }
+
+    useEffect(() => {
+        getLoggedAkun()
+    }, [])
 
     const [showSidebar, setShowSidebar] = useState(false)
 
@@ -79,13 +89,13 @@ export default function MainLayoutPage({children}) {
                     <div className="flex items-center gap-3">
                         <article className="text-end">
                             <h1 className={`${rale.className} text-zinc-700 text-xs font-medium md:text-sm`}>
-                                ziyad@gmail.com
+                                {loggedAkun !== null && loggedAkun.email_akun}
                             </h1>
                             <p className={`${rale.className} text-zinc-700 text-xs`}>
-                                Admin
+                                {loggedAkun !== null && loggedAkun.role_akun}
                             </p>
                         </article>
-                        <button type="button" className={`${rale.className} btn btn-error btn-sm flex items-center justify-center gap-3`}>
+                        <button type="button" onClick={() => submitLogout()} className={`${rale.className} btn btn-error btn-sm flex items-center justify-center gap-3`}>
                             <FontAwesomeIcon icon={faSignOut} className="w-3 h-3 text-inherit" />
                             <span className="hidden md:block">Keluar</span>
                         </button>

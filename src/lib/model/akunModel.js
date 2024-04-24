@@ -5,6 +5,7 @@ import { prisma } from "../prisma"
 import jwt from 'jsonwebtoken'
 import { io } from "socket.io-client";
 import EventEmitter from "events";
+import { decryptKey, encryptKey } from "../encrypt";
 
 const emitter = new EventEmitter()
 export const loginAkun = async (email, password) => {
@@ -17,13 +18,22 @@ export const loginAkun = async (email, password) => {
         }
     })
     if(data !== null){
-        cookies().set('userdata', data.id_akun, {
+        const token = await encryptKey(data)
+        cookies().set('userdata', token, {
             httpOnly: true,
             sameSite: true
         })
     }
 
+    
+
     return data;
+}
+
+export const getLoggedUserdata = async() => {
+    const token = cookies().get('userdata')
+    const data = await decryptKey(token.value)
+    return data
 }
 
 export const logoutAkun = async () => {

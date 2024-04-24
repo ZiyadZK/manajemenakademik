@@ -39,6 +39,7 @@ export default function LoginPage() {
                     position: 'top-right'
                 });
             }
+
             setLoginLoading(state => !state);
             router.push('/');
             return toast.success('Berhasil login!')
