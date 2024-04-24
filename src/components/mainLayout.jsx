@@ -4,7 +4,7 @@ import { rale } from "@/config/fonts";
 // import { nunito, quicksand } from "@/config/fonts";
 import { getLoggedUserdata, logoutAkun } from "@/lib/model/akunModel";
 import { navigator } from "@/lib/navigator";
-import { faBars, faCertificate, faClipboard, faHouse, faSignOut, faUserShield, faUserTie, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCertificate, faClipboard, faHouse, faSignOut, faSpinner, faUserShield, faUserTie, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Nunito, Quicksand } from "next/font/google";
 import Image from "next/image";
@@ -29,7 +29,7 @@ const navLink = [
 export default function MainLayoutPage({children}) {
     const router = useRouter()
     const path = usePathname();
-    const filteredPath = navLink.find(item => path === item.url || (path.startsWith(item.url) && item.url !== '/'))
+    const [filteredPath, setFilteredPath] = useState(null)
     const [loggedAkun, setLoggedAkun] = useState(null)
 
     const getLoggedAkun = async () => {
@@ -37,8 +37,14 @@ export default function MainLayoutPage({children}) {
         setLoggedAkun(userdata)
     }
 
+    const getFilteredPath = () => {
+        const updatedPath = navLink.find(item => path === item.url || (path.startsWith(item.url) && item.url !== '/'))
+        setFilteredPath(updatedPath)
+    }
+
     useEffect(() => {
         getLoggedAkun()
+        getFilteredPath()
     }, [])
 
     const [showSidebar, setShowSidebar] = useState(false)
@@ -82,17 +88,17 @@ export default function MainLayoutPage({children}) {
                             <FontAwesomeIcon icon={showSidebar ? faXmark : faBars} className="w-3 h-3 text-inherit" />
                         </button>
                         <h1 className={`${rale.className} text-blue-800 hidden md:flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
-                            <FontAwesomeIcon icon={filteredPath.icon} className="w-4 h-4 text-inherit" />
-                            {filteredPath.page}
+                            <FontAwesomeIcon icon={filteredPath ? filteredPath.icon : faSpinner} className="w-4 h-4 text-inherit" />
+                            {filteredPath ? filteredPath.page : ''}
                         </h1>
                     </div>
                     <div className="flex items-center gap-3">
                         <article className="text-end">
                             <h1 className={`${rale.className} text-zinc-700 text-xs font-medium md:text-sm`}>
-                                {loggedAkun !== null && loggedAkun.email_akun}
+                                {loggedAkun !== null ? loggedAkun.email_akun : <div className="w-16 h-4 bg-zinc-300 animate-pulse rounded"></div>}
                             </h1>
                             <p className={`${rale.className} text-zinc-700 text-xs`}>
-                                {loggedAkun !== null && loggedAkun.role_akun}
+                                {loggedAkun !== null ? loggedAkun.role_akun : <span className="w-16 h-4 bg-zinc-300 animate-pulse rounded"></span>}
                             </p>
                         </article>
                         <button type="button" onClick={() => submitLogout()} className={`${rale.className} btn btn-error btn-sm flex items-center justify-center gap-3`}>
@@ -115,8 +121,8 @@ export default function MainLayoutPage({children}) {
                 <div className={`${rale.className} w-full md:w-10/12 px-5 pt-16 h-full text-zinc-800 relative overflow-auto`}>
                     <hr className="block md:hidden my-1 opacity-0" />
                     <h1 className={`${rale.className} text-zinc-800 md:hidden flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
-                        <FontAwesomeIcon icon={filteredPath.icon} className="w-4 h-4 text-inherit" />
-                        {filteredPath.page}
+                        <FontAwesomeIcon icon={ filteredPath ? filteredPath.icon : faSpinner} className="w-4 h-4 text-inherit" />
+                        { filteredPath ? filteredPath.page : '' }
                     </h1>
                     {children}
                 </div>
