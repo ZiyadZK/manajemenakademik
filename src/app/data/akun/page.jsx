@@ -4,7 +4,7 @@ import MainLayoutPage from "@/components/mainLayout"
 import { mont, rale } from "@/config/fonts";
 import { downloadCSV } from "@/lib/csvDownload";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
-import { faAlignLeft, faAngleLeft, faAngleRight, faArrowsUpDown, faCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faEye, faFile, faInfo, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faAlignLeft, faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faEye, faFile, faInfo, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { nanoid } from "nanoid";
 import { Nunito, Quicksand } from "next/font/google";
@@ -15,6 +15,7 @@ import withReactContent from "sweetalert2-react-content";
 
 const nunito = Nunito({subsets: ['latin']})
 const quicksand = Quicksand({subsets: ['latin']})
+const formatUpdateFormData = {id_akun: '', email_akun: '', nama_akun: '', role_akun: ''}
 
 const mySwal = withReactContent(Swal)
 export default function DataAkunPage() {
@@ -23,15 +24,30 @@ export default function DataAkunPage() {
     const [newFormData, setNewFormData] = useState([])
     const [akunList, setAkunList] = useState([])
     const [filteredAkunList, setFilteredAkunList] = useState([])
-    const [filterRole, setFilterRole] = useState('All')
+    const [filterRole, setFilterRole] = useState('')
     const [searchValue, setSearchValue] = useState('');
     const [selectedAkun, setSelectedAkun] = useState([])
-    const [editAkun, setEditAkun] = useState()
     const [loadingFetch, setLoadingFetch] = useState(true);
     const [pagination, setPagination] = useState(1);
     const [selectAll, setSelectAll] = useState(false)
     const [totalList, setTotalList] = useState(9000)
-    // const [lastUpdate, setLastUpdate] = useState(new Date())
+    const [viewSelectedOnly, setViewSelectedOnly] = useState(false)
+    const [sorting, setSorting] = useState({email_akun: '', nama_akun: ''})
+    const [updateFormData, setUpdateFormData] = useState({
+        id_akun: '', email_akun: '', nama_akun: '', role_akun: ''
+    })
+
+    const handleSorting = (key, otherKey) => {
+        if(sorting[key] === '') {  
+            return setSorting(state => ({...state, [key]: 'asc', [otherKey]: ''}))
+        }
+        if(sorting[key] === 'asc') {
+            return setSorting(state => ({...state, [key]: 'dsc', [otherKey]: ''}))
+        }
+        if(sorting[key] === 'dsc') {
+            return setSorting(state => ({...state, [key]: '', [otherKey]: ''}))
+        }
+    }
 
     const addNewFormData = () => {
         if(newFormData.length > 4) {
@@ -154,19 +170,72 @@ export default function DataAkunPage() {
 
     useEffect(() => {
         const filterAkunList = () => {
-            // Check if the search Value is unknown or ''
-            if(filterRole === 'All') {
-                const updatedFilterAkunList = akunList.filter(({email_akun}) => email_akun.toLowerCase().includes(searchValue.toLowerCase()));
-                return setFilteredAkunList(updatedFilterAkunList);
+            let updatedData;
+            
+            // Check if searchValue is being inserted
+            updatedData = akunList.filter(akun => 
+                akun['email_akun'].toLowerCase().includes(searchValue.toLowerCase()) ||
+                akun['nama_akun'].toLowerCase().includes(searchValue.toLowerCase()) ||
+                akun['password_akun'].toLowerCase().includes(searchValue.toLowerCase())
+            )
+
+            // Check if filterRole is turned on
+            if(filterRole !== 'All') {
+                updatedData = updatedData.filter(akun => akun['role_akun'].includes(filterRole))
             }
 
-            const updatedFilterAkunList = akunList.filter(({email_akun, role_akun}) => email_akun.toLowerCase().includes(searchValue.toLowerCase()) && role_akun === filterRole);
-            return setFilteredAkunList(updatedFilterAkunList)
+            // Check if viewSelectedOnly is turned on
+            if(viewSelectedOnly) {
+                updatedData = updatedData.filter(akun => selectedAkun.includes(akun.id_akun))
+                const maxPagination = Math.ceil(updatedData.length / totalList)
+                setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
+            }
+            
+            let sortedData = []
+
+            // Check if data is being sorted
+            if(sorting.email_akun !== '') {
+                sortedData = updatedData.sort((a, b) => {
+                    if(sorting.email_akun === 'asc') {
+                        if (a.email_akun < b.email_akun) return -1;
+                        if (a.email_akun > b.email_akun) return 1;
+                        return 0;
+                    }
+                    
+                    if(sorting.email_akun === 'dsc') {
+                        if (a.email_akun < b.email_akun) return 1;
+                        if (a.email_akun > b.email_akun) return -1;
+                        return 0;
+                    }
+                })
+            }
+
+            if(sorting.nama_akun !== '') {
+                sortedData = updatedData.sort((a, b) => {
+                    if(sorting.nama_akun === 'asc') {
+                        if (a.nama_akun < b.nama_akun) return -1;
+                        if (a.nama_akun > b.nama_akun) return 1;
+                        return 0;
+                    }
+                    
+                    if(sorting.nama_akun === 'dsc') {
+                        if (a.nama_akun < b.nama_akun) return 1;
+                        if (a.nama_akun > b.nama_akun) return -1;
+                        return 0;
+                    }
+                })
+            }
+
+            updatedData = sortedData.length > 0 ? sortedData : updatedData
+
+            setFilteredAkunList(updatedData)
         }
         filterAkunList()
-    }, [searchValue, filterRole])
+    }, [searchValue, filterRole, viewSelectedOnly, sorting])
 
-    const submitEditAkun = async () => {
+    const submitEditAkun = async (e) => {
+        e.preventDefault()
+        document.getElementById(`edit_akun_${updateFormData.id_akun}`).close()
         return mySwal.fire({
             icon: 'question',
             title: 'Apakah anda yakin?',
@@ -181,16 +250,18 @@ export default function DataAkunPage() {
                     allowOutsideClick: false,
                     showConfirmButton: false
                 });
-                const resultUpdate = await updateSingleAkun(editAkun);
+                const resultUpdate = await updateSingleAkun(updateFormData);
                 if(resultUpdate) {
                     mySwal.close();
                     toast.success('Berhasil menyimpan data!');
-                    setEditAkun();
+                    setUpdateFormData(formatUpdateFormData)
                     return await getAkun();
                 }else{
                     mySwal.close();
                     toast.error('Gagal menyimpan data!');
                 }
+            }else{
+                document.getElementById(`edit_akun_${updateFormData.id_akun}`).showModal()
             }
         })        
     }
@@ -266,7 +337,7 @@ export default function DataAkunPage() {
                         <hr className="w-full my-2" />
                         <div className="space-y-2">
                             {newFormData.map((formData, index) => (
-                                <div className="collapse collapse-arrow border">
+                                <div key={`${formData.id_akun} - ${index}`} className="collapse collapse-arrow border">
                                     <input type="radio" name="accordionTambahAkun" /> 
                                     <div className="collapse-title text-xl font-medium flex items-center gap-3">
                                         <div className="text-zinc-300">
@@ -337,12 +408,13 @@ export default function DataAkunPage() {
             <hr className="my-2 md:my-3 opacity-0" />
             <div className="flex md:items-center md:justify-between gap-3 flex-col md:flex-row">
                 <div className="relative w-full md:w-1/5 border rounded-lg bg-white">
-                    <input type="text" className="px-2 h-8 outline-none bg-transparent w-full" placeholder="Cari di sini" />
+                    <input type="text" onChange={e => setSearchValue(e.target.value)} className="px-2 h-8 outline-none bg-transparent w-full" placeholder="Cari di sini" />
                 </div>
-                <select name="" id="" className="px-2 h-8 outline-none bg-white border rounded-lg">
+                <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="px-2 h-8 outline-none bg-white border rounded-lg">
                     <option value="" disabled>-- Pilih Role --</option>
                     <option value="Admin">Admin</option>
                     <option value="Operator">Operator</option>
+                    <option value="All">Semua</option>
                 </select>
             </div>
             <hr className="my-1 opacity-0" />
@@ -350,8 +422,8 @@ export default function DataAkunPage() {
                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                     <input type="checkbox" name="" id="" />
                     Email
-                    <button type="button"  className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                    <button type="button" onClick={() => handleSorting('email_akun', 'nama_akun')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
+                        <FontAwesomeIcon icon={sorting.email_akun === '' ? faArrowsUpDown : (sorting.email_akun === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
                     </button>
                 </div>
                 <div className="hidden md:flex items-center col-span-2">
@@ -359,8 +431,8 @@ export default function DataAkunPage() {
                 </div>
                 <div className="hidden md:flex items-center col-span-2 gap-3">
                     Nama
-                    <button type="button" className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                    <button type="button" onClick={() => handleSorting('nama_akun', 'email_akun')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
+                        <FontAwesomeIcon icon={sorting.nama_akun === '' ? faArrowsUpDown : (sorting.nama_akun === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
                     </button>
                 </div>
                 <div className="hidden md:flex items-center col-span-2">
@@ -371,8 +443,8 @@ export default function DataAkunPage() {
                 </div>
             </div>
             <div className={`${mont.className} divide-y relative w-full h-fit max-h-[300px] overflow-auto`}>
-                {akunList.map((akun) => (
-                    <div className="grid grid-cols-12 w-full group hover:bg-zinc-50 divide-x *:px-2 *:py-3 text-sm">
+                {filteredAkunList.map((akun, index) => (
+                    <div key={`${akun.id_akun} - ${index}`} className="grid grid-cols-12 w-full group hover:bg-zinc-50 divide-x *:px-2 *:py-3 text-sm">
                         <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                             <input type="checkbox" checked={selectedAkun.includes(akun.id_akun)} onChange={() => handleSelectAkun(akun.id_akun)} />
                             {akun.email_akun}
@@ -396,7 +468,7 @@ export default function DataAkunPage() {
                             )}
                         </div>
                         <div className="flex justify-center items-center col-span-4 md:col-span-2 md:gap-3 gap-2">
-                            <button type="button" onClick={() => document.getElementById(`informasi_akun_${akun.id_akun}`).showModal()} className="w-6 h-6 bg-blue-400 hover:bg-blue-500 text-white flex md:hidden items-center justify-center">
+                            <button type="button" onClick={() => {document.getElementById(`informasi_akun_${akun.id_akun}`).showModal(); }} className="w-6 h-6 bg-blue-400 hover:bg-blue-500 text-white flex md:hidden items-center justify-center">
                                 <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                             </button>
                             <dialog id={`informasi_akun_${akun.id_akun}`} className="modal">
@@ -444,9 +516,51 @@ export default function DataAkunPage() {
                             <button type="button" onClick={() => handleDeleteSingleAkun(akun.id_akun)} className="w-6 h-6 bg-red-400 hover:bg-red-500 text-white flex items-center justify-center">
                                 <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                             </button>
-                            <button type="button" className="w-6 h-6 bg-amber-400 hover:bg-amber-500 text-white flex items-center justify-center">
+                            <button type="button" onClick={() => {document.getElementById(`edit_akun_${akun.id_akun}`).showModal(); setUpdateFormData(akun)}} className="w-6 h-6 bg-amber-400 hover:bg-amber-500 text-white flex items-center justify-center">
                                 <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                             </button>
+                            <dialog id={`edit_akun_${akun.id_akun}`} className="modal">
+                                <div className="modal-box">
+                                    <form method="dialog">
+                                    {/* if there is a button in form, it will close the modal */}
+                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                    </form>
+                                    <h3 className="font-bold text-lg">Ubah Akun</h3>
+                                    <hr className="my-2 opacity-0" />
+                                    <form onSubmit={submitEditAkun} className="space-y-3">
+                                        <div className="space-y-1">
+                                            <p>Email</p>
+                                            <input required type="text" value={updateFormData.email_akun} onChange={e => setUpdateFormData(state => ({...state, ['email_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white" placeholder="Masukkan Email" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p>Password</p>
+                                            <input required type="text" value={updateFormData.password_akun} onChange={e => setUpdateFormData(state => ({...state, ['password_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white" placeholder="Masukkan Email" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p>Nama</p>
+                                            <input required type="text" value={updateFormData.nama_akun} onChange={e => setUpdateFormData(state => ({...state, ['nama_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white" placeholder="Masukkan Email" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p>Role</p>
+                                            <select value={updateFormData.role_akun} onChange={e => setUpdateFormData(state => ({...state, ['role_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white">
+                                                <option value="" disabled>-- Pilih Role --</option>
+                                                <option value="Admin">Admin</option>
+                                                <option value="Operator">Operator</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button type="submit" className="px-3 py-2 rounded-full bg-green-50 text-green-700 flex items-center justify-center gap-2 hover:bg-green-100 focus:bg-green-100">
+                                                <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                                Simpan
+                                            </button>
+                                            <button type="button" onClick={() => {document.getElementById(`edit_akun_${akun.id_akun}`).close(); setUpdateFormData(formatUpdateFormData)}} className="px-3 py-2 rounded-full bg-red-50 text-red-700 flex items-center justify-center gap-2 hover:bg-red-100 focus:bg-red-100">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                                Batal
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </dialog>
                         </div>
                     </div>
                 ))}
@@ -461,7 +575,7 @@ export default function DataAkunPage() {
                         <button type="button" onClick={() => handleDeleteSelectedAkun()} className={`w-7 h-7 ${selectedAkun && selectedAkun.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
                             <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                         </button>
-                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg   text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300`}>
+                        <button type="button" onClick={() => setViewSelectedOnly(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300`}>
                             <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
                         <button type="button" onClick={() => setSelectedAkun([])} className={`w-7 h-7 ${selectedAkun && selectedAkun.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
