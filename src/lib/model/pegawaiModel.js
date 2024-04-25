@@ -124,3 +124,20 @@ export const deleteManyPegawai = async (arrayOfID_Pegawai) => {
         }
     }
 }
+
+export const createMultiPegawai = async (arrayDataPegawai) => {
+    try {
+        await prisma.data_pegawai.createMany({
+            data: arrayDataPegawai
+        })
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error.message)
+        return {
+            success: false,
+            message: error.message
+        }        
+    }
+}
