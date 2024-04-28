@@ -28,11 +28,21 @@ model data_ijazahs {
   sudah_diambil  Boolean
 }
 
+model data_sertifikat {
+  sertifikat_id               String @id @db.VarChar(20)
+  sertifikat_id_pegawai       String
+  jenis_sertifikat            String
+  nama_sertifikat             String
+  fileData                    Bytes
+  keterangan                  String
+}
+
 model data_pegawai {
-  id_pegawai           Int   @id @default(autoincrement())
+  id_pegawai           String  @id @db.VarChar(20)
   nama_pegawai         String?  @db.VarChar(255)
   jabatan              String?  @db.VarChar(255)
   status_kepegawaian   String?  @db.VarChar(255)
+  nik                  String?   @unique @db.VarChar(16)
   nip                  String?  @db.VarChar(255)
   nuptk                String?  @db.VarChar(255)
   tmpt_lahir           String?  @db.VarChar(255)

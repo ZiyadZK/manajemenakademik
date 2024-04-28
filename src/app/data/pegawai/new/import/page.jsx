@@ -22,6 +22,7 @@ const formatInputFile = {
     nama_pegawai: '',
     jabatan: '',
     status_kepegawaian: '',
+    nik: '',
     nip: '',
     nuptk: '',
     tmpt_lahir: '',
@@ -44,7 +45,7 @@ const formatInputFile = {
   }
 
 
-const formatDataPribadi = ['nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'pensiun']
+const formatDataPribadi = ['nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nik', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'pensiun']
 const formatDataPendidikan = ['tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi']
 const formatDataSertifikat = ['sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan']
 
@@ -291,12 +292,7 @@ export default function DataPegawaiNewImportPage() {
                     showConfirmButton: false,
                     timer: 15000,
                     didOpen: async () => {
-                        let updatedData = data.map(obj => {
-                            let { id_pegawai, ...newObj } = obj;
-                            return newObj;
-                        })
-                        console.log(updatedData)
-                        const response = await createMultiPegawai(updatedData);
+                        const response = await createMultiPegawai(data);
                         if(response.success) {
                             mySwal.fire({
                                 icon: 'success',
@@ -594,7 +590,7 @@ export default function DataPegawaiNewImportPage() {
                     NIP / NUPTK
                 </div>
                 <div className="flex justify-center items-center col-span-4 md:col-span-2">
-                    <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full h-full rounded py-2 px-3 text-zinc-800" placeholder="Cari" />
+                    <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="bg-white w-full h-full rounded py-2 px-3 text-zinc-800" placeholder="Cari" />
                 </div>
             </div>
             <div className="relative w-full h-fit max-h-[300px] divide-y overflow-auto">

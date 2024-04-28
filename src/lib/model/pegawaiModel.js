@@ -1,5 +1,6 @@
 'use server'
 
+import { nanoid } from "nanoid"
 import { prisma } from "../prisma"
 
 export const getAllPegawai = async () => {
@@ -125,16 +126,46 @@ export const deleteManyPegawai = async (arrayOfID_Pegawai) => {
     }
 }
 
-export const createMultiPegawai = async (arrayDataPegawai) => {
+export const createSinglePegawai = async (payload) => {
     try {
+        await prisma.data_pegawai.create({
+            data: payload
+        })
+
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
+
+export const createMultiPegawai = async (arrayDataPegawai) => {
+    // Cek kalau misalkan pegawai belum punya nik
+    let updatedData;
+    updatedData = arrayDataPegawai.map(pegawai => pegawai['nik'] === '' || typeof(pegawai['nik']) === 'undefined' ? ({...pegawai, nik: nanoid(16)}) : pegawai)
+
+    // Cek kalau misalkan kolom pendidikan terakhir terdapat value kosong
+    updatedData = updatedData.map(pegawai => pegawai['pendidikan_terakhir'] === "" || typeof(pegawai['pendidikan_terakhir']) === 'undefined' ? ({...pegawai, pendidikan_terakhir: 'Tidak Ada'}) : pegawai)
+
+    // Tambahkan kolom id_pegawai
+    updatedData = updatedData.map(pegawai => ({id_pegawai: nanoid(8), ...pegawai}))
+
+    try {
+        
         await prisma.data_pegawai.createMany({
-            data: arrayDataPegawai
+            data: updatedData
         })
         return {
             success: true
         }
     } catch (error) {
-        console.log(error.message)
+        
+        console.log(hasSameUniqueKey)
         return {
             success: false,
             message: error.message

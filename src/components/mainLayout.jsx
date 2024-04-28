@@ -1,10 +1,10 @@
 'use client'
 
-import { rale } from "@/config/fonts";
+import { mont, open, quicksand, rale } from "@/config/fonts";
 // import { nunito, quicksand } from "@/config/fonts";
 import { getLoggedUserdata, logoutAkun } from "@/lib/model/akunModel";
 import { navigator } from "@/lib/navigator";
-import { faBars, faCertificate, faClipboard, faHouse, faSignOut, faSpinner, faUserShield, faUserTie, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBook, faCertificate, faClipboard, faCog, faCogs, faFolderTree, faHouse, faLayerGroup, faSignOut, faSpinner, faUserGraduate, faUserLock, faUserShield, faUserTie, faUserXmark, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Nunito, Quicksand } from "next/font/google";
 import Image from "next/image";
@@ -15,15 +15,27 @@ import withReactContent from "sweetalert2-react-content";
 
 const mySwal = withReactContent(Swal)
 
-const navLink = [
-    { title: 'Dashboard', icon: faHouse, url: '/', page: 'Dashboard'},
-    { title: 'Ambil Ijazah', icon: faClipboard, url: '/ambilijazah', page: 'Ambil Ijazah'},
+const navLinkMasterData = [
     { title: 'Siswa', icon: faUsersViewfinder, url: '/data/siswa', page: 'Data Siswa'},
-    { title: 'Alumni', icon: faUsersBetweenLines, url: '/data/alumni', page: 'Data Alumni'},
+    { title: 'Mutasi Siswa', icon: faUserXmark, url: '/data/mutasisiswa', page: 'Data Mutasi Siswa'},
+    { title: 'Alumni', icon: faUserGraduate, url: '/data/alumni', page: 'Data Alumni'},
     { title: 'Pegawai', icon: faUserTie, url: '/data/pegawai', page: 'Data Pegawai'},
+    { title: 'Sertifikasi', icon: faCertificate, url: '/data/sertifikasi', page: 'Data Sertifikasi'},
     { title: 'Ijazah', icon: faCertificate, url: '/data/ijazah', page: 'Data Ijazah'},
     { title: 'Kelas', icon: faUsersRectangle, url: '/data/kelas', page: 'Data Kelas'},
-    { title: 'Akun', icon: faUserShield, url: '/data/akun', page: 'Data Akun'},
+    { title: 'Jurusan', icon: faUsersRectangle, url: '/data/jurusan', page: 'Data Kelas'},
+    { title: 'Akun', icon: faUserShield, url: '/data/akun', page: 'Data Akun'}
+]
+
+const navLinkKonfigurasi = [
+    { title: 'Role Akun', icon: faCog, url: '/konfigurasi/role', page: 'Konfigurasi Role Akun'},
+    { title: 'Jabatan Pegawai', icon: faCog, url: '/konfigurasi/jabatan', page: 'Konfigurasi Jabatan Pegawai'},
+    { title: 'Pendidikan Terakhir Pegawai', icon: faCog, url: '/konfigurasi/jabatan', page: 'Konfigurasi Jabatan Pegawai'},
+    { title: 'Status Kepegawaian Pegawai', icon: faCog, url: '/konfigurasi/kepegawaian', page: 'Konfigurasi Status Kepegawaian Pegawai'},
+]
+
+const navLink = [
+    ...navLinkMasterData, navLinkKonfigurasi,
 ]
 
 export default function MainLayoutPage({children}) {
@@ -108,15 +120,53 @@ export default function MainLayoutPage({children}) {
                     </div>
                 </div>
             </nav>
-            <div className="flex h-full">
+            <div className={`flex h-full ${mont.className}`}>
                 <div className="hidden md:block relative overflow-auto w-2/12 border-r border-zinc-300 h-full text-zinc-800 pt-16">
                     <hr className="my-1 opacity-0" />
-                    {navLink.map(item => (
-                        <a key={item.title} href={`${item.url}`} className={`${rale.className} ${path === item.url || (path.startsWith(item.url) && item.url !== '/') ? 'text-zinc-600' : 'text-zinc-400'} font-medium text-sm flex items-center gap-3 hover:gap-4 hover:text-zinc-600 px-5 py-2 hover:bg-zinc-100 transition-all duration-300 ${path === item.url || (path.startsWith(item.url) && item.url !== '/') ? 'border-r-2 border-r-orange-600' : ''}`}>
-                            <FontAwesomeIcon icon={item.icon} className="w-3 h-3 text-inherit" />
-                            {item.title}
-                        </a>
-                    ))}
+                    <a href="/" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-300 text-zinc-600 rounded-xl text-xs">
+                        <FontAwesomeIcon icon={faHouse} className="w-3 h-3 text-zinc-500" />
+                        Dashboard
+                    </a>
+                    <a href="/" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs">
+                        <FontAwesomeIcon icon={faBook} className="w-3 h-3 text-zinc-500" />
+                        Profil Sekolah
+                    </a>
+                    <div className="collapse collapse-arrow bg-white hover:bg-zinc-50">
+                        <input type="checkbox" /> 
+                        <div className="collapse-title text-sm">
+                            <div className="flex items-center gap-3 text-zinc-500">
+                                <FontAwesomeIcon icon={faFolderTree} className="w-3 h-3 text-inherit" />
+                                <p>Master Data</p>
+                            </div>
+                        </div>
+                        <div className={"collapse-content -translate-y-2 " + mont.className}>
+                            {navLinkMasterData.map(link => (
+                                <a href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
+                                    <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
+                                    {link.title}
+                                </a>
+                            ))}
+                            
+                        </div>
+                    </div>
+                    <div className="collapse collapse-arrow bg-white hover:bg-zinc-50">
+                        <input type="checkbox" /> 
+                        <div className="collapse-title text-sm">
+                            <div className="flex items-center gap-3 text-zinc-500">
+                                <FontAwesomeIcon icon={faCogs} className="w-3 h-3 text-inherit" />
+                                <p>Konfigurasi</p>
+                            </div>
+                        </div>
+                        <div className={"collapse-content -translate-y-2 " + mont.className}>
+                            {navLinkKonfigurasi.map(link => (
+                                <a href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
+                                    <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
+                                    {link.title}
+                                </a>
+                            ))}
+                            
+                        </div>
+                    </div>
                 </div>
                 <div className={`${rale.className} w-full md:w-10/12 px-5 pt-16 h-full text-zinc-800 relative overflow-auto`}>
                     <hr className="block md:hidden my-1 opacity-0" />
@@ -137,12 +187,7 @@ function SidebarSection() {
         <div className="fixed top-0 left-0 w-full h-screen overflow-auto bg-white z-50">
             <hr className="mt-20 opacity-0" />
             <hr className="my-1 opacity-0" />
-            {navLink.map(item => (
-                <a key={item.title} href={`${item.url}`} className={`${rale.className} text-zinc-600 font-medium text-sm flex items-center gap-3 hover:gap-4 px-5 py-2 hover:bg-zinc-100 transition-all duration-300 ${path === item.url || (path.startsWith(item.url) && item.url !== '/') ? 'border-r-2 border-r-orange-600' : ''}`}>
-                    <FontAwesomeIcon icon={item.icon} className="w-3 h-3 text-inherit" />
-                    {item.title}
-                </a>
-            ))}
+            
         </div>
     )
 }
