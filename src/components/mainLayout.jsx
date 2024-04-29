@@ -35,7 +35,9 @@ const navLinkKonfigurasi = [
 ]
 
 const navLink = [
-    ...navLinkMasterData, navLinkKonfigurasi,
+    ...navLinkMasterData, ...navLinkKonfigurasi,
+    { title: 'Dashboard', icon: faHouse, url: '/', page: 'Dashboard Page'},
+    { title: 'Profil Sekolah', icon: faBook, url: '/profilsekolah', page: 'Profil Sekolah'},
 ]
 
 export default function MainLayoutPage({children}) {
@@ -127,7 +129,7 @@ export default function MainLayoutPage({children}) {
                         <FontAwesomeIcon icon={faHouse} className="w-3 h-3 text-zinc-500" />
                         Dashboard
                     </a>
-                    <a href="/" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs">
+                    <a href="/profilsekolah" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs">
                         <FontAwesomeIcon icon={faBook} className="w-3 h-3 text-zinc-500" />
                         Profil Sekolah
                     </a>
@@ -140,8 +142,8 @@ export default function MainLayoutPage({children}) {
                             </div>
                         </div>
                         <div className={"collapse-content -translate-y-2 " + mont.className}>
-                            {navLinkMasterData.map(link => (
-                                <a href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
+                            {navLinkMasterData.map((link, index) => (
+                                <a key={`${link.title} - ${index}`} href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
                                     <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
                                     {link.title}
                                 </a>
@@ -158,8 +160,8 @@ export default function MainLayoutPage({children}) {
                             </div>
                         </div>
                         <div className={"collapse-content -translate-y-2 " + mont.className}>
-                            {navLinkKonfigurasi.map(link => (
-                                <a href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
+                            {navLinkKonfigurasi.map((link, index) => (
+                                <a key={`${link.title} - ${index}`} href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
                                     <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
                                     {link.title}
                                 </a>
@@ -187,6 +189,51 @@ function SidebarSection() {
         <div className="fixed top-0 left-0 w-full h-screen overflow-auto bg-white z-50">
             <hr className="mt-20 opacity-0" />
             <hr className="my-1 opacity-0" />
+            <hr className="my-1 opacity-0" />
+            <a href="/" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-300 text-zinc-600 rounded-xl text-xs">
+                <FontAwesomeIcon icon={faHouse} className="w-3 h-3 text-zinc-500" />
+                Dashboard
+            </a>
+            <a href="/profilsekolah" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs">
+                <FontAwesomeIcon icon={faBook} className="w-3 h-3 text-zinc-500" />
+                Profil Sekolah
+            </a>
+            <div className="collapse collapse-arrow bg-white hover:bg-zinc-50">
+                <input type="checkbox" /> 
+                <div className="collapse-title text-sm">
+                    <div className="flex items-center gap-3 text-zinc-500">
+                        <FontAwesomeIcon icon={faFolderTree} className="w-3 h-3 text-inherit" />
+                        <p>Master Data</p>
+                    </div>
+                </div>
+                <div className={"collapse-content -translate-y-2 " + mont.className}>
+                    {navLinkMasterData.map((link, index) => (
+                        <a key={`${link.title} - ${index}`} href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
+                            <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
+                            {link.title}
+                        </a>
+                    ))}
+                    
+                </div>
+            </div>
+            <div className="collapse collapse-arrow bg-white hover:bg-zinc-50">
+                <input type="checkbox" /> 
+                <div className="collapse-title text-sm">
+                    <div className="flex items-center gap-3 text-zinc-500">
+                        <FontAwesomeIcon icon={faCogs} className="w-3 h-3 text-inherit" />
+                        <p>Konfigurasi</p>
+                    </div>
+                </div>
+                <div className={"collapse-content -translate-y-2 " + mont.className}>
+                    {navLinkKonfigurasi.map((link, index) => (
+                        <a key={`${link.title} - ${index}`} href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
+                            <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
+                            {link.title}
+                        </a>
+                    ))}
+                    
+                </div>
+            </div>
             
         </div>
     )

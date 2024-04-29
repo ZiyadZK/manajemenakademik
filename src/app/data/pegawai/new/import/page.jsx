@@ -50,7 +50,7 @@ const formatDataPendidikan = ['tmt', 'pendidikan_terakhir', 'sekolah_pendidikan'
 const formatDataSertifikat = ['sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan']
 
 const allowedFileTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-const formatDataPegawai = ['nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi', 'sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan', 'pensiun']
+const formatDataPegawai = ['id_pegawai', 'nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi', 'sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan', 'pensiun']
 
 const formatInformasiFile = {status: '', ekstensi: '', size: '', jumlahData: ''}
 const mySwal = withReactContent(Swal)
@@ -447,8 +447,8 @@ export default function DataPegawaiNewImportPage() {
                     {file && file.name.split('.').pop() === 'xlsx' && (
                         <select className="border rounded px-3 py-1 w-full md:w-fit" value={namaSheet} onChange={e => setNamaSheet(e.target.value)}>
                             <option value={''} disabled>-- Pilih Sheets --</option>
-                            {listSheet.map(sheet => (
-                                <option key={sheet} value={`${sheet}`}>{sheet}</option>
+                            {listSheet.map((sheet, index) => (
+                                <option key={`${sheet} - ${index}`} value={`${sheet}`}>{sheet}</option>
                             ))}
                         </select>
                     )}
@@ -594,8 +594,8 @@ export default function DataPegawaiNewImportPage() {
                 </div>
             </div>
             <div className="relative w-full h-fit max-h-[300px] divide-y overflow-auto">
-                {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map(pegawai => (
-                    <div key={pegawai.id_pegawai} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
+                {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((pegawai, index) => (
+                    <div key={`${pegawai.jabatan} - ${index}`} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
                         <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                             <div className="flex-grow flex items-center gap-2">
                                 <input type="checkbox" checked={selectedPegawai.includes(pegawai.id_pegawai)} onChange={() => addSelectedPegawai(pegawai.id_pegawai)} />

@@ -38,7 +38,7 @@ model data_sertifikat {
 }
 
 model data_pegawai {
-  id_pegawai           String  @id @db.VarChar(20)
+  id_pegawai           Int      @id         @default(autoincrement())
   nama_pegawai         String?  @db.VarChar(255)
   jabatan              String?  @db.VarChar(255)
   status_kepegawaian   String?  @db.VarChar(255)

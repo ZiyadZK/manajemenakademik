@@ -302,7 +302,7 @@ export default function DataPegawaiPage () {
                             {pegawai.nip}
                         </div>
                         <div className="flex justify-center items-center col-span-4 md:col-span-2 gap-1 md:gap-3">
-                            <button type="button"  className="w-6 h-6 bg-blue-400 hover:bg-blue-500 text-white flex  items-center justify-center">
+                            <button type="button" onClick={() => router.push(`/data/pegawai/id/${pegawai.id_pegawai}`)}  className="w-6 h-6 bg-blue-400 hover:bg-blue-500 text-white flex  items-center justify-center">
                                 <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                             </button>
                             <button type="button"  className="w-6 h-6 bg-red-400 hover:bg-red-500 text-white flex  items-center justify-center">

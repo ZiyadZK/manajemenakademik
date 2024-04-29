@@ -32,30 +32,6 @@ export const getSinglePegawai = async ({id_pegawai, nip, nuptk}) => {
             }
         }
 
-        if(typeof nip !== 'undefined') {
-            const data = await prisma.data_pegawai.findFirst({
-                where: {
-                    nip: nip
-                }
-            })
-            return {
-                success: true,
-                data: data
-            }
-        }
-
-        if(typeof nuptk !== 'undefined') {
-            const data = await prisma.data_pegawai.findFirst({
-                where: {
-                    nuptk: nuptk
-                }
-            })
-            return {
-                success: true,
-                data: data
-            }
-        }
-
         return {
             success: false
         }
@@ -152,8 +128,8 @@ export const createMultiPegawai = async (arrayDataPegawai) => {
     // Cek kalau misalkan kolom pendidikan terakhir terdapat value kosong
     updatedData = updatedData.map(pegawai => pegawai['pendidikan_terakhir'] === "" || typeof(pegawai['pendidikan_terakhir']) === 'undefined' ? ({...pegawai, pendidikan_terakhir: 'Tidak Ada'}) : pegawai)
 
-    // Tambahkan kolom id_pegawai
-    updatedData = updatedData.map(pegawai => ({id_pegawai: nanoid(8), ...pegawai}))
+    // ubah kolom id_pegawai menjadi Integer
+    updatedData = updatedData.map(pegawai => ({...pegawai, id_pegawai: Number(pegawai.id_pegawai)}))
 
     try {
         
@@ -164,8 +140,7 @@ export const createMultiPegawai = async (arrayDataPegawai) => {
             success: true
         }
     } catch (error) {
-        
-        console.log(hasSameUniqueKey)
+        console.log(error.message)
         return {
             success: false,
             message: error.message
