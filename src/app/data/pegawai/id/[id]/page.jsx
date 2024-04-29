@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, rale } from "@/config/fonts"
 import { getSinglePegawai } from "@/lib/model/pegawaiModel"
+import { getDataSertifikat } from "@/lib/model/sertifikatModel"
 import { faEdit, faTrashCan } from "@fortawesome/free-regular-svg-icons"
 import { faArrowLeft, faUserTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -10,9 +11,10 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
 
-
 const formatDataPribadi = ['nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nik', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'pensiun']
 const formatDataPendidikan = ['tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi']
+const formatDataSertifikat = ['sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor']
+
 const formattedData = {
     'nama_pegawai': 'Nama',
     'jabatan': 'Jabatan',
@@ -28,14 +30,21 @@ const formattedData = {
 export default function PegawaiIDPage({params}) {
     const router = useRouter()
     const [data, setData] = useState(null)
+    const [dataSertifikat, setDataSertifikat] = useState([])
     const [loadingFetch, setLoadingFetch] = useState('')
 
     const getPegawai = async (id) => {
         setLoadingFetch('loading')
         const result = await getSinglePegawai({id_pegawai: id})
-        console.log(result)
+        const sertif_result = await getSertifikat(id)
+        console.log(sertif_result.data)
         setData(result.data)
+        setDataSertifikat(sertif_result.data)
         setLoadingFetch('fetched')
+    }
+
+    const getSertifikat = async (id) => {
+        return await getDataSertifikat(id)
     }
 
     useEffect(() => {
@@ -100,30 +109,32 @@ export default function PegawaiIDPage({params}) {
                                     </div>
                                 ))}
                                 <hr className="" />
-                                <div className="collapse collapse-plus bg-zinc-100">
-                                    <input type="checkbox" /> 
-                                    <div className="collapse-title text-xl font-medium ">
-                                        Sertifikat Pendidik
-                                    </div>
-                                    <div className="collapse-content"> 
-                                        <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
-                                            <p className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
-                                                Nama Sertifikat <span className="float-end">:</span>
-                                            </p>
-                                            <p className="w-full md:w-3/4 tracking-tighter">
-                                                {data.sertifikat_pendidik ? data.sertifikat_pendidik : 'Tidak ada'}
-                                            </p>
+                                {formatDataSertifikat.map((format, index) => (
+                                    <div key={`${format} - ${index}`} className="collapse collapse-plus bg-zinc-100">
+                                        <input type="checkbox" /> 
+                                        <div className="collapse-title text-xl font-medium ">
+                                            {format.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                                         </div>
-                                        <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
-                                            <p className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
-                                                Status Sertifikat <span className="float-end hidden md:block">:</span>
-                                            </p>
-                                            <p className="w-full md:w-3/4 tracking-tighter">
-                                                {data.sertifikat_pendidik ? data.sertifikat_pendidik : 'Tidak ada'}
-                                            </p>
+                                        <div className="collapse-content space-y-4"> 
+                                            <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
+                                                <p className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
+                                                    Nama Sertifikat <span className="float-end md:block hidden">:</span>
+                                                </p>
+                                                <p className="w-full md:w-3/4 tracking-tighter">
+                                                    {data[format] ? data[format] : 'Tidak ada'}
+                                                </p>
+                                            </div>
+                                            <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
+                                                <p className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
+                                                    Status Sertifikat <span className="float-end hidden md:block">:</span>
+                                                </p>
+                                                <p className="w-full md:w-3/4 tracking-tighter">
+                                                    {dataSertifikat.filter(sertifikat => sertifikat['jenis_sertifikat'] === format.split('_')[1])}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                ))}
 
                             </div>
                             <div className="w-full md:w-1/2 space-y-3">

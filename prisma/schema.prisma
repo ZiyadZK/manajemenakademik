@@ -29,8 +29,8 @@ model data_ijazahs {
 }
 
 model data_sertifikat {
-  sertifikat_id               String @id @db.VarChar(20)
-  sertifikat_id_pegawai       String
+  sertifikat_id               Int @id @default(autoincrement()) 
+  sertifikat_id_pegawai       Int
   jenis_sertifikat            String
   nama_sertifikat             String
   fileData                    Bytes
