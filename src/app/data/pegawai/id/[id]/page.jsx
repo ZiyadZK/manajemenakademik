@@ -5,7 +5,7 @@ import { mont, rale } from "@/config/fonts"
 import { getSinglePegawai } from "@/lib/model/pegawaiModel"
 import { getDataSertifikat } from "@/lib/model/sertifikatModel"
 import { faEdit, faTrashCan } from "@fortawesome/free-regular-svg-icons"
-import { faArrowLeft, faUserTag } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faCheckCircle, faDownload, faUserTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -38,8 +38,8 @@ export default function PegawaiIDPage({params}) {
         const result = await getSinglePegawai({id_pegawai: id})
         const sertif_result = await getSertifikat(id)
         console.log(sertif_result.data)
-        setData(result.data)
         setDataSertifikat(sertif_result.data)
+        setData(result.data)
         setLoadingFetch('fetched')
     }
 
@@ -117,20 +117,40 @@ export default function PegawaiIDPage({params}) {
                                         </div>
                                         <div className="collapse-content space-y-4"> 
                                             <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
-                                                <p className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
-                                                    Nama Sertifikat <span className="float-end md:block hidden">:</span>
-                                                </p>
+                                                <div className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
+                                                    Nama Sertifikat 
+                                                </div>
                                                 <p className="w-full md:w-3/4 tracking-tighter">
                                                     {data[format] ? data[format] : 'Tidak ada'}
                                                 </p>
                                             </div>
-                                            <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
-                                                <p className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
-                                                    Status Sertifikat <span className="float-end hidden md:block">:</span>
-                                                </p>
-                                                <p className="w-full md:w-3/4 tracking-tighter">
-                                                    {dataSertifikat.filter(sertifikat => sertifikat['jenis_sertifikat'] === format.split('_')[1])}
-                                                </p>
+                                            <div className="flex md:flex-row flex-col md:gap-2">
+                                                <div className="w-full md:w-2/5 text-xs md:text-md text-zinc-400 md:pt-1">
+                                                    Status Sertifikat 
+                                                </div>
+                                                <div className="w-full md:w-3/4 tracking-tighter">
+                                                    {dataSertifikat.map((sertifikat, index) => sertifikat['jenis_sertifikat'] == format.split("_")[1] && (
+                                                        <div key={`${sertifikat['nama_sertifikat']} - ${index}`}>
+                                                            {sertifikat['fileData'] === 'valid' ? (
+                                                                <div className="space-y-2">
+                                                                    <div className="flex items-center gap-2 w-fit text-xs px-1.5 py-1 rounded-full text-green-700 bg-green-50">
+                                                                        <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 text-inherit" />
+                                                                        Sertifikat Valid
+                                                                    </div>
+                                                                    <button type="button" className="flex items-center justify-center gap-2 px-2 py-1 rounded-full bg-zinc-200 hover:bg-zinc-300 text-xs md:text-md text-zinc-700 tracking-tighter">
+                                                                        <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
+                                                                        Unduh Sertifikat
+                                                                    </button>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 w-fit text-xs px-1.5 py-1 rounded-full text-red-700 bg-red-50">
+                                                                    <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 text-inherit" />
+                                                                    Sertifikat Tidak Valid
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -138,19 +158,28 @@ export default function PegawaiIDPage({params}) {
 
                             </div>
                             <div className="w-full md:w-1/2 space-y-3">
-                                {formatDataPribadi.map((format, index) => (
-                                    <div key={`${format}-${index}`} className="flex md:flex-row flex-col  w-full md:gap-5">
-                                        <div className="flex justify-between w-full md:w-1/4">
-                                            <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
-                                                {formattedData[format]}
-                                            </h1>
-                                            <div className="hidden md:block">:</div>
-                                        </div>
-                                        <p className="w-full md:w-3/4 font-medium">
-                                            {format === 'pensiun' ? (data[format] === true ? 'Ya' : 'Tidak') : data[format]}
-                                        </p>
+                                <div className="flex md:flex-row flex-col  w-full md:gap-5">
+                                    <div className="flex justify-between w-full md:w-1/4">
+                                        <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
+                                            Tamat Pendidikan
+                                        </h1>
+                                        <div className="hidden md:block">:</div>
                                     </div>
-                                ))}
+                                    <p className="w-full md:w-3/4 font-medium">
+                                        {data['tmt']}
+                                    </p>
+                                </div>
+                                <div className="flex md:flex-row flex-col  w-full md:gap-5">
+                                    <div className="flex justify-between w-full md:w-1/4">
+                                        <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
+                                            Pendidikan Terakhir
+                                        </h1>
+                                        <div className="hidden md:block">:</div>
+                                    </div>
+                                    <p className="w-full md:w-3/4 font-medium">
+                                        {data['pendidikan_terakhir']}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
