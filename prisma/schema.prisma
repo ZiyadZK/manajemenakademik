@@ -7,6 +7,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model data_profil_sekolah {
+  npsn                            String    @id
+  status                          String
+  bentuk_pendidikan               String
+  status_kepemilikan              String
+  sk_pendirian_sekolah            String
+  tanggal_sk_pendirian            String
+  sk_izin_operasional             String
+  tanggal_sk_izin_operasional     String
+  operator                        String
+  akreditasi                      String
+  kurikulum                       String
+  waktu                           String
+}
+
+model data_mutasi_siswa {
+  kelas                 String? @db.VarChar(10)
+  nama_siswa            String? @db.VarChar(44)
+  nis                   String  @id
+  nisn                  String? @unique(map: "nisn") @db.VarChar(11)
+  nik                   String? @db.VarChar(16)
+  no_kk                 String? @db.VarChar(19)
+  tempat_lahir          String? @db.VarChar(17)
+  tanggal_lahir         String? @db.VarChar(10)
+  jenis_kelamin         String? @db.VarChar(9)
+  agama                 String? @db.VarChar(17)
+  status_dalam_keluarga String? @db.VarChar(16)
+  anak_ke               String? @db.VarChar(1)
+  alamat                String? @db.VarChar(126)
+  no_hp_siswa           String? @db.VarChar(15)
+  asal_sekolah          String? @db.VarChar(43)
+  kategori              String? @db.VarChar(34)
+  tahun_masuk           String
+  tahun_keluar          String
+  tanggal_keluar        String
+  nama_ayah             String? @db.VarChar(32)
+  nama_ibu              String? @db.VarChar(30)
+  telp_ortu             String? @db.VarChar(15)
+  pekerjaan_ayah        String? @db.VarChar(26)
+  pekerjaan_ibu         String? @db.VarChar(21)
+}
+
 model data_akuns {
   id_akun       String  @id @db.VarChar(255)
   email_akun    String? @unique(map: "email_akun") @db.VarChar(255)
@@ -23,9 +65,8 @@ model data_ijazahs {
   nisn           String?   @db.VarChar(100)
   nama_pengambil String?   @db.VarChar(100)
   kelas          String?   @db.VarChar(100)
-  rombel         String?   @db.VarChar(100)
   tahun_lulus    Int?
-  sudah_diambil  Boolean
+  status  String
 }
 
 model data_sertifikat {
@@ -109,10 +150,31 @@ model data_alumni {
   asal_sekolah          String? @db.VarChar(43)
   kategori              String? @db.VarChar(34)
   tahun_masuk           String
+  tahun_keluar          String
+  tanggal_keluar        String
   nama_ayah             String? @db.VarChar(32)
   nama_ibu              String? @db.VarChar(30)
   telp_ortu             String? @db.VarChar(15)
   pekerjaan_ayah        String? @db.VarChar(26)
   pekerjaan_ibu         String? @db.VarChar(21)
-  aktif                 String? @db.VarChar(5)
+}
+
+model data_kelas {
+  id_kelas        String @id
+  kelas           String
+  id_walikelas    String
+  nama_walikelas  String
+  nik_walikelas   String
+  id_guru_bk      String
+  nama_guru_bk    String
+  nik_guru_bk     String
+}
+
+model data_riwayat_perubahan {
+  no          Int @id @default(autoincrement())
+  waktu       DateTime    @default(now())
+  status      String
+  data        String
+  detail      String
+
 }
