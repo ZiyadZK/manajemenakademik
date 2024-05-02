@@ -102,7 +102,7 @@ export default function MainLayoutPage({children}) {
                             <FontAwesomeIcon icon={showSidebar ? faXmark : faBars} className="w-3 h-3 text-inherit" />
                         </button>
                         <h1 className={`${rale.className} text-blue-800 hidden md:flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
-                            <FontAwesomeIcon icon={filteredPath ? filteredPath.icon : faSpinner} className="w-4 h-4 text-inherit" />
+                            <FontAwesomeIcon icon={filteredPath ? filteredPath.icon : faSpinner} className={`w-4 h-4 text-inherit ${!filteredPath ? 'animate-spin' : ''}`} />
                             {filteredPath ? filteredPath.page : ''}
                         </h1>
                     </div>
@@ -172,8 +172,8 @@ export default function MainLayoutPage({children}) {
                 </div>
                 <div className={`${rale.className} w-full md:w-10/12 px-5 pt-16 h-full text-zinc-800 relative overflow-auto`}>
                     <hr className="block md:hidden my-1 opacity-0" />
-                    <h1 className={`${rale.className} text-zinc-800 md:hidden flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
-                        <FontAwesomeIcon icon={ filteredPath ? filteredPath.icon : faSpinner} className="w-4 h-4 text-inherit" />
+                    <h1 className={`${rale.className} text-blue-600 md:hidden flex font-medium text-xl tracking-wide w-fit  items-center gap-3`}>
+                        <FontAwesomeIcon icon={ filteredPath ? filteredPath.icon : faSpinner} className={`w-4 h-4 text-inherit ${!filteredPath ? 'animate-spin' : ''}`} />
                         { filteredPath ? filteredPath.page : '' }
                     </h1>
                     {children}
