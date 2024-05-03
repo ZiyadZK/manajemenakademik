@@ -13,6 +13,8 @@ import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
 let listNoRombel = [];
+let listKelas = []
+let listRombel = []
 
 const mySwal = withReactContent(Swal)
 export default function DataSiswaMainPage() {
@@ -20,9 +22,9 @@ export default function DataSiswaMainPage() {
     const [siswaList, setSiswaList] = useState([])
     const [filteredSiswaList, setFilteredSiswaList] = useState([])
     const [loadingFetch, setLoadingFetch] = useState('')
-    const [kelas, setKelas] = useState(0)
-    const [rombel, setRombel] = useState('All')
-    const [noRombel, setNoRombel] = useState(0)
+    const [kelas, setKelas] = useState('')
+    const [rombel, setRombel] = useState('')
+    const [noRombel, setNoRombel] = useState('')
     const [status, setStatus] = useState('')
     const [searchValue, setSearchValue] = useState('')
     const [searchCriteria, setSearchCriteria] = useState('nama_siswa')
@@ -42,10 +44,23 @@ export default function DataSiswaMainPage() {
         setFilteredSiswaList(data)
         
         // Get all No Rombel
+        data.filter(({no_rombel}) => {
+            if(!listNoRombel.includes(no_rombel)) {
+                listNoRombel.push(no_rombel)
+            }
+        })
+
+        // Get all Kelas
         data.filter(({kelas}) => {
-            let kelasArr = kelas.split(' ')
-            if(!listNoRombel.includes(kelasArr[2])) {
-                listNoRombel.push(kelasArr[2])
+            if(!listKelas.includes(kelas)) {
+                listKelas.push(kelas)
+            }
+        })
+
+        // Get all rombel
+        data.filter(({rombel}) => {
+            if(!listRombel.includes(rombel)) {
+                listRombel.push(rombel)
             }
         })
 
@@ -67,24 +82,35 @@ export default function DataSiswaMainPage() {
     }
 
     const handleSubmitFilter = () => {
-        let updatedFilter;
-        const valueFilterKelas = `${kelas != 0 ? kelas+' ' : ''}${rombel != 'All' ? rombel+' ' : ''}${noRombel != 0 ? noRombel : ''}`
+        let updatedFilter = filteredSiswaList
+        console.log(updatedFilter)
         
         // Search Kelas
-        updatedFilter = siswaList.filter(siswa => siswa.kelas.toLowerCase().includes(valueFilterKelas.toLowerCase()))
+        updatedFilter = updatedFilter.filter(siswa => siswa.kelas == kelas)
+        console.log(updatedFilter)
+
+        // Search Rombel
+        updatedFilter = updatedFilter.filter(siswa => siswa.rombel.toLowerCase().includes(rombel.toLowerCase()))
+
+        // Search NO Rombel
+        updatedFilter = updatedFilter.filter(siswa => siswa.no_rombel.toLowerCase().includes(noRombel.toLowerCase()))
         
         // Search Status
         updatedFilter = updatedFilter.filter(siswa => siswa['aktif'].includes(status))
         
         // Search Value and Kriteria
         updatedFilter = updatedFilter.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
-        
+
+        console.log(updatedFilter)
+
         // Search Only Selected
         if(showSelected) {
             updatedFilter = updatedFilter.filter(siswa => selectedSiswa.includes(siswa.nis))
             const maxPagination = Math.ceil(updatedFilter.length / totalList)
             setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
         }
+
+        console.log(updatedFilter)
 
         let sortedFilter = [];
         // Sorting
@@ -121,6 +147,7 @@ export default function DataSiswaMainPage() {
         }
 
         updatedFilter = sortedFilter.length > 0 ? sortedFilter : updatedFilter
+        console.log(updatedFilter)
 
         setFilteredSiswaList(updatedFilter)
     }
@@ -262,11 +289,11 @@ export default function DataSiswaMainPage() {
         })
     }
 
-    const addSiswaTidakNaikKelas = (nama_siswa, kelas, nis) => {
+    const addSiswaTidakNaikKelas = (nama_siswa, kelas, rombel, no_rombel, nis) => {
         // Cari udah ada atau belum
         const isExist = siswaTidakNaikKelas.find(siswa => siswa.nis === nis);
         if(typeof(isExist) === 'undefined') {
-            const newData = { nama_siswa, kelas, nis}
+            const newData = { nama_siswa, kelas, rombel, no_rombel, nis}
             const updatedData = [...siswaTidakNaikKelas, newData]
             setSiswaTidakNaikKelas(updatedData)
             setKriteriaNaiKelas('beberapa')
@@ -390,36 +417,29 @@ export default function DataSiswaMainPage() {
                 <div className="flex md:flex-row flex-col gap-5">
                     <div className="w-full md:w-1/2 flex gap-2">
                         <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
-                            <option value="" disabled >-- Kelas --</option>
-                            <option value="X">10</option>
-                            <option value="XI">11</option>
-                            <option value="XII">12</option>
-                            <option value="0">Semua</option>
+                            {listKelas.map((kelasItem, index) => (
+                                <option key={index} value={kelasItem}>{kelasItem}</option>
+                            ))}
+                            <option value="">Semua Kelas</option>
                         </select>
                         <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
-                            <option disabled>-- Rombel --</option>
-                            <option value="TKJ">TKJ</option>
-                            <option value="TITL">TITL</option>
-                            <option value="GEO">GEO</option>
-                            <option value="DPIB">DPIB</option>
-                            <option value="TKR">TKR</option>
-                            <option value="TPM">TPM</option>
-                            <option value="All">Semua</option>
+                            {listRombel.map((namaRombel, index) => (
+                                <option key={index} value={namaRombel}>{namaRombel}</option>
+                            ))}
+                            <option value="">Semua Rombel</option>
                         </select>
                     </div>
                     <div className="w-full md:w-1/2 flex gap-2">
                         <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
-                            <option disabled>-- No Rombel --</option>
                             {listNoRombel.map((no_rombel, index) => (
                                 <option key={index} value={no_rombel}>{no_rombel}</option>
                             ))}
-                            <option value="0">Semua</option>
+                            <option value="">Semua No Rombel</option>
                         </select>
                         <select value={status} onChange={e => setStatus(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
-                            <option disabled>-- Status --</option>
                             <option value="aktif">Aktif</option>
                             <option value="tidak">Tidak Aktif</option>
-                            <option value="">Semua</option>
+                            <option value="">Semua Status</option>
                         </select>
                     </div>
                 </div>
@@ -485,7 +505,7 @@ export default function DataSiswaMainPage() {
                                     <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 flex-shrink-0 text-green-600/50" />
                                 </div>
                                 <div className="hidden md:flex items-center col-span-2">
-                                    {siswa.kelas}
+                                    {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
                                 </div>
                                 <div className="hidden md:flex items-center col-span-2 gap-3">
                                     {siswa.tahun_masuk}

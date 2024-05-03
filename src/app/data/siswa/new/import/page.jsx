@@ -19,6 +19,8 @@ import { exportToCSV } from "@/lib/csvLibs"
 
 const formatInputFile = {
     kelas: '',
+    rombel: '',
+    no_rombel: '',
     nama_siswa: '',
     nis: '',
     nisn: '',
@@ -44,11 +46,11 @@ const formatInputFile = {
   }
 
 
-const formatDataPribadi = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'aktif']
+const formatDataPribadi = ['kelas', 'rombel', 'no_rombel', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'aktif']
 const formatDataKeluarga = ['nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu']
 
 const allowedFileTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-const formatDataSiswa = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu', 'aktif']
+const formatDataSiswa = ['kelas', 'rombel', 'no_rombel', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'nama_ayah', 'nama_ibu', 'telp_ortu', 'pekerjaan_ayah', 'pekerjaan_ibu', 'aktif']
 const formatInformasiFile = {status: '', ekstensi: '', size: '', jumlahData: ''}
 const mySwal = withReactContent(Swal)
 
@@ -360,6 +362,8 @@ export default function DataSiswaNewImportPage() {
         const updatedData = data.filter((siswa, index, array) => 
             siswa['nama_siswa'].toLowerCase().includes(value.toLowerCase()) ||
             siswa['kelas'].toLowerCase().includes(value.toLowerCase()) ||
+            siswa['rombel'].toLowerCase().includes(value.toLowerCase()) ||
+            siswa['no_rombel'].toLowerCase().includes(value.toLowerCase()) ||
             String(siswa['tahun_masuk']).toLowerCase().includes(value.toLowerCase()) ||
             String(siswa['nis']).toLowerCase().includes(value.toLowerCase()) ||
             String(siswa['nisn']).toLowerCase().includes(value.toLowerCase())
@@ -595,7 +599,7 @@ export default function DataSiswaNewImportPage() {
                             <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 flex-shrink-0 text-green-600/50" />
                         </div>
                         <div className="hidden md:flex items-center col-span-2">
-                            {siswa.kelas}
+                            {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
                         </div>
                         <div className="hidden md:flex items-center col-span-2 gap-3">
                             {siswa.tahun_masuk}
