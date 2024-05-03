@@ -2,16 +2,127 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont } from "@/config/fonts"
-import { faArrowLeft, faDownload, faFileCirclePlus, faPlus, faSave } from "@fortawesome/free-solid-svg-icons"
+import { getAllIjazah } from "@/lib/model/ijazahModel"
+import { getAllSiswa } from "@/lib/model/siswaModel"
+import { faArrowLeft, faCircleCheck, faDotCircle, faDownload, faFileCirclePlus, faPlus, faSave, faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Toaster } from "react-hot-toast"
+import { useEffect, useState } from "react"
+import toast, { Toaster } from "react-hot-toast"
+import Swal from "sweetalert2"
 
 export default function DataIjazahNewPage() {
     const router = useRouter()
     const [formData, setFormData] = useState([])
+    const [ijazahList, setIjazahList] = useState([])
+    const [siswaList, setSiswaList] = useState([])
+    const [filteredSiswaList, setFilteredSiswaList] = useState([])
+    const [searchValue, setSearchValue] = useState('')
 
+
+    const getIjazahList = async () => {
+        const responseIjazah = await getAllIjazah()
+        if(responseIjazah.success){
+            setIjazahList(responseIjazah.data)
+        }
+    }
+
+    const getSiswaList = async () => {
+        const responseSiswa = await getAllSiswa()
+        setSiswaList(responseSiswa)
+        setFilteredSiswaList(responseSiswa)
+    }
+
+    useEffect(() => {
+        getIjazahList()
+        getSiswaList()
+    }, [])
+
+    const handleSearchSiswa = () => {
+        const updatedData = siswaList.filter(siswa => 
+            siswa['nama_siswa'].toLowerCase().includes(searchValue.toLowerCase()) ||
+            siswa['nis'].toLowerCase().includes(searchValue.toLowerCase()) ||
+            siswa['nisn'].toLowerCase().includes(searchValue.toLowerCase()) ||
+            siswa['kelas'].toLowerCase().includes(searchValue.toLowerCase())
+        )
+        setFilteredSiswaList(updatedData)
+    }
+
+    useEffect(() => {
+        handleSearchSiswa()
+    }, [searchValue])
+
+    const addFormData = (nisn) => {
+        // Check if there's an existing data in ijazahList
+        const ijazahExist = ijazahList.find(ijazah => ijazah['nisn'] === nisn)
+        if(ijazahExist) {
+            return toast.error('Data Ijazah Siswa tersebut sudah ada!')
+        }
+
+        // Check if there's an existing data in formData
+        const formDataExist = formData.find(form => form['nisn'] === nisn)
+        if(formDataExist) {
+            return toast.error('Anda sudah memilih Data Siswa tersebut!')
+        }
+
+        const dataSiswa = siswaList.find(siswa => siswa['nisn'] === nisn)
+        const newFormData = {
+            no_ijazah: '',
+            tgl_diambil: '',
+            nama_lulusan: dataSiswa.nama_siswa,
+            nisn: dataSiswa.nisn,
+            kelas: dataSiswa.kelas,
+            tahun_lulus: '',
+            status: 'belum diambil'
+        }
+
+        let updatedFormData = [...formData, newFormData]
+        setFormData(updatedFormData)
+
+    }
+
+    const handleChangeFormData = (nisn, value, field) => {
+        const newData = formData.map(form => form.nisn === nisn ? ({...form, [field]: value}) : form)
+        setFormData(newData)
+    }
+
+    const submitFormData =  () => {
+        if(formData.length < 1) {
+            return toast.error('Silahkan pilih siswa terlebih dahulu!')
+        }
+
+        const isTahunEmpty = formData.filter(form => form['tahun_lulus'] === '')
+        if(isTahunEmpty.length > 0) {
+            return toast.error('Masih terdapat kolom Tahun Lulus yang kosong, silahkan cek lagi!')
+        }
+
+        const isSudahDiAmbilEmpty = formData.filter(form => form['status'] === 'sudah diambil' && form['tgl_diambil'] === '')
+        if(isSudahDiAmbilEmpty.length > 0) {
+            return toast.error('Masih terdapat kolom Tanggal diambil yang kosong, silahkan cek lagi!')
+        }
+
+        Swal.fire({
+            title: 'Apakah anda sudah yakin?',
+            text: 'Anda akan menambahkan beberapa data ijazah',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(result => {
+            if(result.isConfirmed){
+                Swal.fire({
+                    title: 'Sedang memproses data',
+                    text: 'Mohon tunggu sebentar',
+                    timer: 15000,
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    didOpen: async () => {
+
+                    }
+                })
+            }
+        })
+    }
 
     return (
         <MainLayoutPage>
@@ -32,27 +143,97 @@ export default function DataIjazahNewPage() {
                     <div className="flex items-center gap-5">
                         <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className="w-1/2 md:w-fit px-4 py-2 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center gap-3">
                             <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
-                            Import Data
+                            Import 
                         </button>
-                        <button type="button" className="w-1/2 rounded-full py-2 bg-green-50 hover:bg-green-100 focus:bg-green-200 text-green-700 md:hidden flex items-center justify-center gap-4">
+                        <button type="button" onClick={() => submitFormData()} className="w-1/2 rounded-full py-2 px-4 bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white flex items-center justify-center gap-4">
                             <FontAwesomeIcon icon={faSave} className="w-5 h-5 text-inherit" />
                             Simpan
                         </button>
                     </div>
                 </div>
                 <hr className="my-2 opacity-0" />
-                <div className="flex md:flex-row flex-col-reverse gap-5">
-                    <div className="w-full md:w-10/12"></div>
-                    <div className={`${mont.className} w-full md:w-2/12 text-xs md:text-sm`}>
-                        <div className="flex items-center gap-5 p-5 rounded-lg bg-zinc-50">
-                            <p className="opacity-50 w-2/5">Jumlah</p>
-                            <p className="w-3/5">{formData.length}</p>
+                <div className="flex md:flex-row flex-col gap-5">
+                    <div className="w-full md:w-2/6">
+                        <div className="relative w-full rounded border py-2 border-zinc-600 peer-has-[:placeholder-shown]:border-zinc-300">
+                            <div className="absolute top-0 left-0 w-10 h-full flex items-center justify-center">
+                                <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
+                            </div>
+                            <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                         </div>
-                        <hr className="my-1 opacity-0" />
-                        <button type="button" className="w-full rounded-lg py-5 bg-green-50 hover:bg-green-100 focus:bg-green-200 text-green-700 hidden md:flex items-center justify-center gap-4">
-                            <FontAwesomeIcon icon={faSave} className="w-5 h-5 text-inherit" />
-                            Simpan
-                        </button>
+                        <div className="py-2 relative w-full max-h-[190px] md:max-h-[500px] overflow-auto space-y-2">
+                            {filteredSiswaList.slice(0, 30).map((siswa, index) => (
+                                <button key={`${siswa.nis} - ${index}`} onClick={() => addFormData(siswa.nisn)} type="button" className={`w-full rounded-lg border p-2 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/50 focus:border-blue-300 focus:bg-blue-50/50 group`}>
+                                    <div className={`${mont.className} flex-grow text-start`}>
+                                        <p className="text-sm font-medium tracking-tighter group-hover:text-blue-700 group-focus:text-blue-700">
+                                            {siswa.nama_siswa}
+                                        </p>
+                                        <p className="text-xs tracking-tighter text-zinc-400">{siswa.kelas} - {siswa.nisn}</p>
+                                    </div>
+                                    <div className="space-y-2 flex flex-col items-end">
+                                        {ijazahList.map((ijazah, index) => ijazah['nisn'] === siswa.nisn && ijazah['status'] === 'belum diambil' && (
+                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-blue-50 text-blue-700">
+                                                Belum Diambil
+                                            </p>
+                                        ))}
+                                        {ijazahList.map((ijazah, index) => ijazah['nisn'] === siswa.nisn && ijazah['status'] === 'sudah diambil' && (
+                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-amber-50 text-amber-700">
+                                                Sudah Diambil
+                                            </p>
+                                        ))}
+                                        {formData.map((form, index) => siswa['nisn'] === form['nisn'] && (
+                                            <FontAwesomeIcon key={`form ${index}`} icon={faCircleCheck} className="w-3 h-3 text-blue-600" />
+                                        ))}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="w-full md:w-4/6  space-y-2 h-fit relative overflow-auto max-h-[500px] md:max-h-[800px]">
+                        {formData.map((form, index) => (
+                            <div key={`formData-${index}`} className="collapse collapse-arrow bg-zinc-50/50 hover:bg-zinc-50">
+                                <input type="checkbox" /> 
+                                <div className="collapse-title flex md:flex-row flex-col md:gap-5 md:items-center md:justify-start items-start font-medium">
+                                    <p>
+                                        {form.nama_lulusan}
+                                    </p>
+                                    <p className={`${mont.className} opacity-50 text-xs md:text-sm`}>{form.kelas} - {form.nisn}</p>
+                                </div>
+                                <div className="collapse-content space-y-2"> 
+                                    <div className="flex md:items-center md:flex-row flex-col gap-1">
+                                        <div className="w-full md:w-1/4 text-sm text-zinc-400">
+                                            Tahun Lulus <span className="float-end hidden md:block">:</span>
+                                        </div>
+                                        <input type="text" value={form['tahun_lulus']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'tahun_lulus')} className="w-full text-sm md:w-fit px-3 py-1 rounded border" placeholder="Masukkan Tahun Lulus" />
+                                    </div>
+                                    <div className="flex md:items-center md:flex-row flex-col gap-1">
+                                        <div className="w-full md:w-1/4 text-sm text-zinc-400">
+                                            Status <span className="float-end hidden md:block">:</span>
+                                        </div>
+                                        <select value={form['status']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'status')} className="w-full text-sm md:w-fit px-3 py-1 rounded border cursor-pointer">
+                                            <option value="" disabled>-- Pilih Status --</option>
+                                            <option value="sudah diambil">Sudah di Ambil</option>
+                                            <option value="belum diambil">Belum di Ambil</option>
+                                        </select>
+                                    </div>
+                                    {form['status'] === 'sudah diambil' && (
+                                        <div className="space-y-2">
+                                            <div className="flex md:items-center md:flex-row flex-col gap-1">
+                                                <div className="w-full md:w-1/4 text-sm text-zinc-400">
+                                                    Tanggal diambil <span className="float-end hidden md:block">:</span>
+                                                </div>
+                                                <input type="date" value={form['tgl_diambil']} onChange={e => setFormData(state => ({...state, ['tgl_diambil']: e.target.value}))} className="w-full text-sm md:w-fit px-3 py-1 rounded border" />
+                                            </div>
+                                            <div className="flex md:items-center md:flex-row flex-col gap-1">
+                                                <div className="w-full md:w-1/4 text-sm text-zinc-400">
+                                                    Diambil Oleh <span className="float-end hidden md:block">:</span>
+                                                </div>
+                                                <input type="text" value={form['tahun_lulus']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'tahun_lulus')} className="w-full text-sm md:w-fit px-3 py-1 rounded border" placeholder="Masukkan Nama" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
