@@ -3,17 +3,21 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { mont } from "@/config/fonts"
 import { dateToIso, isoToDate } from "@/lib/dateConvertes"
-import { createSingleSiswa } from "@/lib/model/siswaModel"
+import { createSingleSiswa, getAllSiswa } from "@/lib/model/siswaModel"
 import { faAngleDown, faArrowLeft, faArrowLeftLong, faDownload, faRecycle, faSave, faUpload, faUserPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
+let listJurusan = []
+
 const siswaFormat = {
     kelas: '',
+    rombel: '',
+    no_rombel: '',
     nama_siswa: '',
     nis: '',
     nisn: '',
@@ -45,6 +49,23 @@ export default function DataSiswaNewPage() {
     const [kelasForm, setKelasForm] = useState(['X', 'TKJ', '1'])
     const router = useRouter()
 
+    const getJurusan = async () => {
+        const result = await getAllSiswa()
+        if(result.success) {
+            console.log(result.data)
+            result.data.map(({rombel}) => {
+                if(!listJurusan.includes(rombel)) {
+                    listJurusan.push(rombel)
+                }
+            })
+        }
+
+    }
+
+    useEffect(() => {
+        getJurusan()
+    }, [])
+
     const submitForm = e => {
         e.preventDefault()
 
@@ -62,7 +83,7 @@ export default function DataSiswaNewPage() {
                     timer: 10000,
                     showConfirmButton: false,
                     didOpen: async () => {
-                        const newFormData = {...formData, kelas: `${kelasForm[0]} ${kelasForm[1]} ${kelasForm[2]}`}
+                        const newFormData = {...formData, kelas: `${kelasForm[0]}`, rombel: `${kelasForm[1]}`, no_rombel: `${kelasForm[2]}`}
                         const result = await createSingleSiswa(newFormData)
                         if(result.success) {
                             mySwal.fire({
@@ -133,12 +154,9 @@ export default function DataSiswaNewPage() {
                             <div className="space-y-1">
                                 <h1 className="text-xs">Rombel</h1>
                                 <select onChange={e => setKelasForm(state => [state[0], e.target.value, state[2]])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
-                                    <option value="TKJ" >TKJ</option>
-                                    <option value="GEO" >GEO</option>
-                                    <option value="DPIB" >DPIB</option>
-                                    <option value="TKR" >TKR</option>
-                                    <option value="TKRO" >TPM</option>
-                                    <option value="TITL" >TITL</option>
+                                    {listJurusan.map((jurusan, index) => (
+                                        <option key={`${jurusan} - ${index}`} value={jurusan} >{jurusan}</option>
+                                    ))}
                                 </select>
                             </div>
                             <div className="space-y-1">

@@ -82,12 +82,12 @@ export default function DataSiswaMainPage() {
     }
 
     const handleSubmitFilter = () => {
-        let updatedFilter = filteredSiswaList
-        console.log(updatedFilter)
+        let updatedFilter = siswaList
         
         // Search Kelas
-        updatedFilter = updatedFilter.filter(siswa => siswa.kelas == kelas)
-        console.log(updatedFilter)
+        if(kelas !== '') {
+            updatedFilter = updatedFilter.filter(siswa => siswa.kelas == kelas)
+        }
 
         // Search Rombel
         updatedFilter = updatedFilter.filter(siswa => siswa.rombel.toLowerCase().includes(rombel.toLowerCase()))
@@ -101,17 +101,13 @@ export default function DataSiswaMainPage() {
         // Search Value and Kriteria
         updatedFilter = updatedFilter.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
 
-        console.log(updatedFilter)
-
         // Search Only Selected
         if(showSelected) {
             updatedFilter = updatedFilter.filter(siswa => selectedSiswa.includes(siswa.nis))
             const maxPagination = Math.ceil(updatedFilter.length / totalList)
             setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
         }
-
-        console.log(updatedFilter)
-
+        
         let sortedFilter = [];
         // Sorting
         if(sorting.nama_siswa !== '') {
@@ -497,7 +493,7 @@ export default function DataSiswaMainPage() {
                                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                                     <div className="flex-grow flex items-center gap-2">
                                         <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
-                                        <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.nis)} className="opacity-40 hover:opacity-100 w-4 h-4 flex-shrink-0 bg-zinc-800 text-white rounded-full flex items-center justify-center">
+                                        <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.rombel, siswa.no_rombel, siswa.nis)} className="opacity-40 hover:opacity-100 w-4 h-4 flex-shrink-0 bg-zinc-800 text-white rounded-full flex items-center justify-center">
                                             <FontAwesomeIcon icon={faArrowDown} className="w-2 h-2 text-inherit" />
                                         </button>
                                         {siswa.nama_siswa}
@@ -644,7 +640,7 @@ export default function DataSiswaMainPage() {
                                             
                                         </p>
                                         <div className="col-span-2 hidden md:block font-medium text-zinc-600">
-                                            {siswa.kelas}
+                                            {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
                                         </div>
                                         <div className="col-span-2 hidden md:block font-medium text-zinc-600">
                                             {siswa.nis}

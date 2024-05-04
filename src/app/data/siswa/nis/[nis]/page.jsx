@@ -98,11 +98,11 @@ export default function DataSiswaNISPage({params}) {
     return (
         <MainLayoutPage>
             <hr className="my-1 md:my-2 opacity-0" />
-            <div className={`${mont.className}`}>
+            <div className={`${mont.className} w-full`}>
                 {loadingState === '' && <Skeleton/>}
                 {loadingState === 'data exist' && (
-                    <div className="">
-                        <div className="flex md:justify-between md:items-center md:flex-row flex-col gap-5">
+                    <>
+                        <div className="flex md:justify-between md:items-center md:flex-row flex-col gap-5 w-full">
                             <div className="flex items-center gap-5 md:gap-5">
                                 <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
                                     <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
@@ -148,7 +148,7 @@ export default function DataSiswaNISPage({params}) {
                                             <div className="hidden md:block">:</div>
                                         </div>
                                         <p className="w-full md:w-3/4 font-medium">
-                                            {dataSiswa[format]}
+                                            {format === 'kelas' ? `${dataSiswa['kelas']} ${dataSiswa['rombel']} ${dataSiswa['no_rombel']}` : dataSiswa[format]}
                                         </p>
                                     </div>
                                 ))}
@@ -170,7 +170,7 @@ export default function DataSiswaNISPage({params}) {
                                 ))}
                             </div>
                         </div>
-                    </div>
+                    </>
                         
                 )}
             </div>

@@ -139,22 +139,27 @@ export const naikkanKelasSiswa = async (nisTidakNaikKelas) => {
             dataSiswa = dataSiswa.filter(siswa => !daftarNisTidakNaikKelas.includes(siswa.nis))
         }
 
-        const dataKelas10 = dataSiswa.filter(siswa => siswa.kelas.includes('X '))
-        const dataKelas11 = dataSiswa.filter(siswa => siswa.kelas.includes('XI '))
-        const dataKelas12 = dataSiswa.filter(siswa => siswa.kelas.includes('XII '))
-        
+        const dataKelas10 = dataSiswa.filter(siswa => siswa.kelas === 'X')
+        const dataKelas11 = dataSiswa.filter(siswa => siswa.kelas === 'XI')
+        const dataKelas12 = dataSiswa.filter(siswa => siswa.kelas === 'XII')
+
+        let updatedDataKelas12 = dataKelas12.map(siswa => ({...siswa, tahun_keluar: new Date().getFullYear().toString(), tanggal_keluar: `${new Date().toLocaleDateString('en-GB')}` }))
+        updatedDataKelas12 = updatedDataKelas12.map(siswa => {
+            const {aktif, ...newObj} = siswa
+            return newObj
+        })
 
         // menghapus semua data siswa dari tabel data siswa
         await prisma.data_siswa.deleteMany();
 
         // Memasukkan dataKelas12 ke dalam tabel alumni
         await prisma.data_alumni.createMany({
-            data: dataKelas12
+            data: updatedDataKelas12
         })
 
         // Mengupdate dataKelas 11 menjadi kelas 12, dan kelas 10 menjadi kelas 11
-        const newDataKelas12 = dataKelas11.map(siswa => ({...siswa, kelas: siswa.kelas.replace('XI ', 'XII ')}))
-        const newDataKelas11 = dataKelas10.map(siswa => ({...siswa, kelas: siswa.kelas.replace('X ', 'XI ')}))
+        const newDataKelas12 = dataKelas11.map(siswa => ({...siswa, kelas: siswa.kelas.replace('XI', 'XII')}))
+        const newDataKelas11 = dataKelas10.map(siswa => ({...siswa, kelas: siswa.kelas.replace('X', 'XI')}))
 
         // Insert data ke tabel siswa
         await prisma.data_siswa.createMany({
