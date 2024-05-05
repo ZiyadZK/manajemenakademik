@@ -78,7 +78,6 @@ export default function DataIjazahNewPage() {
 
         const dataSiswa = siswaList.find(siswa => siswa['nisn'] === nisn)
         const newFormData = {
-            no_ijazah: '',
             tgl_diambil: '',
             nama_lulusan: dataSiswa.nama_siswa,
             nisn: dataSiswa.nisn,
@@ -235,12 +234,6 @@ export default function DataIjazahNewPage() {
                                         <div className="w-full md:w-fit text-sm">
                                             {form['tahun_lulus']}
                                         </div>
-                                    </div>
-                                    <div className="flex md:items-center md:flex-row flex-col gap-1">
-                                        <div className="w-full md:w-1/4 text-sm text-zinc-400">
-                                            No Ijazah <span className="float-end hidden md:block">:</span>
-                                        </div>
-                                        <input type="text" value={form['no_ijazah']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'no_ijazah')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" placeholder="Masukkan No Ijazah" />
                                     </div>
                                     <div className="flex md:items-center md:flex-row flex-col gap-1">
                                         <div className="w-full md:w-1/4 text-sm text-zinc-400">
