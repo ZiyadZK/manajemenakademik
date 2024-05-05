@@ -61,7 +61,6 @@ model data_akuns {
 
 model data_ijazahs {
   no             Int       @id @default(autoincrement())
-  no_ijazah      String?   @db.VarChar(200)
   tgl_diambil    String
   nama_lulusan   String?   @db.VarChar(200)
   nisn           String?   @db.VarChar(200)
@@ -69,8 +68,8 @@ model data_ijazahs {
   kelas          String?   @db.VarChar(200)
   rombel        String
   no_rombel     String
-  tahun_lulus    String
-  status  String
+  tahun_lulus       String
+  status        String
 }
 
 model data_sertifikat {
