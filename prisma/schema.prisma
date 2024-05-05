@@ -62,12 +62,14 @@ model data_akuns {
 model data_ijazahs {
   no             Int       @id @default(autoincrement())
   no_ijazah      String?   @db.VarChar(200)
-  tgl_diambil    DateTime? @db.Date
+  tgl_diambil    String
   nama_lulusan   String?   @db.VarChar(200)
   nisn           String?   @db.VarChar(200)
   nama_pengambil String?   @db.VarChar(200)
   kelas          String?   @db.VarChar(200)
-  tahun_lulus    Int?
+  rombel        String
+  no_rombel     String
+  tahun_lulus    String
   status  String
 }
 

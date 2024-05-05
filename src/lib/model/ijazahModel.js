@@ -17,3 +17,21 @@ export const getAllIjazah = async () => {
         }
     }
 }
+
+export const createMultiIjazah = async (payload) => {
+    try {
+        await prisma.data_ijazahs.createMany({
+            data: payload
+        })
+
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error.message)
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
