@@ -114,6 +114,7 @@ export default function DataSiswaNewImportPage() {
                     setLoadingReadFormat('fetched')
                     return toast.error('Terdapat kolom yang tidak sesuai!')
                 }
+
                 
                 setData(response.data)
                 setFilteredData(response.data)
@@ -218,22 +219,26 @@ export default function DataSiswaNewImportPage() {
                     // Ambil nama kolom dari baris pertama
                     const columns = records[0];
                     // Buat array objek dari baris-baris selanjutnya
-                    const dataObjects = records.slice(1).map(row => {
-                        const obj = {};
-                        columns.forEach((column, index) => {
-                            if(column === 'tanggal_lahir') {
-                                const dateValue = new Date((row[index] - 25569) * 86400 * 1000)
-                                // Construct the date string in the format 'dd/MM/yyyy'
-                                const day = String(dateValue.getDate()).padStart(2, '0');
-                                const month = String(dateValue.getMonth() + 1).padStart(2, '0'); // Month is zero-based
-                                const year = dateValue.getFullYear();
-                                obj[column] = `${day}/${month}/${year}`;
-                            }else{
-                                obj[column] = String(row[index])
-                            }
-                        });
-                        return obj;
-                    });
+                    const dataObjects = records.slice(1).map((row, index) => {
+                        if(row.length > 0) {
+                            let obj = {};
+                            columns.forEach((column, index) => {
+                                if(column === 'tanggal_lahir') {
+                                    const dateValue = new Date((row[index] - 25569) * 86400 * 1000)
+                                    // Construct the date string in the format 'dd/MM/yyyy'
+                                    const day = String(dateValue.getDate()).padStart(2, '0');
+                                    const month = String(dateValue.getMonth() + 1).padStart(2, '0'); // Month is zero-based
+                                    const year = dateValue.getFullYear();
+                                    obj[column] = `${day}/${month}/${year}`;
+                                }else{
+                                    obj[column] = String(row[index])
+                                }
+                            });
+                            return obj
+                        } else{
+                            return null
+                        }
+                    }).filter(obj => obj !== null);
                     resolve({
                         success: true,
                         message: 'Sheet ditemukan',

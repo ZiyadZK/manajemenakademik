@@ -51,15 +51,12 @@ export default function DataSiswaNewPage() {
 
     const getJurusan = async () => {
         const result = await getAllSiswa()
-        if(result.success) {
-            console.log(result.data)
-            result.data.map(({rombel}) => {
-                if(!listJurusan.includes(rombel)) {
-                    listJurusan.push(rombel)
-                }
-            })
-        }
-
+        console.log(result)
+        result.map(({rombel}) => {
+            if(!listJurusan.includes(rombel)) {
+                listJurusan.push(rombel)
+            }
+        })
     }
 
     useEffect(() => {
@@ -154,9 +151,12 @@ export default function DataSiswaNewPage() {
                             <div className="space-y-1">
                                 <h1 className="text-xs">Rombel</h1>
                                 <select onChange={e => setKelasForm(state => [state[0], e.target.value, state[2]])} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer">
-                                    {listJurusan.map((jurusan, index) => (
-                                        <option key={`${jurusan} - ${index}`} value={jurusan} >{jurusan}</option>
-                                    ))}
+                                    <option value="TKJ">TKJ</option>
+                                    <option value="TITL">TITL</option>
+                                    <option value="TPM">TPM</option>
+                                    <option value="TKR">TKR</option>
+                                    <option value="GEO">GEO</option>
+                                    <option value="DPIB">DPIB</option>
                                 </select>
                             </div>
                             <div className="space-y-1">

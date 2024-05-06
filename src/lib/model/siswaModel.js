@@ -186,34 +186,13 @@ export const naikkanKelasSiswa = async (nisTidakNaikKelas) => {
 
 export const updateBulkSiswa = async (nisArray, data) => {
     try {
-
-        // Ambil data sesuai NIS
-        const dataSiswa = await prisma.data_siswa.findMany({
+        await prisma.data_siswa.updateMany({
             where: {
                 nis: {
                     in: nisArray
                 }
-            }
-        })
-
-        // Hapus data sesuai NIS
-        await prisma.data_siswa.deleteMany({
-            where: {
-                nis: {
-                    in: nisArray
-                }
-            }
-        })
-
-        // Ubah data siswa yg sblmnya menyesuaikan dengan data payload untuk kelas
-        let updatedDataSiswa = dataSiswa.map(siswa => ({...siswa,
-            kelas: `${data.kelas == '' ? siswa.kelas.split(' ')[0]+' ' : data.kelas+' '}${data.rombel == '' ? siswa.kelas.split(' ')[1]+' ' : data.rombel+' '}${data.no_rombel == '' ? siswa.kelas.split(' ')[2] : data.no_rombel}`,
-            tahun_masuk: `${data.tahun_masuk != '' ? data.tahun_masuk : siswa.tahun_masuk}`,
-            aktif: `${data.status != '' ? data.status : siswa.aktif}`
-        }))
-
-        await prisma.data_siswa.createMany({
-            data: updatedDataSiswa
+            },
+            data: data
         })
 
         return {
