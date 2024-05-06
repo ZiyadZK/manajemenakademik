@@ -2,8 +2,7 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, open, rale } from "@/config/fonts"
-import { model_getAllAlumni } from "@/lib/model/alumniModel"
-import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
+import { model_deleteAlumni, model_getAllAlumni, model_updateAlumni } from "@/lib/model/alumniModel"
 import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
@@ -17,7 +16,7 @@ let listKelas = []
 let listRombel = []
 
 const mySwal = withReactContent(Swal)
-export default function DataSiswaMainPage() {
+export default function DataAlumniMainPage() {
     const router = useRouter();
     const [siswaList, setSiswaList] = useState([])
     const [filteredSiswaList, setFilteredSiswaList] = useState([])
@@ -25,15 +24,12 @@ export default function DataSiswaMainPage() {
     const [kelas, setKelas] = useState('')
     const [rombel, setRombel] = useState('')
     const [noRombel, setNoRombel] = useState('')
-    const [status, setStatus] = useState('')
     const [searchValue, setSearchValue] = useState('')
     const [searchCriteria, setSearchCriteria] = useState('nama_siswa')
     const [selectedSiswa, setSelectedSiswa] = useState([])
     const [selectAll, setSelectAll] = useState(false)
     const [pagination, setPagination] = useState(1)
     const [totalList, setTotalList] = useState(10)
-    const [kriteriaNaikKelas, setKriteriaNaiKelas] = useState('');
-    const [siswaTidakNaikKelas, setSiswaTidakNaikKelas] = useState([])
     const [showSelected, setShowSelected] = useState(false)
     const [sorting, setSorting] = useState({nama_siswa: '', tahun_masuk: ''})
 
@@ -180,7 +176,7 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 10000,
                     didOpen: async () => {
-                        const response = await deleteSingleSiswaByNis(nis)
+                        const response = await model_deleteAlumni([nis])
                         if(response.success) {
                             await getSiswa()
                             mySwal.fire({
@@ -220,7 +216,7 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 10000,
                     didOpen: async () => {
-                        const response = await deleteMultiSiswaByNis(selectedSiswa)
+                        const response = await model_deleteAlumni(selectedSiswa)
                         if(response.success) {
                             setSelectedSiswa(state => ([]))
                             mySwal.fire({
@@ -241,78 +237,6 @@ export default function DataSiswaMainPage() {
                 })
             }
         })
-    }
-
-    const naikKelasSemua = async () => {
-        mySwal.fire({
-            title: 'Apakah anda yakin?',
-            icon: 'question',
-            text: siswaTidakNaikKelas && siswaTidakNaikKelas.length > 0 ? 'Anda akan menaikkan semua kelas kecuali siswa yang terpilih' : 'Anda akan menaikkan semua kelas',
-            showCancelButton: true,
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak'
-        }).then(async result => {
-            if(result.isConfirmed){
-                mySwal.fire({
-                    title: 'Sedang memproses data',
-                    allowOutsideClick: false,
-                    timer: 20000,
-                    showConfirmButton: false,
-                    didOpen: async () => {
-                        const response = await naikkanKelasSiswa(siswaTidakNaikKelas)
-                        if(response.success) {
-                            mySwal.fire({
-                                icon: 'success',
-                                title: 'Berhasil memproses data!',
-                                text: 'Anda berhasil menaikkan semua kelas',
-                                confirmButtonText: 'Baik',
-                                timer: 5000
-                            }).then(async () => {
-                                await getSiswa()
-                                setSiswaTidakNaikKelas([])
-                            })
-                        }else{
-                            mySwal.fire({
-                                title: 'Gagal memproses data!',
-                                text: 'Tampaknya terdapat error disaat anda memproses data',
-                                icon: 'error',
-                                timer: 5000
-                            })
-                        }
-                    }
-                })
-            }
-        })
-    }
-
-    const addSiswaTidakNaikKelas = (nama_siswa, kelas, rombel, no_rombel, nis) => {
-        // Cari udah ada atau belum
-        const isExist = siswaTidakNaikKelas.find(siswa => siswa.nis === nis);
-        if(typeof(isExist) === 'undefined') {
-            const newData = { nama_siswa, kelas, rombel, no_rombel, nis}
-            const updatedData = [...siswaTidakNaikKelas, newData]
-            setSiswaTidakNaikKelas(updatedData)
-            setKriteriaNaiKelas('beberapa')
-        }else{
-            toast.error(`Anda sudah menambahkan ${nama_siswa}!`);
-        }
-
-    }
-
-    const removeSiswaTidakNaikKelas = (nis) => {
-        const updatedData = siswaTidakNaikKelas.filter(siswa => siswa.nis !== nis);
-        setSiswaTidakNaikKelas(updatedData)
-    }
-
-    useEffect(() => {
-        if(kriteriaNaikKelas === 'semua') {
-            setSiswaTidakNaikKelas([])
-        }
-    }, [kriteriaNaikKelas])
-
-    const batalNaikKelas = () => {
-        if(siswaTidakNaikKelas.length > 0) setSiswaTidakNaikKelas([])
-        setKriteriaNaiKelas('') 
     }
 
     const handleTotalList = (value) => {
@@ -360,7 +284,7 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 15000,
                     didOpen: async () => {
-                        const response = await updateBulkSiswa(selectedSiswa, newData)
+                        const response = await model_updateAlumni(selectedSiswa, newData)
                         if(response.success) {
                             mySwal.fire({
                                 icon: 'success',
@@ -401,11 +325,11 @@ export default function DataSiswaMainPage() {
             <Toaster />
             <hr className="my-1 md:my-2 opacity-0" />
             <div className="flex items-center md:gap-5 w-full justify-center md:justify-start gap-2">
-                <a href="/data/siswa/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                <a href="/data/alumni/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
                     <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-inherit" />
                     Tambah Data
                 </a>
-                <a href="/data/siswa/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                <a href="/data/alumni/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
                     <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
                     Import Data
                 </a>
@@ -498,12 +422,8 @@ export default function DataSiswaMainPage() {
                                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                                     <div className="flex-grow flex items-center gap-2">
                                         <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
-                                        <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.rombel, siswa.no_rombel, siswa.nis)} className="opacity-40 hover:opacity-100 w-4 h-4 flex-shrink-0 bg-zinc-800 text-white rounded-full flex items-center justify-center">
-                                            <FontAwesomeIcon icon={faArrowDown} className="w-2 h-2 text-inherit" />
-                                        </button>
                                         {siswa.nama_siswa}
                                     </div>
-                                    <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 flex-shrink-0 text-green-600/50" />
                                 </div>
                                 <div className="hidden md:flex items-center col-span-2">
                                     {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
