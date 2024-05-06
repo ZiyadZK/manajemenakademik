@@ -73,7 +73,7 @@ model data_ijazahs {
 }
 
 model data_sertifikat {
-  sertifikat_id               Int @id @default(autoincrement()) 
+  sertifikat_id               String @id
   sertifikat_id_pegawai       Int
   jenis_sertifikat            String
   nama_sertifikat             String
@@ -100,10 +100,6 @@ model data_pegawai {
   magister_universitas String?  @db.VarChar(255)
   magister_fakultas    String?  @db.VarChar(255)
   magister_prodi       String?  @db.VarChar(255)
-  sertifikat_pendidik  String?  @db.VarChar(255)
-  sertifikat_teknik    String?  @db.VarChar(255)
-  sertifikat_magang    String?  @db.VarChar(255)
-  sertifikat_asesor    String?  @db.VarChar(255)
   keterangan           String?  @db.VarChar(255)
   pensiun              Boolean?
 }

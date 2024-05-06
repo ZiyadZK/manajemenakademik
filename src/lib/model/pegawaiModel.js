@@ -104,8 +104,34 @@ export const deleteManyPegawai = async (arrayOfID_Pegawai) => {
 
 export const createSinglePegawai = async (payload) => {
     try {
+        const {sertifikat, ...dataPegawai} = payload
+        console.log(payload)
+
         await prisma.data_pegawai.create({
-            data: payload
+            data: dataPegawai
+        })
+
+        const data = await prisma.data_pegawai.findFirst({
+            where: {
+                nik: dataPegawai.nik
+            }
+        })
+
+        const newSertifikat = await Promise.all(sertifikat.map(async (sert) => {
+            const { mimetype, buffer } = sert.fileData;
+            const fileDataBuffer = await buffer.arrayBuffer();
+            const fileData = new Uint8Array(fileDataBuffer); new File()
+
+            return {
+                ...sert,
+                sertifikat_id_pegawai: data.id_pegawai,
+                keterangan: '-',
+                fileData: Buffer.from(fileData)
+            };
+        }));
+
+        await prisma.data_sertifikat.create({
+            data: newSertifikat
         })
 
         return {

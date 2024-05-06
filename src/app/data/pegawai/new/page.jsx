@@ -2,8 +2,10 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, space } from "@/config/fonts"
-import { faAngleLeft, faArrowLeft, faDownload, faPlus, faSave, faUserPlus } from "@fortawesome/free-solid-svg-icons"
+import { createSinglePegawai } from "@/lib/model/pegawaiModel"
+import { faAngleLeft, faArrowLeft, faDownload, faPlus, faSave, faUserPlus, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { nanoid } from "nanoid"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -11,16 +13,22 @@ import { Toaster } from "react-hot-toast"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
-const formatPegawai = { id_pegawai: "", nama_pegawai: "", jabatan: "", status_kepegawaian: "", nip: "", nuptk: "", tmpt_lahir: "", tgl_lahir: "", tmt: "", pendidikan_terakhir: "", sekolah_pendidikan: "", sarjana_universitas: "", sarjana_fakultas: "", sarjana_prodi: "", magister_universitas: "", magister_fakultas: "", magister_prodi: "", sertifikat_pendidik: "", sertifikat_teknik: "", sertifikat_magang: "", sertifikat_asesor: "", keterangan: "", pensiun: "" };
+const formatPegawai = {  nama_pegawai: "", jabatan: "", status_kepegawaian: "", nik: '', nip: "", nuptk: "", tmpt_lahir: "", tgl_lahir: "", tmt: "", pendidikan_terakhir: "", sekolah_pendidikan: "", sarjana_universitas: "", sarjana_fakultas: "", sarjana_prodi: "", magister_universitas: "", magister_fakultas: "", magister_prodi: "", keterangan: "", pensiun: "", sertifikat: [], pensiun: false };
 
 const mySwal = withReactContent(Swal)
 export default function DataPegawaiNewPage() {
 
     const router = useRouter()
+    const [showCert, setShowCert] = useState('')
 
     const [formPegawai, setFormPegawai] = useState({...formatPegawai})
 
-    const submitFormPegawai = async () => {
+    const submitFormPegawai = async (e) => {
+        e.preventDefault()
+
+        console.log(formPegawai)
+
+
         mySwal.fire({
             title: 'Apakah anda yakin?',
             icon: 'question',
@@ -28,7 +36,95 @@ export default function DataPegawaiNewPage() {
             showCancelButton: true,
             confirmButtonText: 'Ya',
             cancelButtonText: 'Tidak'
+        }).then(async result => {
+            if(result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang memproses data',
+                    text: 'Mohon tunggu sebentar',
+                    timer: 30000,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: async () => {
+                        const response = await createSinglePegawai(formPegawai)
+                        if(response.success) {
+                            Swal.fire({
+                                title: 'Sukses',
+                                text: 'Berhasil menambahkan data pegawai tersebut!',
+                                icon: 'success'
+                            }).then(() => {
+                                router.push('/data/pegawai')
+                            })
+                        }else{
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Gagal menambahkan data pegawai tersebut!',
+                                icon: 'error'
+                            })
+                        }
+                    }
+                })
+            }
         })
+    }
+
+    const addSertifikat = (jenis_sertifikat) => {
+        let formatSertifikat = {
+            id_sertifikat: `${nanoid(8)}`,
+            nama_sertifikat: '',
+            jenis_sertifikat,
+            fileData: null
+        }
+
+        let updatedFormPegawai = {...formPegawai, sertifikat: [...formPegawai.sertifikat, formatSertifikat]}
+        setFormPegawai(updatedFormPegawai)
+    }
+
+    const updateSertifikat = async (sertifikat_id, payload) => {
+        // Find the index of the certificate in the array
+        const sertifikatIndex = formPegawai.sertifikat.findIndex(sertifikat => sertifikat.id_sertifikat === sertifikat_id);
+    
+        // If the certificate is found, update it
+        if (sertifikatIndex !== -1) {
+            // Convert File object to Blob if fileData is present in the payload
+            if (payload.fileData instanceof File) {
+                const fileData = payload.fileData;
+                const blob = new Blob([fileData], { type: fileData.type });
+                console.log(await blob.arrayBuffer())
+                payload.fileData = blob;
+            }
+    
+            // Update the certificate with the payload
+            const updatedSertifikat = {
+                ...formPegawai.sertifikat[sertifikatIndex],
+                ...payload
+            };
+    
+            // Create a new array with the updated certificate
+            const updatedSertifikatArray = [...formPegawai.sertifikat];
+            updatedSertifikatArray[sertifikatIndex] = updatedSertifikat;
+
+            console.log(updatedSertifikatArray)
+    
+            // Update the state with the new array
+            setFormPegawai({
+                ...formPegawai,
+                sertifikat: updatedSertifikatArray
+            });
+        }
+    };
+
+    const deleteSertifikat = (index) => {
+        const updatedFormPegawai = {
+            ...formPegawai,
+            sertifikat: [
+                ...formPegawai.sertifikat.slice(0, index),
+                ...formPegawai.sertifikat.slice(index + 1)
+            ]
+        };
+
+        // Set the state with the updated formPegawai object
+        setFormPegawai(updatedFormPegawai);
     }
 
     return (
@@ -94,6 +190,13 @@ export default function DataPegawaiNewPage() {
                                 </div>
 
                                 <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">NIK</p>
+                                    <div className="w-full md:w-3/5">
+                                        <input onChange={e => setFormPegawai(state => ({...state, nik: e.target.value}))} type="text" className={" bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="NIP" />
+                                    </div>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
                                     <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">NIP</p>
                                     <div className="w-full md:w-3/5">
                                         <input onChange={e => setFormPegawai(state => ({...state, nip: e.target.value}))} type="text" className={" bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="NIP" />
@@ -107,9 +210,9 @@ export default function DataPegawaiNewPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-5">
-                                    <div className="space-y-1 md:space-y-2 w-1/2">
-                                        <p className="text-xs md:text-md font-medium text-zinc-400">Status Kepegawaian</p>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Status Kepegawaian</p>
+                                    <div className="flex items-end flex-col w-full md:w-3/5 gap-1">
                                         <select onChange={e => setFormPegawai(state => ({...state, status_kepegawaian: e.target.value}))} className={`bg-white hover:outline-zinc-200 focus:outline-zinc-400 ${mont.className} border px-2 py-1 rounded w-full text-sm outline-none cursor-pointer`}>
                                             <option value="" disabled>-- Pilih Status Kepegawaian --</option>
                                             <option value="PNS">PNS</option>
@@ -124,10 +227,10 @@ export default function DataPegawaiNewPage() {
                                             </Link>   
                                         </div>
                                     </div>
-                                    <div className="space-y-1 md:space-y-2 w-1/2">
-                                        <p className="text-xs md:text-md font-medium text-zinc-400">Tanggal Lahir</p>
-                                        <input onChange={e => setFormPegawai(state => ({...state, tgl_lahir: e.target.value}))} type="date" className={`${mont.className} bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none cursor-pointer`} />
-                                    </div>
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Tanggal Lahir</p>
+                                    <input onChange={e => setFormPegawai(state => ({...state, tgl_lahir: e.target.value}))} type="date" className={`${mont.className} bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none cursor-pointer md:w-3/5`} />
                                 </div>
 
                                 <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
@@ -136,73 +239,8 @@ export default function DataPegawaiNewPage() {
                                         <input type="text" onChange={e => setFormPegawai(state => ({...state, tmpt_lahir: e.target.value}))} className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="Tempat Lahir" />
                                     </div>
                                 </div>
-
-                                <hr className="my-2 opacity-0" />
-                                <div className="flex items-center gap-2">
-                                    <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
-                                        Data Sertifikat
-                                    </h1>
-                                    <hr className="flex-grow" />
-                                </div>
-                                <div tabIndex={0} className="collapse collapse-arrow bg-white border">
-                                    <input type="checkbox" /> 
-                                    <div className="collapse-title font-medium">
-                                        <h1 className="flex-shrink-0 flex-grow-0">Pendidik</h1>
-                                    </div>
-                                    <div className="collapse-content"> 
-                                        <p className="text-xs">Silahkan Upload File Sertifikat di bawah ini, file yang harus di upload berupa PDF</p>
-                                        <input type="file" name="" id="" className="my-1 text-xs md:text-sm w-full" />
-                                        <div className="">
-                                            <input type="text" name="" id="" className="px-2 py-1 rounded border bg-white text-xs md:text-sm w-5/6" placeholder="Masukkan Nama Sertifikat Tersebut" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr className="my-2 opacity-0" />
-                                <div tabIndex={0} className="collapse collapse-arrow bg-white border">
-                                    <input type="checkbox" /> 
-                                    <div className="collapse-title font-medium">
-                                        <h1 className="flex-shrink-0 flex-grow-0">Teknik</h1>
-                                    </div>
-                                    <div className="collapse-content"> 
-                                        <p className="text-xs">Silahkan Upload File Sertifikat di bawah ini, file yang harus di upload berupa PDF</p>
-                                        <input type="file" name="" id="" className="my-1 text-xs md:text-sm w-full" />
-                                        <div className="">
-                                            <input type="text" name="" id="" className="px-2 py-1 rounded border bg-white text-xs md:text-sm w-5/6" placeholder="Masukkan Nama Sertifikat Tersebut" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr className="my-2 opacity-0" />
-                                <div tabIndex={0} className="collapse collapse-arrow bg-white border">
-                                    <input type="checkbox" /> 
-                                    <div className="collapse-title font-medium ">
-                                        <h1 className="flex-shrink-0 flex-grow-0">Magang</h1>
-                                    </div>
-                                    <div className="collapse-content"> 
-                                        <p className="text-xs">Silahkan Upload File Sertifikat di bawah ini, file yang harus di upload berupa PDF</p>
-                                        <input type="file" name="" id="" className="my-1 text-xs md:text-sm w-full" />
-                                        <div className="">
-                                            <input type="text" name="" id="" className="px-2 py-1 rounded border bg-white text-xs md:text-sm w-5/6" placeholder="Masukkan Nama Sertifikat Tersebut" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr className="my-2 opacity-0" />
-                                <div tabIndex={0} className="collapse collapse-arrow bg-white border">
-                                    <input type="checkbox" /> 
-                                    <div className="collapse-title font-medium">
-                                        <h1 className="">Asesor</h1>
-                                    </div>
-                                    <div className="collapse-content"> 
-                                        <p className="text-xs">Silahkan Upload File Sertifikat di bawah ini, file yang harus di upload berupa PDF</p>
-                                        <input type="file" name="" id="" className="my-1 text-xs md:text-sm w-full" />
-                                        <div className="">
-                                            <input type="text" name="" id="" className="px-2 py-1 rounded border bg-white text-xs md:text-sm w-5/6" placeholder="Masukkan Nama Sertifikat Tersebut" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr className="my-2 opacity-0" />
                             </div>
-                        </div>
-                        <div className="w-full md:w-1/2 md:pl-5">
+                            <hr className="my-3 opacity-0" />
                             <div className="flex items-center gap-2">
                                 <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
                                     Data Pendidikan
@@ -210,15 +248,16 @@ export default function DataPegawaiNewPage() {
                                 <hr className="flex-grow" />
                             </div>
                             <div className="space-y-2 mt-2">
-                                <div className="grid grid-cols-2 gap-5">
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-bold">Tahun Tamat</p>
-                                        <input type="text" onChange={e => setFormPegawai(state => ({...state, tmt: e.target.value}))} className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="Tahun Tamat" />
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Tahun Tamat</p>
+                                    <div className="w-full md:w-3/5">
+                                        <input type="text" onChange={e => setFormPegawai(state => ({...state, tmt: e.target.value}))} className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none" + mont.className} placeholder="Tahun Tamat" />
                                     </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs font-bold">Status Kepegawaian</p>
-                                        <select onChange={e => setFormPegawai(state => ({...state, pendidikan_terakhir: e.target.value}))} className={`${mont.className} bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none cursor-pointer`}>
-                                            <option value="" disabled>-- Pilih Status Kepegawaian --</option>
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Pendidikan Terakhir</p>
+                                    <select onChange={e => setFormPegawai(state => ({...state, pendidikan_terakhir: e.target.value}))} className={`${mont.className} bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none cursor-pointer md:w-3/5`}>
+                                            <option value="" disabled>-- Pendidikan Terakhir --</option>
                                             <option value="SMP/SLTA/MTS">SMP/SLTA/MTS</option>
                                             <option value="SMA/MA/SMK/MK">SMA/MA/SMK/MK</option>
                                             <option value="D2">D2</option>
@@ -227,7 +266,6 @@ export default function DataPegawaiNewPage() {
                                             <option value="S1">S1</option>
                                             <option value="S2">S2</option>
                                         </select>
-                                    </div>
                                 </div>
                                 <div className="flex items-center gap-5">
                                     <h1 className="font-bold text-sm text-zinc-500">
@@ -280,8 +318,71 @@ export default function DataPegawaiNewPage() {
                                     </div>
                                 </div>
                             </div>
+                            <hr className="my-3 opacity-0" />
+                        </div>
+                        <div className="w-full md:w-1/2 md:pl-5">
+                            <div className="flex items-center gap-2">
+                                <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
+                                    Data Sertifikat
+                                </h1>
+                                <hr className="flex-grow" />
+                            </div>
+                            <hr className="my-2 opacity-0" />
+                            <div className="flex flex-col md:flex-row gap-5 items-center">
+                                <div className="w-full md:w-1/2 flex items-center gap-5">
+                                    <button type="button" disabled={showCert === 'asesor'} onClick={() => setShowCert('asesor')} className={`w-1/2 py-2 rounded-full ${showCert !== 'asesor' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                        Asesor
+                                    </button>
+                                    <button type="button" disabled={showCert === 'magang'} onClick={() => setShowCert('magang')} className={`w-1/2 py-2 rounded-full ${showCert !== 'magang' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                        Magang
+                                    </button>
+                                </div>
+                                <div className="w-full md:w-1/2 flex items-center gap-5">
+                                    <button type="button" disabled={showCert === 'pendidik'} onClick={() => setShowCert('pendidik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'pendidik' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                        Pendidik
+                                    </button>
+                                    <button type="button" disabled={showCert === 'teknik'} onClick={() => setShowCert('teknik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'teknik' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                        Teknik
+                                    </button>
+                                </div>
+                            </div>
+                            <hr className="my-2 opacity-0" />
+                            {showCert && (
+                                <div className="space-y-2">
+                                    {formPegawai['sertifikat'].map((sertifikat, index) => sertifikat.jenis_sertifikat === showCert && (
+                                        <div key={`${index} - ${sertifikat.jenis_sertifikat}`} className="p-5 rounded-xl border space-y-2">
+                                            <div className="flex flex-col md:flex-row md:items-center gap-1">
+                                                <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
+                                                    Nama Sertifikat
+                                                </p>
+                                                <input type="text" required value={sertifikat.nama_sertifikat}  onChange={e => updateSertifikat(sertifikat.id_sertifikat, {nama_sertifikat: e.target.value})}  className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="Isi Jika Ada" />
+                                            </div>
+                                            <div className="flex flex-col md:flex-row md:items-center gap-1">
+                                                <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
+                                                    File Sertifikat
+                                                </p>
+                                                <input type="file" required onChange={e => updateSertifikat(sertifikat.id_sertifikat, {fileData: e.target.files[0]})} className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border  rounded w-full text-sm outline-none " + mont.className} placeholder="Isi Jika Ada" />
+                                            </div>
+                                            <div className="flex justify-end">
+                                                <p className="opacity-60 text-xs">
+                                                    File harus berupa <span className="opacity-100 font-medium">.pdf, .jpg</span>
+                                                </p>
+                                            </div>
+                                            <button type="button" onClick={() => deleteSertifikat(index)} className="flex items-center gap-3 text-sm text-red-400 hover:text-red-500 focus:text-red-600">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                                Batalkan?
+                                            </button> 
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={() => addSertifikat(showCert)} className="flex items-center gap-3 text-sm text-blue-400 hover:text-blue-500 focus:text-blue-600">
+                                        <FontAwesomeIcon icon={faPlus} className="w-3 h-3 text-inherit" />
+                                        Tambah Baru
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
+                    <hr className="my-3 opacity-0" />
                 </div>
             </form>
         </MainLayoutPage>
