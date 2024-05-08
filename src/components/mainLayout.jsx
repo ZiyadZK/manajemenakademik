@@ -3,7 +3,6 @@
 import { mont, open, quicksand, rale } from "@/config/fonts";
 // import { nunito, quicksand } from "@/config/fonts";
 import { getLoggedUserdata, logoutAkun } from "@/lib/model/akunModel";
-import { navigator } from "@/lib/navigator";
 import { faBars, faBook, faCertificate, faClipboard, faCog, faCogs, faDatabase, faFolderTree, faHouse, faLayerGroup, faQuidditchBroomBall, faSignOut, faSpinner, faTimeline, faUserGraduate, faUserLock, faUserShield, faUserTie, faUserXmark, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Nunito, Quicksand } from "next/font/google";
