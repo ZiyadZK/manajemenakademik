@@ -2,7 +2,7 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, rale } from "@/config/fonts"
-import { isoToDate } from "@/lib/dateConvertes"
+import { dateToIso, isoToDate } from "@/lib/dateConvertes"
 import { deleteMultiIjazah, getAllIjazah, updateMultiIjazah } from "@/lib/model/ijazahModel"
 import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckCircle, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEye, faFile, faFilter, faPlus, faPrint, faTrash, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -211,6 +211,32 @@ export default function DataIjazahPage() {
         if(sorting[key] === 'dsc') {
             return setSorting(state => ({...state, [key]: '', [otherKey]: ''}))
         }
+    }
+
+    const submitUpdateIjazah = async (event, modal, nisn) => {
+        event.preventDefault()
+        Swal.fire({
+            title: 'Sedang memproses data',
+            text: 'Mohon tunggu sebentar',
+            timer: 5000,
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: async () => {
+                Swal.close()
+                const response = await updateMultiIjazah([nisn], editFormData)
+                document.getElementById(modal).close()
+                if(response.success) {
+                    await getDataIjazah()
+                    return toast.success('Berhasil mengubah data tersebut!')
+                }else{
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Gagal mengubah data tersebut, terdapat Error!',
+                        icon: 'error'
+                    })
+                }
+            }
+        })
     }
 
     const handleSelectedSiswa = (nisn) => {
@@ -503,7 +529,7 @@ export default function DataIjazahPage() {
                                         </span>
                                     </h3>
                                     <hr className="my-2 opacity-0" />
-                                    <form className="space-y-2">
+                                    <form onSubmit={e => submitUpdateIjazah(e, `modal_update_${ijazah.no}`, ijazah.nisn)} className="space-y-2">
                                         <div className="flex flex-col md:flex-row md:items-center gap-1">
                                             <p className="w-full md:w-2/5 text-xs opacity-50">
                                                 Nama Lulusan
@@ -525,7 +551,7 @@ export default function DataIjazahPage() {
                                                 Tahun Lulus
                                             </p>
                                             <div className="w-full md:w-3/5 text-xs">
-                                                <input type="text" value={editFormData['tahun_lulus']} onChange={e => setEditFormData(state => ({...state, tahun_lulus: e.target.value}))} className="px-3 py-2 rounded bg-white w-full border" placeholder="Masukkan Nama" />
+                                                <input type="text" value={editFormData['tahun_lulus']} onChange={e => setEditFormData(state => ({...state, tahun_lulus: e.target.value}))} className="px-3 py-2 rounded bg-white w-full border" placeholder="Masukkan Tahun Lulus" />
                                             </div>
                                         </div>
                                         <div className="flex flex-col md:flex-row md:items-center gap-1">
@@ -533,7 +559,7 @@ export default function DataIjazahPage() {
                                                 Tanggal di Ambil
                                             </p>
                                             <p className="w-full md:w-3/5 text-xs">
-                                                {ijazah.tgl_diambil || '-'} 
+                                                <input type="date" value={editFormData['tgl_diambil'] ? dateToIso(editFormData['tgl_diambil']) : ''} onChange={e => setEditFormData(state => ({...state, tgl_diambil: isoToDate(e.target.value)}))} className="px-3 py-2 rounded bg-white w-full border" placeholder="Masukkan Nama" /> 
                                             </p>
                                         </div>
                                         <div className="flex flex-col md:flex-row md:items-center gap-1">
@@ -541,23 +567,18 @@ export default function DataIjazahPage() {
                                                 Nama Pengambil
                                             </p>
                                             <p className="w-full md:w-3/5 text-xs">
-                                                {ijazah.nama_pengambil || '-'} 
+                                                <input type="text" value={editFormData['nama_pengambil']} onChange={e => setEditFormData(state => ({...state, nama_pengambil: e.target.value}))} className="px-3 py-2 rounded bg-white w-full border" placeholder="Masukkan Nama" /> 
                                             </p>
                                         </div>
-                                        <div className="flex md:hidden flex-col md:flex-row md:items-center gap-1">
-                                            <p className="w-full md:w-2/5 text-xs opacity-50">
-                                                Sudah di Ambil
-                                            </p>
-                                            <div className="md:hidden flex items-center col-span-2 gap-2">
-                                                <button type="button" onClick={() => document.getElementById(`modal_change_sudah_${ijazah.no}`).showModal()} disabled={ijazah.status === 'sudah diambil'} className={`px-2  py-1 rounded-full ${ijazah.status === 'sudah diambil' ? 'bg-green-600' : 'bg-green-600/50 hover:bg-green-600'}  text-white flex items-center gap-2 w-fit`}>
-                                                    <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
-                                                    Ya
-                                                </button>
-                                                <button type="button" disabled={ijazah.status === 'belum diambil'} onClick={() => document.getElementById(`modal_change_belum_${ijazah.no}`).showModal()} className={`px-2 py-1 rounded-full ${ijazah.status === 'belum diambil' ? 'bg-red-500' : 'bg-red-500/50 hover:bg-red-500'} text-white flex items-center gap-2 w-fit`}>
-                                                    <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
-                                                    Belum
-                                                </button>
-                                            </div>
+                                        <div className="flex items-center gap-5 w-full md:w-fit">
+                                            <button type="submit" className="w-1/2 md:w-fit px-3 py-2 rounded-full bg-green-400 hover:bg-green-500 focus:bg-green-600 text-white flex items-center justify-center gap-3">
+                                                <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 text-inherit" />
+                                                Simpan
+                                            </button>
+                                            <button type="button" onClick={() => document.getElementById(`modal_update_${ijazah.no}`).close()} className="w-1/2 md:w-fit px-3 py-2 rounded-full bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-800 flex items-center justify-center gap-3">
+                                                <FontAwesomeIcon icon={faXmarkCircle} className="w-3 h-3 text-inherit" />
+                                                Batal
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
