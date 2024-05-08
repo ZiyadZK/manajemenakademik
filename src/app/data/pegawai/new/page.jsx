@@ -70,10 +70,10 @@ export default function DataPegawaiNewPage() {
 
     const addSertifikat = (jenis_sertifikat) => {
         let formatSertifikat = {
-            id_sertifikat: `${nanoid(8)}`,
+            sertifikat_id: `${nanoid(8)}`,
             nama_sertifikat: '',
             jenis_sertifikat,
-            fileData: null
+            fileUrl: ''
         }
 
         let updatedFormPegawai = {...formPegawai, sertifikat: [...formPegawai.sertifikat, formatSertifikat]}
@@ -82,17 +82,11 @@ export default function DataPegawaiNewPage() {
 
     const updateSertifikat = async (sertifikat_id, payload) => {
         // Find the index of the certificate in the array
-        const sertifikatIndex = formPegawai.sertifikat.findIndex(sertifikat => sertifikat.id_sertifikat === sertifikat_id);
+        const sertifikatIndex = formPegawai.sertifikat.findIndex(sertifikat => sertifikat.sertifikat_id === sertifikat_id);
+        console.log(payload)
     
         // If the certificate is found, update it
         if (sertifikatIndex !== -1) {
-            // Convert File object to Blob if fileData is present in the payload
-            if (payload.fileData instanceof File) {
-                const fileData = payload.fileData;
-                const blob = new Blob([fileData], { type: fileData.type });
-                console.log(await blob.arrayBuffer())
-                payload.fileData = blob;
-            }
     
             // Update the certificate with the payload
             const updatedSertifikat = {
@@ -355,13 +349,13 @@ export default function DataPegawaiNewPage() {
                                                 <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
                                                     Nama Sertifikat
                                                 </p>
-                                                <input type="text" required value={sertifikat.nama_sertifikat}  onChange={e => updateSertifikat(sertifikat.id_sertifikat, {nama_sertifikat: e.target.value})}  className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="Isi Jika Ada" />
+                                                <input type="text" required value={sertifikat.nama_sertifikat}  onChange={e => updateSertifikat(sertifikat.sertifikat_id, {nama_sertifikat: e.target.value})}  className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full text-sm outline-none " + mont.className} placeholder="Isi Jika Ada" />
                                             </div>
                                             <div className="flex flex-col md:flex-row md:items-center gap-1">
                                                 <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
-                                                    File Sertifikat
+                                                    Link File Sertifikat
                                                 </p>
-                                                <input type="file" required onChange={e => updateSertifikat(sertifikat.id_sertifikat, {fileData: e.target.files[0]})} className={"bg-white hover:outline-zinc-200 focus:outline-zinc-400 border  rounded w-full text-sm outline-none " + mont.className} placeholder="Isi Jika Ada" />
+                                                <input type="text" required onChange={e => updateSertifikat(sertifikat.sertifikat_id, {fileUrl: e.target.value})} className={"bg-white px-2 py-1 hover:outline-zinc-200 focus:outline-zinc-400 border  rounded w-full text-sm outline-none " + mont.className} placeholder="Isi Jika Ada" />
                                             </div>
                                             <div className="flex justify-end">
                                                 <p className="opacity-60 text-xs">

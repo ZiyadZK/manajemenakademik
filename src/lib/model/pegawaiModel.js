@@ -117,20 +117,11 @@ export const createSinglePegawai = async (payload) => {
             }
         })
 
-        const newSertifikat = await Promise.all(sertifikat.map(async (sert) => {
-            const { mimetype, buffer } = sert.fileData;
-            const fileDataBuffer = await buffer.arrayBuffer();
-            const fileData = new Uint8Array(fileDataBuffer); new File()
+        console.log(data)
 
-            return {
-                ...sert,
-                sertifikat_id_pegawai: data.id_pegawai,
-                keterangan: '-',
-                fileData: Buffer.from(fileData)
-            };
-        }));
+        const newSertifikat = sertifikat.map(item => ({...item, sertifikat_id_pegawai: Number(data.id_pegawai), keterangan: '-'}))
 
-        await prisma.data_sertifikat.create({
+        await prisma.data_sertifikat.createMany({
             data: newSertifikat
         })
 

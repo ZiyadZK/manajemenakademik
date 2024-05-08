@@ -23,14 +23,13 @@ const navLinkMasterData = [
     { title: 'Sertifikasi', icon: faCertificate, url: '/data/sertifikasi', page: 'Data Sertifikasi'},
     { title: 'Ijazah', icon: faCertificate, url: '/data/ijazah', page: 'Data Ijazah'},
     { title: 'Kelas', icon: faUsersRectangle, url: '/data/kelas', page: 'Data Kelas'},
-    { title: 'Jurusan', icon: faUsersRectangle, url: '/data/jurusan', page: 'Data Kelas'},
     { title: 'Akun', icon: faUserShield, url: '/data/akun', page: 'Data Akun'}
 ]
 
 const navLinkKonfigurasi = [
     { title: 'Role Akun', icon: faCog, url: '/konfigurasi/role', page: 'Konfigurasi Role Akun'},
     { title: 'Jabatan Pegawai', icon: faCog, url: '/konfigurasi/jabatan', page: 'Konfigurasi Jabatan Pegawai'},
-    { title: 'Pendidikan Terakhir Pegawai', icon: faCog, url: '/konfigurasi/jabatan', page: 'Konfigurasi Jabatan Pegawai'},
+    { title: 'Pendidikan Terakhir Pegawai', icon: faCog, url: '/konfigurasi/pendidikanterakhir', page: 'Konfigurasi Jabatan Pegawai'},
     { title: 'Status Kepegawaian Pegawai', icon: faCog, url: '/konfigurasi/kepegawaian', page: 'Konfigurasi Status Kepegawaian Pegawai'},
 ]
 
@@ -123,50 +122,68 @@ export default function MainLayoutPage({children}) {
                 </div>
             </nav>
             <div className={`flex h-full ${mont.className}`}>
-                <div className="hidden md:block relative overflow-auto w-2/12 border-r border-zinc-300 h-full text-zinc-800 pt-16">
-                    <hr className="my-1 opacity-0" />
-                    <a href="/" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-300 text-zinc-600 rounded-xl text-xs">
-                        <FontAwesomeIcon icon={faHouse} className="w-3 h-3 text-zinc-500" />
-                        Dashboard
-                    </a>
-                    <a href="/profilsekolah" className="flex items-center gap-3 py-3 px-4 hover:bg-zinc-200 text-zinc-600 rounded-xl text-xs">
-                        <FontAwesomeIcon icon={faBook} className="w-3 h-3 text-zinc-500" />
-                        Profil Sekolah
-                    </a>
-                    <div className="collapse collapse-arrow bg-white hover:bg-zinc-50">
-                        <input type="checkbox" /> 
-                        <div className="collapse-title text-sm">
-                            <div className="flex items-center gap-3 text-zinc-500">
-                                <FontAwesomeIcon icon={faFolderTree} className="w-3 h-3 text-inherit" />
-                                <p>Master Data</p>
+                <div className="hidden md:block relative overflow-auto w-2/12 border-r border-zinc-300 h-full text-zinc-800 pt-16 bg-zinc-50">
+                    <hr className="my-2 opacity-0" />
+                    <div className="px-5">
+                        <a href="/" className={`flex items-center justify-between tracking-tighter text-sm ${filteredPath && filteredPath.url === '/' ? 'bg-white shadow-lg text-zinc-800' : 'hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600 group'}  font-medium rounded-lg px-3 py-2`}>
+                            <span className="flex items-center gap-5">
+                                <FontAwesomeIcon icon={faHouse} className={`w-4 h-4  ${filteredPath && filteredPath.url === '/' ? 'text-rose-600' : 'text-zinc-300 group-hover:text-zinc-400'} `} />
+                                Dashboard
+                            </span>
+                            <span className={`w-2 h-2 rounded-full bg-blue-600/50 ${filteredPath && filteredPath.url === '/' ? 'block' : 'hidden'} `}></span>
+                        </a>
+                        <a href="/profilsekolah" className={`flex items-center text-sm justify-between tracking-tighter ${filteredPath && filteredPath.url === '/profilsekolah' ? 'bg-white shadow-lg text-zinc-800' : 'hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600 group'}  font-medium rounded-lg px-3 py-2`}>
+                            <span className="flex items-center gap-5">
+                                <FontAwesomeIcon icon={faBook} className={`w-4 h-4  ${filteredPath && filteredPath.url === '/profilsekolah' ? 'text-rose-600' : 'text-zinc-300 group-hover:text-zinc-400'} `} />
+                                Profil Sekolah
+                            </span>
+                            <span className={`w-2 h-2 rounded-full bg-blue-600/50 ${filteredPath && filteredPath.url === '/profilsekolah' ? 'block' : 'hidden'} `}></span>
+                        </a>
+                        <div className="flex items-center gap-3 my-5 text-xs font-medium">
+                            <hr className="flex-grow" />
+                            <div className="flex items-center gap-3 w-fit">
+                                <FontAwesomeIcon icon={faLayerGroup} className="w-3 h-3 text-inherit" />
+                                Master Data
                             </div>
+                            <hr className="flex-grow" />
                         </div>
-                        <div className={"collapse-content -translate-y-2 " + mont.className}>
-                            {navLinkMasterData.map((link, index) => (
-                                <a key={`${link.title} - ${index}`} href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
-                                    <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
-                                    {link.title}
+                        <div className="space-y-2">
+                            {navLinkMasterData.map((nav, index) => (
+                                <a key={index} href={nav.url} className={`flex items-center text-sm justify-between tracking-tighter ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'bg-white shadow-lg text-zinc-800' : 'hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600 group'}  font-medium rounded-lg px-3 py-2`}>
+                                    <span className="flex items-center gap-6">
+                                        <FontAwesomeIcon icon={nav.icon} className={`w-4 h-4  ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'text-blue-600' : 'text-zinc-300 group-hover:text-zinc-400'} `} />
+                                        {nav.title}
+                                    </span>
+                                    <span className={`w-2 h-2 rounded-full bg-blue-600/50 ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'block' : 'hidden'} animate-ping`}></span>
                                 </a>
                             ))}
-                            
                         </div>
-                    </div>
-                    <div className="collapse collapse-arrow bg-white hover:bg-zinc-50">
-                        <input type="checkbox" /> 
-                        <div className="collapse-title text-sm">
-                            <div className="flex items-center gap-3 text-zinc-500">
+                        <div className="flex items-center gap-3 my-5 text-xs font-medium">
+                            <hr className="flex-grow" />
+                            <div className="flex items-center gap-3 w-fit">
                                 <FontAwesomeIcon icon={faCogs} className="w-3 h-3 text-inherit" />
-                                <p>Konfigurasi</p>
+                                Konfigurasi
                             </div>
+                            <hr className="flex-grow" />
                         </div>
-                        <div className={"collapse-content -translate-y-2 " + mont.className}>
-                            {navLinkKonfigurasi.map((link, index) => (
-                                <a key={`${link.title} - ${index}`} href={`${link.url}`} className="flex items-center gap-3 text-xs font-medium hover:bg-zinc-200 rounded-xl py-1.5 px-3">
-                                    <FontAwesomeIcon icon={link.icon} className="w-3 h-3 text-zinc-500" />
-                                    {link.title}
+                        <div className="space-y-2">
+                            {navLinkKonfigurasi.map((nav, index) => (
+                                <a key={index} href={nav.url} className={`flex items-center text-sm justify-between tracking-tighter ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'bg-white shadow-lg text-zinc-800' : 'hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600 group'}  font-medium rounded-lg px-3 py-2`}>
+                                    <span className="flex items-center gap-6">
+                                        <FontAwesomeIcon icon={nav.icon} className={`w-4 h-4  ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'text-violet-600' : 'text-zinc-300 group-hover:text-zinc-400'} `} />
+                                        {nav.title}
+                                    </span>
+                                    <span className={`w-2 h-2 rounded-full bg-blue-600/50 ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'block' : 'hidden'} animate-ping`}></span>
                                 </a>
                             ))}
-                            
+                        </div>
+                        <div className="flex items-center gap-3 my-5 text-xs font-medium">
+                            <hr className="flex-grow" />
+                            <div className="flex items-center gap-3 w-fit">
+                                <FontAwesomeIcon icon={faCogs} className="w-3 h-3 text-inherit" />
+                                Tentang
+                            </div>
+                            <hr className="flex-grow" />
                         </div>
                     </div>
                 </div>

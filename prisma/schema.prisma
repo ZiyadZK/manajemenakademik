@@ -77,7 +77,7 @@ model data_sertifikat {
   sertifikat_id_pegawai       Int
   jenis_sertifikat            String
   nama_sertifikat             String
-  fileData                    Bytes
+  fileUrl                    String
   keterangan                  String
 }
 
