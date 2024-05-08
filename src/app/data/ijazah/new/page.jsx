@@ -73,7 +73,7 @@ export default function DataIjazahNewPage() {
             
             setFormData(updatedFormData);
             setFilteredFormData(updatedFormData);
-
+            return
         }
         
 
@@ -95,7 +95,7 @@ export default function DataIjazahNewPage() {
 
             return true
         }).map(siswa => ({
-            tgl_diambil: '',
+            tgl_diambil: null,
             nama_lulusan: siswa.nama_siswa,
             nisn: siswa.nisn,
             kelas: siswa.kelas,
@@ -103,7 +103,7 @@ export default function DataIjazahNewPage() {
             no_rombel: siswa.no_rombel,
             tahun_lulus: siswa.tahun_keluar,
             status: 'belum diambil',
-            nama_pengambil: ''
+            nama_pengambil: null
         }))
 
         let updatedFormData = [...formData, ...newFormData]
@@ -198,24 +198,23 @@ export default function DataIjazahNewPage() {
     }
 
     const submitFormData =  () => {
+        let updatedData = formData;
         if(formData.length < 1) {
             return toast.error('Silahkan pilih siswa terlebih dahulu!')
         }
 
-        const isTahunEmpty = formData.filter(form => form['no_ijazah'] === '')
-        if(isTahunEmpty.length > 0) {
-            return toast.error('Masih terdapat kolom No Ijazah yang kosong, silahkan cek lagi!')
-        }
+        updatedData = updatedData.map(form => {
+            if(form['status'] === 'sudah diambil') {
+                return {
+                    ...form,
+                    ['tgl_diambil']: form['tgl_diambil'] === '' ? `${isoToDate(new Date().toLocaleDateString('en-gb'))}` : form['tgl_diambil'],
+                    ['nama_pengambil']: form['nama_pengambil'] === '' ? form['nama_lulusan'] : form['nama_pengambil']
+                }
+            }
 
-        const isSudahDiAmbilEmpty = formData.filter(form => form['status'] === 'sudah diambil' && form['tgl_diambil'] === '')
-        if(isSudahDiAmbilEmpty.length > 0) {
-            return toast.error('Masih terdapat kolom Tanggal diambil yang kosong, silahkan cek lagi!')
-        }
+            return form
+        })
 
-        const isNamaPengambilEmpty = formData.filter(form => form['status'] === 'sudah diambil' && form['nama_pengambil'] === '')
-        if(isNamaPengambilEmpty.length > 0) {
-            return toast.error('Masih terdapat kolom Diambil oleh yang kosong, silahkan cek lagi!')
-        }
 
         Swal.fire({
             title: 'Apakah anda sudah yakin?',
@@ -233,7 +232,7 @@ export default function DataIjazahNewPage() {
                     allowOutsideClick: false,
                     showConfirmButton: false,
                     didOpen: async () => {
-                        const response = await createMultiIjazah(formData)
+                        const response = await createMultiIjazah(updatedData)
                         if(response.success) {
                             Swal.fire({
                                 title: 'Sukses',

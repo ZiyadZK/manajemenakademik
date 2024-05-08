@@ -35,3 +35,48 @@ export const createMultiIjazah = async (payload) => {
         }
     }
 }
+
+export const updateMultiIjazah = async (arrayNisn, payload) => {
+    try {
+        await prisma.data_ijazahs.updateMany({
+            where: {
+                nisn: {
+                    in: arrayNisn
+                }
+            },
+            data: payload
+        })
+
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error.message)
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
+
+export const deleteMultiIjazah = async (arrayNisn) => {
+    try {
+        await prisma.data_ijazahs.deleteMany({
+            where: {
+                nisn: {
+                    in: arrayNisn
+                }
+            }
+        })
+
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error.message)
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
