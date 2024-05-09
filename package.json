@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "npx prisma db push && node server.js",
+    "build": "npx prisma db push && next build",
+    "export": "next build && next export",
+    "start": "SET NODE_ENV=development && node server.js",
+    "start-linux": "NODE_ENV=development node server.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -20,6 +22,7 @@
     "csv-parser": "^3.0.0",
     "encrypt-storage": "^2.12.22",
     "events": "^3.3.0",
+    "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "nanoid": "^3.3.7",
     "next": "14.1.0",
@@ -33,6 +36,7 @@
     "socket.io-client": "^4.7.4",
     "sweetalert2": "^11.10.5",
     "sweetalert2-react-content": "^5.0.7",
+    "url": "^0.11.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.2/xlsx-0.20.2.tgz"
   },
   "devDependencies": {

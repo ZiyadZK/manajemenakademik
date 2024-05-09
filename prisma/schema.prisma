@@ -28,7 +28,7 @@ model data_mutasi_siswa {
   no_rombel             String? @db.VarChar(200)
   nama_siswa            String? @db.VarChar(200)
   nis                   String  @id
-  nisn                  String? @unique(map: "nisn") @db.VarChar(200)
+  nisn                  String? @unique @db.VarChar(200)
   nik                   String? @db.VarChar(200)
   no_kk                 String? @db.VarChar(200)
   tempat_lahir          String? @db.VarChar(200)
@@ -53,7 +53,7 @@ model data_mutasi_siswa {
 
 model data_akuns {
   id_akun       String  @id @db.VarChar(255)
-  email_akun    String? @unique(map: "email_akun") @db.VarChar(255)
+  email_akun    String? @unique @db.VarChar(255)
   password_akun String? @db.VarChar(255)
   nama_akun     String? @db.VarChar(255)
   role_akun     String? @db.VarChar(255)
@@ -111,7 +111,7 @@ model data_siswa {
   no_rombel             String? @db.VarChar(200)
   nama_siswa            String? @db.VarChar(200)
   nis                   String  @id
-  nisn                  String? @unique(map: "nisn") @db.VarChar(200)
+  nisn                  String? @unique @db.VarChar(200)
   nik                   String? @db.VarChar(200)
   no_kk                 String? @db.VarChar(200)
   tempat_lahir          String? @db.VarChar(200)
