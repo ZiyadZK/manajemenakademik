@@ -1,7 +1,6 @@
 'use server'
 
 import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher"
-import { prisma } from "../prisma"
 
 export const model_getAllAlumni = async () => {
     const responseData = await urlGet('/v1/data/alumni')

@@ -1,6 +1,5 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import jwt from 'jsonwebtoken'
 
 export async function middleware(request) {
     // Check if the user has a cookie

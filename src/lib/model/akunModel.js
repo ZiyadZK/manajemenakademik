@@ -1,15 +1,10 @@
 'use server';
 
 import { cookies } from "next/headers";
-import { prisma } from "../prisma"
-import jwt from 'jsonwebtoken'
-import { io } from "socket.io-client";
-import EventEmitter from "events";
 import { decryptKey, encryptKey } from "../encrypt";
 import axios from "axios";
 import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher";
 
-const emitter = new EventEmitter()
 export const loginAkun = async (email, password) => {
     // Ambil datanya
     
