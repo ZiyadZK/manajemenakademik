@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "npx prisma db push && node server.js",
+    "dev": "node server.js",
     "dev-local": "next dev",
-    "build": "npx prisma db push && next build",
-    "export": "next build && next export",
-    "start": "SET NODE_ENV=development && node server.js",
-    "start-linux": "NODE_ENV=development node server.js",
+    "build": "next build",
+    "export": "next export",
+    "start": "SET NODE_ENV=production && next start",
+    "start-linux": "NODE_ENV=production node server.js",
     "lint": "next lint"
   },
   "dependencies": {
