@@ -65,6 +65,7 @@ export const updateProfilSekolah = async (oldData, newData) => {
             }
         })
 
+        
         await prisma.data_pegawai.update({
             where: {
                 id_pegawai: newIdKepsek

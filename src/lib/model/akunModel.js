@@ -6,28 +6,43 @@ import jwt from 'jsonwebtoken'
 import { io } from "socket.io-client";
 import EventEmitter from "events";
 import { decryptKey, encryptKey } from "../encrypt";
+import axios from "axios";
+import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher";
 
 const emitter = new EventEmitter()
 export const loginAkun = async (email, password) => {
     // Ambil datanya
+    
+    const jsonBody = {
+        email_akun: email,
+        password_akun: password
+    }
+    try {
+        const response = await axios.post(`${process.env.API_URL}/v1/userdata/create`, jsonBody, { 
+            headers: {
+                'X-API-KEY': process.env.API_KEY
+            }
+        })
 
-    const data = await prisma.data_akuns.findFirst({
-        where: {
-            password_akun: password,
-            email_akun: email
-        }
-    })
-    if(data !== null){
-        const token = await encryptKey(data)
-        cookies().set('userdata', token, {
+        const responseData = response.data
+        cookies().set('userdata', responseData.token, {
             httpOnly: true,
             sameSite: true
         })
-    }
 
-    
-
-    return data;
+        return {
+            success: true,
+            message: responseData.success,
+            token: responseData.token
+        }
+    } catch (error) {
+        const responseData = error.response.data
+        return {
+            success: false,
+            message: responseData.error,
+            debug: responseData.debug
+        }
+    }    
 }
 
 export const getLoggedUserdata = async() => {
@@ -42,56 +57,25 @@ export const logoutAkun = async () => {
     }
 }
 
-export const validateCookie = async () => {
-    const cookie = cookies().get('userdata').value
-    const result = await prisma.data_akuns.findFirst({
-        where: {
-            id_akun: cookie
-        }
-    })
-    if(result === null) {
-        return false;
-    } else {
-        return true;
-    }
-}
-
 export const getAllAkun = async () => {
-    const result = await prisma.data_akuns.findMany();
-    return result;
+    const responseData = await urlGet('/v1/data/akun')
+    return responseData.data;
 }
 
 export const createAkun = async (dataBody) => {
-
-    const socket = io();
-
-    try {
-        await prisma.data_akuns.createMany({
-            data: dataBody
-        })
-
-        const updatedAkun = await getAllAkun()
-        emitter.emit('create akun', updatedAkun)
-
-        
-        return true;
-    } catch (error) {
-        return false;
+    const responseData = await urlPost('/v1/data/akun', dataBody)
+    if(responseData.success) {
+        return true
+    }else{
+        return false
     }
 }
 
 export const deleteSingleAkunById = async (id) => {
-    try {
-        await prisma.data_akuns.delete({
-            where: {
-                id_akun: id
-            }
-        })
-        return true
-    } catch (error) {
-        console.log(error);
-        return false;
-    }
+    const responseData = await urlDelete(`/v1/data/akun`, {
+        arrId_akun: id
+    })
+    return responseData.success
 }
 
 export const updateSingleAkun = async (akun) => {
@@ -101,33 +85,15 @@ export const updateSingleAkun = async (akun) => {
         password_akun: akun.password_akun,
         role_akun: akun.role_akun
     }
-    try {
-        await prisma.data_akuns.update({
-            where: {
-                id_akun: akun.id_akun
-            },
-            data: newData
-        })
-        return true
-    } catch (error) {
-        console.log(error)
-        return false
-    }
+
+    const responseData = await urlPut(`/v1/data/akun/id_akun/${akun.id_akun}`, newData)
+    return responseData.success
+
 }
 
 export const deleteMultipleAkunById = async (arrayOfId) => {
-    try {
-        await prisma.data_akuns.deleteMany({
-            where: {
-                id_akun: {
-                    in: arrayOfId
-                }
-            }
-        })
-
-        return true;
-    } catch (error) {
-        console.log(error)
-        return false;
-    }
+    const responseData = await urlDelete('/v1/data/akun', {
+        arrId_akun: arrayOfId
+    })
+    return responseData.success
 }

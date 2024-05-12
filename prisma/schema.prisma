@@ -49,6 +49,7 @@ model data_mutasi_siswa {
   telp_ortu             String? @db.VarChar(200)
   pekerjaan_ayah        String? @db.VarChar(200)
   pekerjaan_ibu         String? @db.VarChar(200)
+  keterangan            String? @db.VarChar(200)
 }
 
 model data_akuns {

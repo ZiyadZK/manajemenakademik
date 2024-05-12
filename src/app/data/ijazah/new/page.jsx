@@ -286,7 +286,7 @@ export default function DataIjazahNewPage() {
                                 <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full bg-white pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                             </div>
                             <div className="md:flex gap-1 items-center hidden">
-                                <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
                                     <option disabled>-- Rombel --</option>
                                     <option value="TKJ">TKJ</option>
                                     <option value="DPIB">DPIB</option>
@@ -296,7 +296,7 @@ export default function DataIjazahNewPage() {
                                     <option value="GEO">GEO</option>
                                     <option value="">Semua</option>
                                 </select>
-                                <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
                                     <option disabled>-- No --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -308,7 +308,7 @@ export default function DataIjazahNewPage() {
                         </div>
                         <hr className="my-1 md:my-0 opacity-0" />
                         <div className="flex gap-1 items-center md:hidden">
-                            <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
                                 <option disabled>-- Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="DPIB">DPIB</option>
@@ -318,7 +318,7 @@ export default function DataIjazahNewPage() {
                                 <option value="GEO">GEO</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
                                 <option disabled>-- No --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -380,7 +380,7 @@ export default function DataIjazahNewPage() {
                                 <input type="text" value={searchValueForm} onChange={e => setSearchValueForm(e.target.value)} className="w-full bg-white pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                             </div>
                             <div className="md:flex gap-1 items-center hidden">
-                                <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
                                     <option disabled>-- Rombel --</option>
                                     <option value="TKJ">TKJ</option>
                                     <option value="DPIB">DPIB</option>
@@ -390,7 +390,7 @@ export default function DataIjazahNewPage() {
                                     <option value="GEO">GEO</option>
                                     <option value="">Semua</option>
                                 </select>
-                                <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
                                     <option disabled>-- No --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -402,7 +402,7 @@ export default function DataIjazahNewPage() {
                         </div>
                         <hr className="my-1 md:my-0 opacity-0" />
                         <div className={`${formData.length > 0 ? 'flex' : 'hidden'} gap-1 items-center md:hidden`}>
-                            <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
                                 <option disabled>-- Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="DPIB">DPIB</option>
@@ -412,7 +412,7 @@ export default function DataIjazahNewPage() {
                                 <option value="GEO">GEO</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
                                 <option disabled>-- No --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>

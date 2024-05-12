@@ -289,27 +289,51 @@ export default function DataSiswaNewImportPage() {
                     text: 'Harap tunggu dikarenakan proses import memerlukan waktu',
                     allowOutsideClick: false,
                     showConfirmButton: false,
-                    timer: 15000,
+                    timer: 20000,
                     didOpen: async () => {
-                        const response = await createMultiSiswa(data);
-                        if(response.success) {
+                        let responseData = { success: false };
+
+                        try {
+                            if (data.length > 100) {
+                                const numBatches = Math.ceil(data.length / 100);
+                                const responseList = [];
+                                for (let i = 0; i < numBatches; i++) {
+                                    const start = i * 100;
+                                    const end = Math.min(start + 100, data.length);
+                                    const batch = data.slice(start, end);
+                                    const response = await createMultiSiswa(batch);
+                                    responseList.push(response.success ? 'success' : 'failed');
+                                }
+                                responseData.success = responseList.includes('success');
+                            } else {
+                                const response = await createMultiSiswa(data);
+                                responseData.success = response.success;
+                            }
+
+                            const successMessage = responseData.success ? 'Berhasil memproses data!' : 'Gagal memproses data..';
+                            const messageText = responseData.success ? 'Berhasil mengupload data import ke data siswa!' : 'Terdapat kendala disaat anda mengimport data ke data siswa!';
+
                             mySwal.fire({
-                                icon: 'success',
-                                title: 'Berhasil memproses data!',
-                                text: 'Berhasil mengupload data import ke data siswa!',
+                                icon: responseData.success ? 'success' : 'error',
+                                title: successMessage,
+                                text: messageText,
                                 timer: 2000,
                                 showConfirmButton: false
-                            }).then(() => router.push('/data/siswa'));
-                        }else{
+                            }).then(() => {
+                                if (responseData.success) {
+                                    router.push('/data/siswa');
+                                }
+                            });
+                        } catch (error) {
+                            console.error('Error processing data:', error);
                             mySwal.fire({
                                 icon: 'error',
                                 title: 'Gagal memproses data..',
                                 text: 'Terdapat kendala disaat anda mengimport data ke data siswa!',
                                 timer: 2000,
                                 allowOutsideClick: false
-                            })
+                            });
                         }
-                        
                     }
                 })
             }

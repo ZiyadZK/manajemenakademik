@@ -1,82 +1,36 @@
 'use server'
 
-import { prisma } from "../prisma"
+import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher"
 
 export const getAllIjazah = async () => {
-    try {
-        const data = await prisma.data_ijazahs.findMany()
-        return {
-            success: true,
-            data: data
-        }        
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlGet('/v1/data/ijazah')
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
     }
 }
 
 export const createMultiIjazah = async (payload) => {
-    try {
-        await prisma.data_ijazahs.createMany({
-            data: payload
-        })
-
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlPost('/v1/data/ijazah', payload)
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }
 
 export const updateMultiIjazah = async (arrayNisn, payload) => {
-    try {
-        await prisma.data_ijazahs.updateMany({
-            where: {
-                nisn: {
-                    in: arrayNisn
-                }
-            },
-            data: payload
-        })
-
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlPut('/v1/data/ijazah', {arrayNisn, payload})
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }
 
 export const deleteMultiIjazah = async (arrayNisn) => {
-    try {
-        await prisma.data_ijazahs.deleteMany({
-            where: {
-                nisn: {
-                    in: arrayNisn
-                }
-            }
-        })
-
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlDelete('/v1/data/ijazah', arrayNisn)
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }

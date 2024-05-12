@@ -1,103 +1,46 @@
 'use server'
 
+import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher"
 import { prisma } from "../prisma"
 
 export const model_getAllAlumni = async () => {
-    try {
-        const data = await prisma.data_alumni.findMany()
-
-        return {
-            success: true,
-            data: data
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlGet('/v1/data/alumni')
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
     }
 }
 
 export const model_deleteAlumni = async (arrayNis) => {
-    try {
-        await prisma.data_alumni.deleteMany({
-            where: {
-                nis: {
-                    in: arrayNis
-                }
-            }
-        })
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlDelete('/v1/data/alumni', {arrayNis})
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }
 
 export const model_updateAlumni = async (arrayNis, payload) => {
-    try {
-        await prisma.data_alumni.updateMany({
-            where: {
-                nis: {
-                    in: arrayNis
-                }
-            },
-            data: payload
-        })
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlPut('/v1/data/alumni', {arrayNis, payload})
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }
 
 export const model_getAlumniByNis = async (nis) => {
-    try {
-        const data = await prisma.data_alumni.findFirst({
-            where: {
-                nis: nis
-            }
-        })
-
-        return {
-            success: true,
-            data: data
-        }
-        
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlGet(`/v1/data/alumni/nis/${nis}`)
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
     }
 }
 
 export const model_createAlumni = async (payload) => {
-    try {
-        await prisma.data_alumni.createMany({
-            data: payload
-        })
-
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlPost('/v1/data/alumni', payload)
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }

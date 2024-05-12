@@ -33,16 +33,16 @@ export default function LoginPage() {
         setLoginLoading(state => !state)
         try {
             const result = await loginAkun(email, password);
-            if(result === null) {
+            if(result.success === false) {
                 setLoginLoading(state => !state)
-                return toast.error('Email / Password anda salah, Silahkan coba lagi!', {
+                return toast.error(result.message, {
                     position: 'top-right'
                 });
             }
 
             setLoginLoading(state => !state);
             router.push('/');
-            return toast.success('Berhasil login!')
+            return toast.success(result.message)
         } catch (error) {
             setLoginLoading(state => !state);
             return toast.error('Terdapat Error!');

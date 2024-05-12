@@ -520,7 +520,7 @@ export default function DataAkunPage() {
                                 <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                             </button>
                             <dialog id={`edit_akun_${akun.id_akun}`} className="modal">
-                                <div className="modal-box">
+                                <div className="modal-box bg-white">
                                     <form method="dialog">
                                     {/* if there is a button in form, it will close the modal */}
                                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
