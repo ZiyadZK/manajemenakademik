@@ -62,7 +62,7 @@ export const createSinglePegawai = async (payload) => {
 }
 
 export const createMultiPegawai = async (arrayDataPegawai) => {
-    const responseData = await urlPost('/v1/data/pegawai', payload)
+    const responseData = await urlPost('/v1/data/pegawai', arrayDataPegawai)
 
     return {
         success: responseData.success,

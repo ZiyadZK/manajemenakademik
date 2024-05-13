@@ -36,7 +36,7 @@ export default function ProfilSekolahPage() {
             let updatedData;
             const kepsek = await getKepalaSekolah()
             if(kepsek.success) {
-                updatedData = { ['kepala_sekolah']: kepsek.data.nama_pegawai, ['id_kepala_sekolah']: kepsek.data.id_pegawai, ...result.data}
+                updatedData = { ['kepala_sekolah']: kepsek.data.nama_pegawai || '-', ['id_kepala_sekolah']: kepsek.data.id_pegawai || '-', ...result.data}
             }else{
                 updatedData = { ['kepala_sekolah']: 'Tidak Ada', ['id_kepala_sekolah']: '0', ...result.data}
             }

@@ -1,88 +1,41 @@
 'use server'
 
-import { Old_Standard_TT } from "next/font/google"
-import { prisma } from "../prisma"
+import { urlGet, urlPost, urlPut } from "../fetcher"
 
 export const getProfilSekolah = async () => {
-    try {
-        const data = await prisma.data_profil_sekolah.findFirst()
-        return {
-            success: true,
-            data: data
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlGet('/v1/data/profilsekolah')
+
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
     }
 }
 
 export const getKepalaSekolah = async () => {
-    try {
-        const data = await prisma.data_pegawai.findFirst({
-            where: {
-                jabatan: 'Kepala Sekolah'
-            }
-        })
-        return {
-            success: true,
-            data: data
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }
+    const responseData = await urlGet('/v1/data/pegawai/kepalasekolah')
+
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
     }
 }
 
 export const updateProfilSekolah = async (oldData, newData) => {
-    try {
-        // Get ID Kepsek
-        const newIdKepsek = newData.id_kepala_sekolah
-        const oldIdKepsek = oldData.id_kepala_sekolah
+    const responseData = await urlPut('/v1/data/profilsekolah', {oldData, newData})
 
-        const { id_kepala_sekolah, kepala_sekolah, ...updatedData} = newData
+    return {
+        success: responseData.success,
+        message: responseData.result
+    }
+}
 
-        // Replace new Profil Sekolah
-        await prisma.data_profil_sekolah.update({
-            where: {
-                npsn: oldData.npsn
-            },
-            data: updatedData
-        })
+export const createProfilSekolah = async (payload) => {
+    const responseData = await urlPost('/v1/data/profilsekolah', payload)
 
-        // Replace the old one into karyawan
-        await prisma.data_pegawai.update({
-            where: {
-                id_pegawai: oldIdKepsek
-            },
-            data: {
-                jabatan: 'Guru'
-            }
-        })
-
-        
-        await prisma.data_pegawai.update({
-            where: {
-                id_pegawai: newIdKepsek
-            },
-            data: {
-                jabatan: 'Kepala Sekolah'
-            }
-        })
-
-        return {
-            success: true
-        }
-    } catch (error) {
-        console.log(error.message)
-        return {
-            success: false,
-            message: error.message
-        }        
+    return {
+        success: responseData.success,
+        message: responseData.result
     }
 }

@@ -1,7 +1,6 @@
 'use server'
 
 import axios from "axios";
-import { prisma } from "../prisma"
 import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher";
 
 export const getAllSiswa = async () => {

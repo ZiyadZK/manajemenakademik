@@ -2,7 +2,7 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, open, rale } from "@/config/fonts"
-import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
+import { deleteMutasiSiswa, getAllMutasiSiswa, updateMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
 import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
 import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faCircleXmark, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
@@ -40,30 +40,33 @@ export default function DataSiswaMainPage() {
 
     const getSiswa = async () => {
         setLoadingFetch('loading');
-        const data = await getAllSiswa()
-        setSiswaList(data)
-        setFilteredSiswaList(data)
-        
-        // Get all No Rombel
-        data.filter(({no_rombel}) => {
-            if(!listNoRombel.includes(no_rombel)) {
-                listNoRombel.push(no_rombel)
-            }
-        })
+        const responseData = await getAllMutasiSiswa()
+        if(responseData.success) {
+            setSiswaList(responseData.data)
+            setFilteredSiswaList(responseData.data)
+            
+            // Get all No Rombel
+            responseData.data.filter(({no_rombel}) => {
+                if(!listNoRombel.includes(no_rombel)) {
+                    listNoRombel.push(no_rombel)
+                }
+            })
+    
+            // Get all Kelas
+            responseData.data.filter(({kelas}) => {
+                if(!listKelas.includes(kelas)) {
+                    listKelas.push(kelas)
+                }
+            })
+    
+            // Get all rombel
+            responseData.data.filter(({rombel}) => {
+                if(!listRombel.includes(rombel)) {
+                    listRombel.push(rombel)
+                }
+            })
 
-        // Get all Kelas
-        data.filter(({kelas}) => {
-            if(!listKelas.includes(kelas)) {
-                listKelas.push(kelas)
-            }
-        })
-
-        // Get all rombel
-        data.filter(({rombel}) => {
-            if(!listRombel.includes(rombel)) {
-                listRombel.push(rombel)
-            }
-        })
+        }
 
         setLoadingFetch('fetched')
     }
@@ -148,45 +151,6 @@ export default function DataSiswaMainPage() {
         setFilteredSiswaList(updatedFilter)
     }
 
-    const handleSubmitMutasi = async (event, modal, payload) => {
-        event.preventDefault()
-
-        document.getElementById(modal).close()
-
-        Swal.fire({
-            title: "Sedang memproses data",
-            text: 'Harap tunggu sebentar',
-            showConfirmButton: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            didOpen: async () => {
-                const {aktif, ...newObj} = payload
-                const newData = {
-                    ...newObj,
-                    tanggal_keluar: event.target[0].value !== '' ? `${event.target[0].value}` : `${new Date().toLocaleDateString('en-GB')}`,
-                    tahun_keluar: event.target[0].value !== '' ? `${event.target[0].value.split('/')[2]}` : `${new Date().toLocaleDateString('en-GB').split('/')[2]}`,
-                    keterangan: event.target[1].value
-                }
-
-                const responseSiswa = await deleteSingleSiswaByNis(payload.nis)
-                const responseMutasiSiswa = await createMutasiSiswa(payload)
-
-                if(responseSiswa.success && responseMutasiSiswa.success) {
-                    Swal.fire({
-                        title: 'Sukses',
-                        text: 'Mutasi data siswa berhasil!',
-                        icon: 'success'
-                    }).then( async () => {
-                        await getSiswa()
-                    })
-                }
-            }
-        })
-        console.log(event.target[0].value)
-        console.log(event.target[1].value)
-    }
-
     const handleSelectAll = () => {
         if(selectAll) {
             setSelectAll(false)
@@ -219,7 +183,7 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 10000,
                     didOpen: async () => {
-                        const response = await deleteSingleSiswaByNis(nis)
+                        const response = await deleteMutasiSiswa(nis)
                         if(response.success) {
                             await getSiswa()
                             mySwal.fire({
@@ -282,78 +246,6 @@ export default function DataSiswaMainPage() {
         })
     }
 
-    const naikKelasSemua = async () => {
-        mySwal.fire({
-            title: 'Apakah anda yakin?',
-            icon: 'question',
-            text: siswaTidakNaikKelas && siswaTidakNaikKelas.length > 0 ? 'Anda akan menaikkan semua kelas kecuali siswa yang terpilih' : 'Anda akan menaikkan semua kelas',
-            showCancelButton: true,
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak'
-        }).then(async result => {
-            if(result.isConfirmed){
-                mySwal.fire({
-                    title: 'Sedang memproses data',
-                    allowOutsideClick: false,
-                    timer: 20000,
-                    showConfirmButton: false,
-                    didOpen: async () => {
-                        const response = await naikkanKelasSiswa(siswaTidakNaikKelas)
-                        if(response.success) {
-                            mySwal.fire({
-                                icon: 'success',
-                                title: 'Berhasil memproses data!',
-                                text: 'Anda berhasil menaikkan semua kelas',
-                                confirmButtonText: 'Baik',
-                                timer: 5000
-                            }).then(async () => {
-                                await getSiswa()
-                                setSiswaTidakNaikKelas([])
-                            })
-                        }else{
-                            mySwal.fire({
-                                title: 'Gagal memproses data!',
-                                text: 'Tampaknya terdapat error disaat anda memproses data',
-                                icon: 'error',
-                                timer: 5000
-                            })
-                        }
-                    }
-                })
-            }
-        })
-    }
-
-    const addSiswaTidakNaikKelas = (nama_siswa, kelas, rombel, no_rombel, nis) => {
-        // Cari udah ada atau belum
-        const isExist = siswaTidakNaikKelas.find(siswa => siswa.nis === nis);
-        if(typeof(isExist) === 'undefined') {
-            const newData = { nama_siswa, kelas, rombel, no_rombel, nis}
-            const updatedData = [...siswaTidakNaikKelas, newData]
-            setSiswaTidakNaikKelas(updatedData)
-            setKriteriaNaiKelas('beberapa')
-        }else{
-            toast.error(`Anda sudah menambahkan ${nama_siswa}!`);
-        }
-
-    }
-
-    const removeSiswaTidakNaikKelas = (nis) => {
-        const updatedData = siswaTidakNaikKelas.filter(siswa => siswa.nis !== nis);
-        setSiswaTidakNaikKelas(updatedData)
-    }
-
-    useEffect(() => {
-        if(kriteriaNaikKelas === 'semua') {
-            setSiswaTidakNaikKelas([])
-        }
-    }, [kriteriaNaikKelas])
-
-    const batalNaikKelas = () => {
-        if(siswaTidakNaikKelas.length > 0) setSiswaTidakNaikKelas([])
-        setKriteriaNaiKelas('') 
-    }
-
     const handleTotalList = (value) => {
         // Cek kalau totalList melebihi Math Ceil
         const maxPagination = Math.ceil(siswaList.length / value)
@@ -399,7 +291,7 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 15000,
                     didOpen: async () => {
-                        const response = await updateBulkSiswa(selectedSiswa, newData)
+                        const response = await updateMutasiSiswa(selectedSiswa, newData)
                         if(response.success) {
                             mySwal.fire({
                                 icon: 'success',
@@ -440,11 +332,11 @@ export default function DataSiswaMainPage() {
             <Toaster />
             <hr className="my-1 md:my-2 opacity-0" />
             <div className="flex items-center md:gap-5 w-full justify-center md:justify-start gap-2">
-                <a href="/data/siswa/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                <a href="/data/mutasisiswa/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
                     <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-inherit" />
                     Tambah Data
                 </a>
-                <a href="/data/siswa/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                <a href="/data/mutasisiswa/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
                     <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
                     Import Data
                 </a>
@@ -470,7 +362,7 @@ export default function DataSiswaMainPage() {
                             {listRombel.map((namaRombel, index) => (
                                 <option key={index} value={namaRombel}>{namaRombel}</option>
                             ))}
-                            <option value="">Semua Jurusan</option>
+                            <option value="">Semua Rombel</option>
                         </select>
                     </div>
                     <div className="w-full md:w-1/2 flex gap-2">
@@ -478,12 +370,12 @@ export default function DataSiswaMainPage() {
                             {listNoRombel.map((no_rombel, index) => (
                                 <option key={index} value={no_rombel}>{no_rombel}</option>
                             ))}
-                            <option value="">Semua Rombel</option>
+                            <option value="">Semua No Rombel</option>
                         </select>
                         <select value={status} onChange={e => setStatus(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
                             <option value="aktif">Aktif</option>
                             <option value="tidak">Tidak Aktif</option>
-                            <option value="">Semua Status</option>
+                            <option value="">Semua Tahun Keluar</option>
                         </select>
                     </div>
                 </div>
@@ -541,17 +433,14 @@ export default function DataSiswaMainPage() {
                                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                                     <div className="flex-grow flex items-center gap-2">
                                         <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
-                                        <button type="button" onClick={() => addSiswaTidakNaikKelas(siswa.nama_siswa, siswa.kelas, siswa.rombel, siswa.no_rombel, siswa.nis)} className="opacity-40 hover:opacity-100 w-4 h-4 flex-shrink-0 bg-zinc-800 text-white rounded-full flex items-center justify-center">
-                                            <FontAwesomeIcon icon={faArrowDown} className="w-2 h-2 text-inherit" />
-                                        </button>
                                         {siswa.nama_siswa}
                                     </div>
-                                    <button type="button" title="Mutasikan Siswa" onClick={() => document.getElementById(`${siswa.nama_siswa} - mutasi ${siswa.nis}`).showModal()} className="swap hover:swap-active focus:swap-active">
-                                        <div className={`md:px-2 md:py-1 rounded-full ${siswa.status === 'aktif' ? 'swap-on' : 'swap-off'} bg-green-50 text-green-500 text-xs flex justify-center items-center`}>
+                                    <button type="button" title="Aktifkan Siswa" onClick={() => document.getElementById(`${siswa.nama_siswa} - mutasi ${siswa.nis}`).showModal()} className="swap hover:swap-active focus:swap-active">
+                                        <div className={`md:px-2 md:py-1 rounded-full swap-on bg-green-50 text-green-500 text-xs flex justify-center items-center`}>
                                             <span className="md:block hidden">Aktif</span>
                                             <FontAwesomeIcon icon={faCircleCheck} className="w-5 h-5 text-inherit block md:hidden opacity-50" />
                                         </div>
-                                        <div className={`md:px-2 md:py-1 rounded-full ${siswa.status !== 'aktif' ? 'swap-on' : 'swap-off'} bg-red-50 text-red-500 text-xs flex justify-center items-center`}>
+                                        <div className={`md:px-2 md:py-1 rounded-full swap-off bg-red-50 text-red-500 text-xs flex justify-center items-center`}>
                                             <span className="md:block hidden">Nonaktif</span>
                                             <FontAwesomeIcon icon={faCircleXmark} className="w-5 h-5 text-inherit block md:hidden opacity-50" />
                                         </div>
@@ -561,33 +450,12 @@ export default function DataSiswaMainPage() {
                                             <form method="dialog">
                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                             </form>
-                                            <form onSubmit={e => handleSubmitMutasi(e, `${siswa.nama_siswa} - mutasi ${siswa.nis}`, siswa)}>
-                                                <h3 className="font-bold md:text-lg">Mutasikan <span className="bg-zinc-100 rounded-full font-normal tracking-tighter px-2 py-1">{siswa.nama_siswa}</span> </h3>
-                                                <hr className="mt-3 opacity-0" />
-                                                <div className="space-y-2">
-                                                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-0">
-                                                        <p className="w-full md:w-2/5 md:text-sm opacity-50">
-                                                            Tanggal Keluar
-                                                        </p>
-                                                        <input type="date" className="w-full md:w-3/5 border rounded-lg px-2 py-1 md:text-sm" />
-                                                    </div>
-                                                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-0">
-                                                        <p className="w-full md:w-2/5 md:text-sm opacity-50">
-                                                            Keterangan
-                                                        </p>
-                                                        <input type="text" className="w-full md:w-3/5 border rounded-lg px-2 py-1 md:text-sm" />
-                                                    </div>
-                                                </div>
+                                            <form>
+                                                <h3 className="font-bold md:text-lg">Aktifkan <span className="bg-zinc-100 rounded-full font-normal tracking-tighter px-2 py-1">{siswa.nama_siswa}</span> </h3>
+                                                <p className="py-4 md:text-sm">Anda akan mengaktifkan kembali siswa ini, dan data siswa ini akan dimasukkan ke Data Siswa yang <span className="text-green-700">Aktif</span></p>
                                                 <p className="py-4 md:text-sm">Apakah anda yakin?</p>
-                                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
-                                                    <button type="submit" className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2">
-                                                        <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
-                                                        Ya, Saya Yakin
-                                                    </button>
-                                                    <button type="button" onClick={() => document.getElementById(`${siswa.nama_siswa} - mutasi ${siswa.nis}`).close()} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2">
-                                                        <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
-                                                        Tidak
-                                                    </button>
+                                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start justify-center">
+                                                    <button type="" className=""></button>
                                                 </div>
                                             </form>
                                         </div>
@@ -608,13 +476,13 @@ export default function DataSiswaMainPage() {
                                     </p>
                                 </div>
                                 <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2">
-                                    <a href={`/data/siswa/nis/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
+                                    <a href={`/data/mutasisiswa/nis/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
                                         <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                                     </a>
                                     <button type="button" onClick={() => deleteSingle(siswa.nis)} className="w-6 h-6 flex items-center justify-center  text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <a href={`/data/siswa/update/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-amber-600 hover:bg-amber-800" title="Ubah data siswa ini">
+                                    <a href={`/data/mutasisiswa/update/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-amber-600 hover:bg-amber-800" title="Ubah data siswa ini">
                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                     </a>
                                 </div>
@@ -695,85 +563,7 @@ export default function DataSiswaMainPage() {
             </div>
             <hr className="my-3 opacity-0" />
             <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300">
-                <div className="w-full md:w-1/2">
-                    <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                            <FontAwesomeIcon icon={faAngleDoubleUp} className="w-4 h-4 text-inherit" />
-                        </div>
-                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-zinc-800`}>
-                            Kenaikan Kelas
-                        </h1>
-                    </div>
-                    <hr className="my-2 opacity-0" />
-                    <select  value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer bg-transparent">
-                        <option value="" disabled>-- Pilih Data --</option>
-                        <option value="semua">Naikkan Semua Kelas</option>
-                        <option value="beberapa">Naikkan Semua Kelas, kecuali..</option>
-                    </select>
-                    <hr className="my-2 opacity-0" />
-                    {kriteriaNaikKelas === 'beberapa' && (
-                        <>
-                            <div className="grid grid-cols-10 px-1 py-2 border-y border-zinc-300 bg-zinc-50 text-xs">
-                                <p className="col-span-8 md:col-span-4 font-medium text-zinc-600">
-                                    Nama
-                                </p>
-                                <div className="col-span-2 hidden md:block font-medium text-zinc-600">
-                                    Kelas
-                                </div>
-                                <div className="col-span-2 hidden md:block font-medium text-zinc-600">
-                                    NIS
-                                </div>
-                                <div className="col-span-2  flex items-center justify-center"></div>
-                            </div>
-                            <div className={`${mont.className} divide-y relative overflow-auto w-full h-fit max-h-48`}>
-                                {siswaTidakNaikKelas.map(siswa => (
-                                    <div key={siswa} className="grid grid-cols-10 px-1 py-2  text-xs group">
-                                        <p className="col-span-8 md:col-span-4 font-medium text-zinc-600 flex items-center gap-2">
-                                            {siswa.nama_siswa}
-                                            
-                                        </p>
-                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600">
-                                            {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
-                                        </div>
-                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600">
-                                            {siswa.nis}
-                                        </div>
-                                        <div className="col-span-2  flex items-center justify-center gap-1">
-                                            <a href={`/data/siswa/nis/${siswa.nis}`} target="_blank" className="w-5 h-5 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center hover:bg-blue-200 hover:text-blue-800 opacity-0 group-hover:opacity-100" title="Lihat detail">
-                                                <FontAwesomeIcon icon={faSearch} className="w-2 h-2 text-inherit" />
-                                            </a>
-                                            <button type="button" onClick={() => removeSiswaTidakNaikKelas(siswa.nis)} className="w-5 h-5 rounded-full bg-zinc-50 text-zinc-400 flex items-center justify-center hover:bg-zinc-200 hover:text-zinc-800">
-                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                    <hr className="my-2 opacity-0" />
-                    <div className="flex items-center gap-5">
-                        {kriteriaNaikKelas === 'semua' && (
-                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
-                                <FontAwesomeIcon icon={faAnglesUp} className="w-4 h-4 text-inherit" />
-                                Naikkan Kelas
-                            </button>
-                        )}
-                        {kriteriaNaikKelas === 'beberapa'  && siswaTidakNaikKelas.length > 0 && (
-                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
-                                <FontAwesomeIcon icon={faAnglesUp} className="w-4 h-4 text-inherit" />
-                                Naikkan Kelas
-                            </button>
-                        )}
-                        {kriteriaNaikKelas !== "" && (
-                            <button type="button" onClick={() => batalNaikKelas()} className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-400 font-medium flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-700">
-                                <FontAwesomeIcon icon={faXmarkCircle} className="w-4 h-4 text-inherit" />
-                                Batal
-                            </button>
-                        )}
-                    </div>
-
-                </div>
+                
                 <form onSubmit={submitUpdateBersama} className="w-full md:w-1/2">
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center">
