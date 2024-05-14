@@ -3,7 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, open, rale } from "@/config/fonts"
 import { deleteMutasiSiswa, getAllMutasiSiswa, updateMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
-import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
+import { createMultiSiswa, createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
 import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faCircleXmark, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -37,6 +37,38 @@ export default function DataSiswaMainPage() {
     const [siswaTidakNaikKelas, setSiswaTidakNaikKelas] = useState([])
     const [showSelected, setShowSelected] = useState(false)
     const [sorting, setSorting] = useState({nama_siswa: '', tahun_masuk: ''})
+
+    const SubmitAktifkanSiswa = async (modal, nis) => {
+        Swal.fire({
+            title: 'Sedang memproses data',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            timer: 15000,
+            didOpen: async () => {
+                document.getElementById(modal).close()
+
+                // Get data mutasi siswa
+                const dataSiswa = siswaList.find(siswa => siswa['nis'] === nis)
+        
+                const {keterangan, tanggal_keluar, tahun_keluar, ...newDataSiswa} = dataSiswa
+        
+                const responseSiswa = await createSingleSiswa({...newDataSiswa, aktif: 'aktif'})
+                const responseMutasiSiswa = await deleteMutasiSiswa(nis)
+
+                if(responseSiswa.success && responseMutasiSiswa.success) {
+                    Swal.close()
+                    await getSiswa()
+                    return toast.success('Berhasil mengaktifkan kembali data siswa tersebut')
+                }else{
+                    return Swal.fire({
+                        title: 'Gagal',
+                        text: "Terdapat error disaat memproses data!",
+                        icon: 'error'
+                    })
+                }
+            }
+        })
+    }
 
     const getSiswa = async () => {
         setLoadingFetch('loading');
@@ -98,9 +130,6 @@ export default function DataSiswaMainPage() {
 
         // Search NO Rombel
         updatedFilter = updatedFilter.filter(siswa => siswa.no_rombel.toLowerCase().includes(noRombel.toLowerCase()))
-        
-        // Search Status
-        updatedFilter = updatedFilter.filter(siswa => siswa['aktif'].includes(status))
         
         // Search Value and Kriteria
         updatedFilter = updatedFilter.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
@@ -223,7 +252,7 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 10000,
                     didOpen: async () => {
-                        const response = await deleteMultiSiswaByNis(selectedSiswa)
+                        const response = await deleteMutasiSiswa(selectedSiswa)
                         if(response.success) {
                             setSelectedSiswa(state => ([]))
                             mySwal.fire({
@@ -291,23 +320,34 @@ export default function DataSiswaMainPage() {
                     showConfirmButton: false,
                     timer: 15000,
                     didOpen: async () => {
-                        const response = await updateMutasiSiswa(selectedSiswa, newData)
-                        if(response.success) {
-                            mySwal.fire({
-                                icon: 'success',
-                                text: 'Berhasil mengubah data tersebut!',
-                                title: 'Sukses'
-                            }).then(() => {
-                                setSelectedSiswa([])
-                                getSiswa()
-                            })
-                        }else{
-                            mySwal.fire({
-                                icon: 'error',
-                                text: 'Gagal mengubah data tersebut, terdapat error!',
-                                title: 'Error'
-                            })
+                        let responseSiswa;
+                        let responseMutasiSiswa;
+
+                        if (newData['status'] === 'aktif') {
+                            const dataMutasiSiswa = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis));
+                            const updateDataMutasiSiswa = dataMutasiSiswa.map(siswa => ({
+                                ...siswa,
+                                aktif: newData['status']
+                            }));
+
+                            responseSiswa = await createMultiSiswa(updateDataMutasiSiswa);
+                            responseMutasiSiswa = await deleteMutasiSiswa(selectedSiswa);
+                        } else {
+                            responseMutasiSiswa = await updateMutasiSiswa(selectedSiswa, newData);
                         }
+
+                        const isSuccess = newData['status'] === 'aktif' ? responseSiswa.success && responseMutasiSiswa.success : responseMutasiSiswa.success;
+
+                        mySwal.fire({
+                            icon: isSuccess ? 'success' : 'error',
+                            text: isSuccess ? 'Berhasil mengubah data tersebut!' : 'Gagal mengubah data tersebut, terdapat error!',
+                            title: isSuccess ? 'Sukses' : 'Error'
+                        }).then(() => {
+                            if (isSuccess) {
+                                setSelectedSiswa([]);
+                                getSiswa();
+                            }
+                        });
                     }
                 })
             }
@@ -450,14 +490,21 @@ export default function DataSiswaMainPage() {
                                             <form method="dialog">
                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                             </form>
-                                            <form>
+                                            <div>
                                                 <h3 className="font-bold md:text-lg">Aktifkan <span className="bg-zinc-100 rounded-full font-normal tracking-tighter px-2 py-1">{siswa.nama_siswa}</span> </h3>
                                                 <p className="py-4 md:text-sm">Anda akan mengaktifkan kembali siswa ini, dan data siswa ini akan dimasukkan ke Data Siswa yang <span className="text-green-700">Aktif</span></p>
-                                                <p className="py-4 md:text-sm">Apakah anda yakin?</p>
-                                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start justify-center">
-                                                    <button type="" className=""></button>
+                                                <p className="pb-4 md:text-sm">Apakah anda yakin?</p>
+                                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
+                                                    <button type="button" onClick={() => SubmitAktifkanSiswa(`${siswa.nama_siswa} - mutasi ${siswa.nis}`, siswa.nis)} className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2">
+                                                        <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
+                                                        Ya, Saya Yakin
+                                                    </button>
+                                                    <button type="button" onClick={() => document.getElementById(`${siswa.nama_siswa} - mutasi ${siswa.nis}`).close()} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2">
+                                                        <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
+                                                        Tidak
+                                                    </button>
                                                 </div>
-                                            </form>
+                                            </div>
                                         </div>
                                     </dialog>
                                 </div>
@@ -612,7 +659,6 @@ export default function DataSiswaMainPage() {
                             <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
                                 <option value="" disabled>-- Pilih Status --</option>
                                 <option value="aktif">Aktif</option>
-                                <option value="tidak">Tidak Aktif</option>
                             </select>
                         </div>
                     </div>
