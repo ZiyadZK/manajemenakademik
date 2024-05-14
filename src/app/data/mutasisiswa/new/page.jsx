@@ -40,8 +40,6 @@ export default function DataMutasiSiswaNewPage() {
         setFilteredSiswaList(responseSiswa)
 
         let kelasCounts = {}
-        
-        
         responseSiswa.forEach(({nisn, kelas, rombel, no_rombel}) => {
             const key = `${kelas}-${rombel}-${no_rombel}`
 

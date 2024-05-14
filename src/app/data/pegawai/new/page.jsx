@@ -324,18 +324,18 @@ export default function DataPegawaiNewPage() {
                             <hr className="my-2 opacity-0" />
                             <div className="flex flex-col md:flex-row gap-5 items-center">
                                 <div className="w-full md:w-1/2 flex items-center gap-5">
-                                    <button type="button" disabled={showCert === 'asesor'} onClick={() => setShowCert('asesor')} className={`w-1/2 py-2 rounded-full ${showCert !== 'asesor' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                    <button type="button" disabled={showCert === 'asesor'} onClick={() => setShowCert('asesor')} className={`w-1/2 py-2 rounded-full ${showCert !== 'asesor' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
                                         Asesor
                                     </button>
-                                    <button type="button" disabled={showCert === 'magang'} onClick={() => setShowCert('magang')} className={`w-1/2 py-2 rounded-full ${showCert !== 'magang' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                    <button type="button" disabled={showCert === 'magang'} onClick={() => setShowCert('magang')} className={`w-1/2 py-2 rounded-full ${showCert !== 'magang' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
                                         Magang
                                     </button>
                                 </div>
                                 <div className="w-full md:w-1/2 flex items-center gap-5">
-                                    <button type="button" disabled={showCert === 'pendidik'} onClick={() => setShowCert('pendidik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'pendidik' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                    <button type="button" disabled={showCert === 'pendidik'} onClick={() => setShowCert('pendidik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'pendidik' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
                                         Pendidik
                                     </button>
-                                    <button type="button" disabled={showCert === 'teknik'} onClick={() => setShowCert('teknik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'teknik' ? 'bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-500 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 text-2xl md:text-3xl `}>
+                                    <button type="button" disabled={showCert === 'teknik'} onClick={() => setShowCert('teknik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'teknik' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
                                         Teknik
                                     </button>
                                 </div>
