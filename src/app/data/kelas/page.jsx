@@ -1,7 +1,7 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { mont, nunito } from "@/config/fonts"
+import { mont, nunito, rale } from "@/config/fonts"
 import { getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
 import { getAllPegawai } from "@/lib/model/pegawaiModel"
 import { getAllSiswa } from "@/lib/model/siswaModel"
@@ -146,7 +146,6 @@ export default function DataKelasPage() {
             const dataKelasList = responseKelas.data.find(valueKelas => valueKelas.kelas === valueKelasList.kelas && valueKelas.rombel === valueKelasList.rombel && valueKelas.no_rombel === valueKelasList.no_rombel)
             
             if(dataKelasList) {
-                console.log(dataKelasList)
                 return {
                     ...valueKelasList,
                     nama_walikelas: dataKelasList.nama_walikelas ? dataKelasList.nama_walikelas : '-',
@@ -169,8 +168,6 @@ export default function DataKelasPage() {
             }
         })
 
-        console.log(newUpdatedKelasList)
-
         setKelasListLoading('fetched')
 
         setKelasList(newUpdatedKelasList)
@@ -186,10 +183,11 @@ export default function DataKelasPage() {
     return (
         <MainLayoutPage>
             <Toaster />
-            <div className={`mt-3 ${nunito.className}`}>
+            <div className={`mt-3 ${rale.className}`}>
                 {kelasListLoading !== 'fetched' && (
-                    <div className="flex w-full h-screen items-center justify-center">
-                        Loading
+                    <div className="flex w-full h-screen  gap-5 items-center justify-center text-blue-400">
+                        <div className="loading loading-spinner loading-lg text-inherit"></div>
+                        Sedang mendapatkan data
                     </div>
                 )}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -197,7 +195,7 @@ export default function DataKelasPage() {
                         <div key={index} className="w-full p-5 rounded-lg border hover:shadow-lg transition-all duration-300 hover:border-white/0">                       
                             <div className="flex items-center justify-between">
                                 <div className=" flex items-center gap-3">
-                                    <h1 className={`font-medium text-lg lg:text-xl text-transparent bg-clip-text bg-gradient-to-l from-${warnaJurusan[dataKelasList.rombel]}-600 to-zinc-700 `}>
+                                    <h1 className={`font-medium text-lg lg:text-xl text-transparent bg-clip-text bg-gradient-to-l from-zinc-600 to-zinc-700 `}>
                                         {dataKelasList.kelas} {dataKelasList.rombel} {dataKelasList.no_rombel}
                                     </h1>
                                     <p className={`px-2 py-1 rounded-full flex items-center w-fit gap-1 text-xs tracking-tighter bg-${warnaJurusan[dataKelasList.rombel]}-100 text-${warnaJurusan[dataKelasList.rombel]}-600`}>

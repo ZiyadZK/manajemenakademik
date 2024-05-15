@@ -5,7 +5,7 @@ import { mont, rale } from "@/config/fonts"
 import { getSinglePegawai } from "@/lib/model/pegawaiModel"
 import { getDataSertifikat } from "@/lib/model/sertifikatModel"
 import { faEdit, faTrashCan } from "@fortawesome/free-regular-svg-icons"
-import { faArrowLeft, faCheckCircle, faDownload, faUserTag } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faCheckCircle, faDownload, faExclamationCircle, faTrash, faUserTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -24,7 +24,7 @@ const formattedData = {
     'nuptk': 'NUPTK',
     'tmpt_lahir': 'Tempat Lahir',
     'tgl_lahir': 'Tanggal Lahir',
-    'pensiun': 'Sudah Pensiun',
+    'pensiun': 'Sudah Pensiun'
 }
 
 export default function PegawaiIDPage({params}) {
@@ -32,6 +32,7 @@ export default function PegawaiIDPage({params}) {
     const [data, setData] = useState(null)
     const [dataSertifikat, setDataSertifikat] = useState([])
     const [loadingFetch, setLoadingFetch] = useState('')
+    const [showCert, setShowCert] = useState('')
 
     const getPegawai = async (id) => {
         setLoadingFetch('loading')
@@ -39,6 +40,7 @@ export default function PegawaiIDPage({params}) {
         const sertif_result = await getSertifikat(id)
         console.log(sertif_result.data)
         setDataSertifikat(sertif_result.data)
+        console.log(result.data)
         setData(result.data)
         setLoadingFetch('fetched')
     }
@@ -54,10 +56,15 @@ export default function PegawaiIDPage({params}) {
     return (
         <MainLayoutPage>
             <Toaster />
-            {loadingFetch !== 'fetched' ? <Skeleton /> : (
-                <div className="mt-5">
-                    <div className="flex flex-col md:flex-row gap-5 md:justify-between md:items-center">
-                        <div className="flex items-center gap-5">
+            {loadingFetch !== 'fetched' ? (
+                <div className="w-full h-screen flex items-center justify-center gap-5 text-blue-600">
+                    <span className="loading loading-spinner loading-md "></span>
+                    Sedang mendapatkan data
+                </div>
+            ) : (
+                <div className="mt-3">
+                    <div className="flex md:justify-between md:items-center md:flex-row flex-col gap-5 w-full">
+                        <div className="flex items-center gap-5 md:gap-5">
                             <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
                                 <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
                             </button>
@@ -68,119 +75,240 @@ export default function PegawaiIDPage({params}) {
                                 </h1>
                             </div>
                         </div>
-                        <div className="flex items-center gap-5">
-                            <button type="button" onClick={() => router.push(`/data/pegawai/update/${data.id_pegawai}`)} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-amber-700 bg-amber-100 rounded-full hover:bg-amber-200" >
-                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
-                                Ubah
-                            </button>
-                            <button type="button"  className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-red-700 bg-red-100 rounded-full hover:bg-red-200" >
-                                <FontAwesomeIcon icon={faTrashCan} className="w-3 h-3 text-inherit" />
-                                Hapus
-                            </button>
+                        <div className={`w-full md:w-1/4 md:flex-row flex-col flex items-center gap-5 ${mont.className}`}>
+                            
+                            <div className="flex items-center gap-0.5 md:gap-5 w-full md:w-fit">
+                                <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-zinc-700 bg-zinc-100 rounded-full hover:bg-zinc-200" >
+                                    <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
+                                    Export
+                                </button>
+                                <button type="button" onClick={() => router.push(`/data/pegawai/update/${data.id_pegawai}`)} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200" >
+                                    <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                    Ubah
+                                </button>
+                                <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-red-700 bg-red-100 rounded-full hover:bg-red-200" >
+                                    <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                    Hapus
+                                </button>
+                            </div>
                         </div>
                     </div>
-                    <hr className="my-2 opacity-0" />
-                    <h1 className={`${rale.className} text-3xl md:text-6xl text-zinc-800 font-medium`}>
-                        {data.nama_pegawai}
-                    </h1>
-                    <div className="flex items-center gap-5 my-3">
-                        <p className="px-3 py-1 rounded bg-zinc-50 text-xs md:text-lg">
-                            {data.jabatan}
-                        </p>
-                        <p className={`px-3 py-1 rounded ${data.pensiun ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'} text-xs md:text-lg`}>
-                            {data.pensiun ? 'Sudah Pensiun' : 'Aktif'}
-                        </p>
-                    </div>
-                    <hr className="my-2" />
-                    <div className={`p-5 bg-zinc-50 rounded-lg ${mont.className}`}>
-                        <div className="flex gap-5 md:flex-row flex-col md:p-5">
-                            <div className="w-full md:w-1/2 space-y-3">
-                                {formatDataPribadi.map((format, index) => (
-                                    <div key={`${format}-${index}`} className="flex md:flex-row flex-col  w-full md:gap-5">
-                                        <div className="flex justify-between w-full md:w-1/4">
-                                            <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
-                                                {formattedData[format]}
-                                            </h1>
-                                            <div className="hidden md:block">:</div>
-                                        </div>
-                                        <p className="w-full md:w-3/4 font-medium">
-                                            {format === 'pensiun' ? (data[format] === true ? 'Ya' : 'Tidak') : data[format]}
+                    <hr className="my-3 opacity-0" />
+                    <div className="flex md:flex-row flex-col md:divide-x md:divide-dashed">
+                        <div className="w-full md:w-1/2 md:pr-5">
+                            <div className="flex items-center gap-2">
+                                <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
+                                    Data Pribadi
+                                </h1>
+                                <hr className="flex-grow" />
+                            </div>
+                            <hr className="my-2 opacity-0" />
+                            <div className="space-y-3 mt-2">
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Nama</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.nama_pegawai || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Jabatan</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.jabatan || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">NIK</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.nik || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">NIP</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.nip || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">NUPTK</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.nuptk || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Status Kepegawaian</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.status_kepegawaian || '-'}
+                                    </p>
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Tanggal Lahir</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.tanggal_lahir || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Tempat Lahir</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.tempat_lahir || '-'}
+                                    </p>
+                                </div>
+                            </div>
+                            <hr className="my-3 opacity-0" />
+                            <div className="flex items-center gap-2">
+                                <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
+                                    Data Pendidikan
+                                </h1>
+                                <hr className="flex-grow" />
+                            </div>
+                            <div className="space-y-2 mt-2">
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Tahun Tamat</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.tmt || '-'}
+                                    </p>
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Pendidikan Terakhir</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.pendidikan_terakhir || '-'}
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center gap-5">
+                                    <h1 className="font-bold text-sm text-zinc-500">
+                                        Sekolah
+                                    </h1>
+                                    <hr className="grow" />
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Nama Sekolah Pendidikan</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.sekolah_pendidikan || '-'}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-5">
+                                    <h1 className="font-bold text-sm text-zinc-500">
+                                        Sarjana
+                                    </h1>
+                                    <hr className="grow" />
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Universitas</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.sarjana_universitas || '-'}
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                        <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Fakultas</p>
+                                        <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                            {data.sarjana_fakultas || '-'}
                                         </p>
                                     </div>
-                                ))}
-                                <hr className="" />
-                                {formatDataSertifikat.map((format, index) => (
-                                    <div key={`${format} - ${index}`} className="collapse collapse-plus bg-zinc-100">
-                                        <input type="checkbox" /> 
-                                        <div className="collapse-title text-xl font-medium ">
-                                            {format.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                                        </div>
-                                        <div className="collapse-content space-y-4"> 
-                                            <div className="flex md:flex-row flex-col md:gap-2 md:items-center">
-                                                <div className="w-full md:w-2/5 text-xs md:text-md text-zinc-400">
-                                                    Nama Sertifikat 
-                                                </div>
-                                                <p className="w-full md:w-3/4 tracking-tighter">
-                                                    {data[format] ? data[format] : 'Tidak ada'}
+                                    <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                        <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Program Studi</p>
+                                        <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                            {data.sarjana_prodi || '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-5">
+                                    <h1 className="font-bold text-sm text-zinc-500">
+                                        Magister
+                                    </h1>
+                                    <hr className="grow" />
+                                </div>
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Universitas</p>
+                                    <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                        {data.magister_universitas || '-'}
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-5">
+                                    <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                        <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Fakultas</p>
+                                        <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                            {data.magister_fakultas || '-'}
+                                        </p>
+                                    </div>
+                                    <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                        <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Program Studi</p>
+                                        <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                            {data.magister_prodi || '-'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr className="my-3 opacity-0" />
+                        </div>
+                        <div className="w-full md:w-1/2 md:pl-5">
+                            <div className="flex items-center gap-2">
+                                <h1 className=" rounded-full  text-zinc-600 w-fit text-xl md:text-3xl font-medium">
+                                    Data Sertifikat
+                                </h1>
+                                <hr className="flex-grow" />
+                            </div>
+                            <hr className="my-2 opacity-0" />
+                            <div className="flex flex-col md:flex-row gap-5 items-center">
+                                <div className="w-full md:w-1/2 flex items-center gap-5">
+                                    <button type="button" disabled={showCert === 'asesor'} onClick={() => setShowCert('asesor')} className={`w-1/2 py-2 rounded-full ${showCert !== 'asesor' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
+                                        Asesor
+                                    </button>
+                                    <button type="button" disabled={showCert === 'magang'} onClick={() => setShowCert('magang')} className={`w-1/2 py-2 rounded-full ${showCert !== 'magang' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
+                                        Magang
+                                    </button>
+                                </div>
+                                <div className="w-full md:w-1/2 flex items-center gap-5">
+                                    <button type="button" disabled={showCert === 'pendidik'} onClick={() => setShowCert('pendidik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'pendidik' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
+                                        Pendidik
+                                    </button>
+                                    <button type="button" disabled={showCert === 'teknik'} onClick={() => setShowCert('teknik')} className={`w-1/2 py-2 rounded-full ${showCert !== 'teknik' ? 'bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 text-zinc-600 hover:text-zinc-700': 'bg-zinc-200 text-zinc-700'} flex justify-center items-center gap-2 md:text-2xl `}>
+                                        Teknik
+                                    </button>
+                                </div>
+                            </div>
+                            <hr className="my-2 opacity-0" />
+                            {showCert && (
+                                <div className="space-y-2">
+                                    {dataSertifikat.map((sertifikat, index) => sertifikat.jenis_sertifikat === showCert ? (
+                                        <div key={`${index} - ${sertifikat.jenis_sertifikat}`} className="p-5 rounded-xl border space-y-2">
+                                            <div className="flex flex-col md:flex-row md:items-center gap-1">
+                                                <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
+                                                    Nama Sertifikat
+                                                </p>
+                                                <p className="text-sm font-medium text-zinc-700 w-full md:w-3/5">
+                                                    {sertifikat.nama_sertifikat || '-'}
                                                 </p>
                                             </div>
-                                            <div className="flex md:flex-row flex-col md:gap-2">
-                                                <div className="w-full md:w-2/5 text-xs md:text-md text-zinc-400 md:pt-1">
-                                                    Status Sertifikat 
-                                                </div>
-                                                <div className="w-full md:w-3/4 tracking-tighter">
-                                                    {dataSertifikat.map((sertifikat, index) => sertifikat['jenis_sertifikat'] == format.split("_")[1] && (
-                                                        <div key={`${sertifikat['nama_sertifikat']} - ${index}`}>
-                                                            {sertifikat['fileData'] === 'valid' ? (
-                                                                <div className="space-y-2">
-                                                                    <div className="flex items-center gap-2 w-fit text-xs px-1.5 py-1 rounded-full text-green-700 bg-green-50">
-                                                                        <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 text-inherit" />
-                                                                        Sertifikat Valid
-                                                                    </div>
-                                                                    <button type="button" className="flex items-center justify-center gap-2 px-2 py-1 rounded-full bg-zinc-200 hover:bg-zinc-300 text-xs md:text-md text-zinc-700 tracking-tighter">
-                                                                        <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
-                                                                        Unduh Sertifikat
-                                                                    </button>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="flex items-center gap-2 w-fit text-xs px-1.5 py-1 rounded-full text-red-700 bg-red-50">
-                                                                    <FontAwesomeIcon icon={faCheckCircle} className="w-3 h-3 text-inherit" />
-                                                                    Sertifikat Tidak Valid
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                            <div className="flex flex-col md:flex-row md:items-center gap-1">
+                                                <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
+                                                    Link Sertifikat
+                                                </p>
+                                                <a href={sertifikat.fileUrl || '#'} className="text-sm font-medium text-zinc-700 w-full md:w-3/5 hover:text-blue-700">
+                                                    Lihat Sertifikat
+                                                </a>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
-
-                            </div>
-                            <div className="w-full md:w-1/2 space-y-3">
-                                <div className="flex md:flex-row flex-col  w-full md:gap-5">
-                                    <div className="flex justify-between w-full md:w-1/4">
-                                        <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
-                                            Tamat Pendidikan
-                                        </h1>
-                                        <div className="hidden md:block">:</div>
-                                    </div>
-                                    <p className="w-full md:w-3/4 font-medium">
-                                        {data['tmt']}
-                                    </p>
+                                    ):(
+                                        <div className="w-full flex justify-center items-center gap-3 opacity-40">
+                                            <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit"/>
+                                            Pegawai ini belum punya sertifikat 
+                                        </div>
+                                    ))}
+                                    {dataSertifikat.length < 1 && (
+                                        <div className="w-full flex justify-center items-center gap-3 opacity-40">
+                                            <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit"/>
+                                            Pegawai ini belum punya sertifikat 
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="flex md:flex-row flex-col  w-full md:gap-5">
-                                    <div className="flex justify-between w-full md:w-1/4">
-                                        <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
-                                            Pendidikan Terakhir
-                                        </h1>
-                                        <div className="hidden md:block">:</div>
-                                    </div>
-                                    <p className="w-full md:w-3/4 font-medium">
-                                        {data['pendidikan_terakhir']}
-                                    </p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>

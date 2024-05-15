@@ -4,7 +4,7 @@ import MainLayoutPage from "@/components/mainLayout"
 import { mont, rale } from "@/config/fonts"
 import { dateToIso, isoToDate } from "@/lib/dateConvertes"
 import { deleteMultiIjazah, getAllIjazah, updateMultiIjazah } from "@/lib/model/ijazahModel"
-import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckCircle, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEye, faFile, faFilter, faPlus, faPrint, faTrash, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckCircle, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faPlus, faPrint, faTrash, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -26,13 +26,16 @@ export default function DataIjazahPage() {
     const [pagination, setPagination] = useState(1)
     const [totalList, setTotalList] = useState(10)
     const [editFormData, setEditFormData] = useState({})
+    const [loadingFetch, setLoadingFetch] = useState('')
 
     const getDataIjazah = async () => {
+        setLoadingFetch('loading')
         const response = await getAllIjazah()
         if(response.success) {
             setDataIjazah(response.data)
             setFilteredDataIjazah(response.data)
         }
+        setLoadingFetch('fetched')
     }
 
     useEffect(() => {
@@ -337,6 +340,18 @@ export default function DataIjazahPage() {
                     <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit block md:hidden" />
                 </div>
             </div>
+            {loadingFetch !== 'fetched' && (
+                <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
+                    <div className="loading loading-spinner loading-md text-inherit"></div>
+                    Sedang mendapatkan data
+                </div>
+            )}
+            {loadingFetch === 'fetched' && dataIjazah.length < 1 && (
+                <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
+                    <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit" />
+                    Data kosong
+                </div>
+            )}
             <div className={`divide-y relative w-full max-h-[300px] overflow-auto ${mont.className}`}>
                 {filteredDataIjazah.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((ijazah, index) => (
                     <div key={`${ijazah.nisn} - ${index}`} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">

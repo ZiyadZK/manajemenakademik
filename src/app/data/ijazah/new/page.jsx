@@ -5,7 +5,7 @@ import { mont } from "@/config/fonts"
 import { dateToIso, isoToDate } from "@/lib/dateConvertes"
 import { model_getAllAlumni } from "@/lib/model/alumniModel"
 import { createMultiIjazah, getAllIjazah } from "@/lib/model/ijazahModel"
-import { faArrowLeft, faCheckCircle, faCircleCheck, faDotCircle, faDownload, faFileCirclePlus, faPlus, faSave, faSearch, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faArrowLeft, faCheckCircle, faCircleCheck, faDotCircle, faDownload, faExclamationCircle, faFileCirclePlus, faPlus, faSave, faSearch, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -26,8 +26,10 @@ export default function DataIjazahNewPage() {
     const [filterNoRombel, setFilterNoRombel] = useState('')
     const [filterRombelForm, setFilterRombelForm] = useState('')
     const [filterNoRombelForm, setFilterNoRombelForm] = useState('')
+    const [loadingFetch, setLoadingFetch] = useState('')
 
     const getSiswaList = async () => {
+        setLoadingFetch('loading')
         const responseSiswa = await model_getAllAlumni()
         const responseIjazah = await getAllIjazah()
         if(responseIjazah.success){
@@ -54,6 +56,8 @@ export default function DataIjazahNewPage() {
 
             setKelasList(kelasList)
         }
+
+        setLoadingFetch('fetched')
     }
 
     useEffect(() => {
@@ -328,6 +332,18 @@ export default function DataIjazahNewPage() {
                             </select>
                         </div>
                         <div className="py-2 relative w-full max-h-[190px] md:max-h-[500px] overflow-auto space-y-2">
+                        {loadingFetch !== 'fetched' && (
+                            <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
+                                <div className="loading loading-spinner loading-md text-inherit"></div>
+                                Sedang mendapatkan data
+                            </div>
+                        )}
+                        {loadingFetch === 'fetched' && siswaList.length < 1 && (
+                            <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
+                                <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit" />
+                                Data kosong
+                            </div>
+                        )}
                             {filteredSiswaList.slice(0, 100).map((siswa, index) => (
                                 <button key={`${siswa.nis} - ${index}`} onClick={() => addFormData(siswa.nisn)} type="button" className={`w-full rounded-lg border p-2 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/50 focus:border-blue-300 focus:bg-blue-50/50 group`}>
                                     <div className={`${mont.className} flex-grow text-start`}>
@@ -355,6 +371,18 @@ export default function DataIjazahNewPage() {
                             ))}
                         </div>
                         <hr className="my-2" />
+                        {loadingFetch !== 'fetched' && (
+                            <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
+                                <div className="loading loading-spinner loading-md text-inherit"></div>
+                                Sedang mendapatkan data
+                            </div>
+                        )}
+                        {loadingFetch === 'fetched' && kelasList.length < 1 && (
+                            <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
+                                <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit" />
+                                Data kosong
+                            </div>
+                        )}
                         <div className="md:grid md:grid-cols-2 flex gap-2 relative overflow-auto max-h-40">
                             {kelasList.map((kelas, index) => (
                                 <button key={`${index}`} type="button" onClick={() => toggleAddBulkFormData(kelas.kelas, kelas.rombel, kelas.no_rombel)} className={` ${mont.className} px-2 py-4 rounded-lg border flex items-center gap-5 hover:border-zinc-600 hover:shadow-lg flex-shrink-0 w-1/2 md:w-full`}>

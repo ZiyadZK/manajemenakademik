@@ -42,6 +42,7 @@ export default function DataPegawaiPage () {
             setFilteredDataPegawai(response.data)
             getListFilter(response.data)
         }
+        setLoadingFetch('fetched')
     }
 
     const getListFilter = dataArr => {
@@ -97,7 +98,6 @@ export default function DataPegawaiPage () {
         }
 
         // Search Filter
-        console.log(filterSearch)
         updatedData = updatedData.filter(pegawai =>     
             pegawai['nama_pegawai'].toLowerCase().includes(filterSearch.toLowerCase()) ||
             pegawai['jabatan'].toLowerCase().includes(filterSearch.toLowerCase()) ||
@@ -285,6 +285,18 @@ export default function DataPegawaiPage () {
                     <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit block md:hidden" />
                 </div>
             </div>
+            {loadingFetch !== 'fetched' && (
+                <div className="flex justify-center w-full items-center gap-5 py-5 text-blue-600/50">
+                    <span className="loading loading-spinner loading-md "></span>
+                    Sedang mendapatkan data
+                </div>
+            )}
+            {loadingFetch === 'fetched' && filteredDataPegawai.length < 1 && (
+                <div className="flex justify-center w-full items-center gap-5 py-5 text-zinc-600/50">
+                    <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit" />
+                    Data Kosong
+                </div>
+            )}
             <div className={`${mont.className} divide-y relative w-full overflow-auto max-h-[350px] h-fit`}>
                 {filteredDataPegawai.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((pegawai, index) => (
                     <div key={`${pegawai.id_pegawai} - ${index}`} className="grid grid-cols-12 w-full  *:px-2 *:py-3 text-zinc-700 text-xs hover:bg-zinc-50 ">
@@ -305,7 +317,7 @@ export default function DataPegawaiPage () {
                             <button type="button" onClick={() => router.push(`/data/pegawai/id/${pegawai.id_pegawai}`)}  className="w-6 h-6 bg-blue-400 hover:bg-blue-500 text-white flex  items-center justify-center">
                                 <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                             </button>
-                            <button type="button" onClick={() => deleteSinglePegawai(pegawai.id_pegawai)} className="w-6 h-6 bg-red-400 hover:bg-red-500 text-white flex  items-center justify-center">
+                            <button type="button" onClick={() => deletePegawai(pegawai.id_pegawai)} className="w-6 h-6 bg-red-400 hover:bg-red-500 text-white flex  items-center justify-center">
                                 <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                             </button>
                             <button type="button"  className="w-6 h-6 bg-amber-400 hover:bg-amber-500 text-white flex  items-center justify-center">

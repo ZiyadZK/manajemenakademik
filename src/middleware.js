@@ -8,8 +8,9 @@ export async function middleware(request) {
        return NextResponse.redirect(loginURL)
     }
 
-    
-    
+    // if(!cookies().has('userdataToken')) {
+    //     return NextResponse.redirect(new URL('/verify', request.url))
+    // }
 }
 
 export const config = {

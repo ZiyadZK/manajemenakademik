@@ -8,6 +8,7 @@ export const getDataSertifikat = async (id_pegawai) => {
 
     return {
         success: responseData.success,
+        data: responseData.data,
         message: responseData.result
     }
 

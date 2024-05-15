@@ -50,6 +50,18 @@ export const logoutAkun = async () => {
     if(cookies().has('userdata')){
         cookies().delete('userdata');
     }
+
+    if(cookies().has('userdataToken')) {
+        cookies().delete('userdataToken')
+    }
+}
+
+export const hasCookieUserdata = async () => {
+    if(cookies().has('userdata')) {
+        return true
+    }else{
+        return false
+    }
 }
 
 export const getAllAkun = async () => {
