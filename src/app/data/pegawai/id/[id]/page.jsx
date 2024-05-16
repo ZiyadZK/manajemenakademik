@@ -296,7 +296,7 @@ export default function PegawaiIDPage({params}) {
                                             </div>
                                         </div>
                                     ):(
-                                        <div className="w-full flex justify-center items-center gap-3 opacity-40">
+                                        <div key={`${index} - ${sertifikat.jenis_sertifikat}`} className="w-full flex justify-center items-center gap-3 opacity-40">
                                             <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit"/>
                                             Pegawai ini belum punya sertifikat 
                                         </div>
