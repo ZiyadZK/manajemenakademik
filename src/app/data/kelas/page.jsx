@@ -1,7 +1,7 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { mont, nunito, rale } from "@/config/fonts"
+import { jakarta, mont, nunito, rale } from "@/config/fonts"
 import { getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
 import { getAllPegawai } from "@/lib/model/pegawaiModel"
 import { getAllSiswa } from "@/lib/model/siswaModel"
@@ -29,6 +29,11 @@ export default function DataKelasPage() {
     const [filteredPegawaiList, setFilteredPegawaiList] = useState([])
     const [dataKelas, setDataKelas] = useState([])
     const [kelasListLoading, setKelasListLoading] = useState('')
+    const [filterKelas, setFilterKelas] = useState({
+        kelas: [], rombel: [], no_rombel: [], nama_walikelas: '', nama_guru_bk: ''
+    })
+
+
 
     const getPegawaiList = useCallback(async () => {
         const responseData = await getAllPegawai()
@@ -72,7 +77,7 @@ export default function DataKelasPage() {
                 if(responseData.success) {
                     Swal.close()
                     await getKelasList()
-                    return toast.success(`Berhasil menambahkan data wali kelas ${kelas} ${rombel} ${no_rombel}`)
+                    return toast.success(`Berhasil menambahkan data ${role} ${kelas} ${rombel} ${no_rombel}`)
                 }else{
                     Swal.fire({
                         title: 'Error',
@@ -91,6 +96,57 @@ export default function DataKelasPage() {
             setDataKelas(responseData.data)
         } 
     })
+
+    const submitFilterKelas = () => {
+
+        let updatedData = kelasList
+
+        // Filter kelas
+        if(filterKelas['kelas'].length > 0) {
+            updatedData = updatedData.filter(data => filterKelas['kelas'].includes(data['kelas']))
+        }
+
+        // Filter Jurusan
+        if(filterKelas['rombel'].length > 0) {
+            updatedData = updatedData.filter(data => filterKelas['rombel'].includes(data['rombel']))
+        }
+
+        // Filter Rombel
+        if(filterKelas['no_rombel'].length > 0) {
+            updatedData = updatedData.filter(data => filterKelas['no_rombel'].includes(data['no_rombel']))
+        }
+
+        // Filter walikelas
+        if(filterKelas['nama_walikelas'] !== '') {
+            updatedData = updatedData.filter(data => data['nama_walikelas'].toLowerCase().includes(filterKelas['nama_walikelas'].toLowerCase()))
+        }
+
+        if(filterKelas['nama_guru_bk'] !== '') {
+            updatedData = updatedData.filter(data => data['nama_guru_bk'].toLowerCase().includes(filterKelas['nama_guru_bk'].toLowerCase()))
+        }
+
+        setFilteredKelasList(updatedData)
+    }
+
+    const changeFilterKelas = (field, value) => {
+        // Create a shallow copy of the filterKelas object
+        let updatedFilter = { ...filterKelas };
+    
+        if (Array.isArray(filterKelas[field])) {
+            if (updatedFilter[field].includes(value)) {
+                // Create a new array without the value
+                updatedFilter[field] = updatedFilter[field].filter(item => item !== value);
+            } else {
+                // Create a new array with the value added
+                updatedFilter[field].push(value);
+            }
+        } else {
+            // Directly assign the value if it's not an array
+            updatedFilter[field] = value;
+        }
+    
+        setFilterKelas(updatedFilter)
+    };
 
     const getKelasList = useCallback(async () => {
         const responseSiswa = await getAllSiswa()
@@ -148,22 +204,22 @@ export default function DataKelasPage() {
             if(dataKelasList) {
                 return {
                     ...valueKelasList,
-                    nama_walikelas: dataKelasList.nama_walikelas ? dataKelasList.nama_walikelas : '-',
-                    id_walikelas: dataKelasList.id_walikelas ? dataKelasList.id_walikelas : '-',
-                    nik_walikelas: dataKelasList.nik_walikelas ? dataKelasList.nik_walikelas : '-',
-                    nama_guru_bk: dataKelasList.nama_guru_bk ? dataKelasList.nama_guru_bk : '-',
-                    id_guru_bk: dataKelasList.id_guru_bk ? dataKelasList.id_guru_bk : '-',
-                    nik_guru_bk: dataKelasList.nik_guru_bk ? dataKelasList.nik_guru_bk : '-'
+                    nama_walikelas: dataKelasList.nama_walikelas ? dataKelasList.nama_walikelas : '',
+                    id_walikelas: dataKelasList.id_walikelas ? dataKelasList.id_walikelas : '',
+                    nik_walikelas: dataKelasList.nik_walikelas ? dataKelasList.nik_walikelas : '',
+                    nama_guru_bk: dataKelasList.nama_guru_bk ? dataKelasList.nama_guru_bk : '',
+                    id_guru_bk: dataKelasList.id_guru_bk ? dataKelasList.id_guru_bk : '',
+                    nik_guru_bk: dataKelasList.nik_guru_bk ? dataKelasList.nik_guru_bk : ''
                 }
             }else{
                 return {
                     ...valueKelasList,
-                    nama_walikelas: '-',
-                    id_walikelas: '-',
-                    nik_walikelas: '-',
-                    nama_guru_bk: '-',
-                    id_guru_bk: '-',
-                    nik_guru_bk: '-'
+                    nama_walikelas: '',
+                    id_walikelas: '',
+                    nik_walikelas: '',
+                    nama_guru_bk: '',
+                    id_guru_bk: '',
+                    nik_guru_bk: ''
                 }
             }
         })
@@ -180,10 +236,93 @@ export default function DataKelasPage() {
         getDataKelas()
     }, [])
 
+    useEffect(() => {
+        submitFilterKelas()
+    }, [filterKelas])
+
     return (
         <MainLayoutPage>
             <Toaster />
-            <div className={`mt-3 ${rale.className}`}>
+            <div className={`mt-3 ${jakarta.className}`}>
+                <div className="md:space-y-5 space-y-3">
+                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
+                        <p className="text-sm opacity-70 md:w-2/5">
+                            Pilih Kelas
+                        </p>
+                        <div className="flex items-center gap-3 md:w-3/5">
+                            <button type="button" onClick={() => changeFilterKelas('kelas', 'X')} className={` ${filterKelas['kelas'].includes('X') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                X
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('kelas', 'XI')} className={` ${filterKelas['kelas'].includes('XI') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                XI
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('kelas', 'XII')} className={` ${filterKelas['kelas'].includes('XII') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                XII
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
+                        <p className="text-sm opacity-70 md:w-2/5">
+                            Pilih Jurusan
+                        </p>
+                        <div className="flex items-center gap-3 md:w-3/5 relative overflow-auto">
+                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TKJ')} className={` ${filterKelas['rombel'].includes('TKJ') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                TKJ
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TITL')} className={` ${filterKelas['rombel'].includes('TITL') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                TITL 
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TPM')} className={` ${filterKelas['rombel'].includes('TPM') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                TPM
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TKR')} className={` ${filterKelas['rombel'].includes('TKR') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                TKR
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('rombel', 'DPIB')} className={` ${filterKelas['rombel'].includes('DPIB') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                DPIB 
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('rombel', 'GEO')} className={` ${filterKelas['rombel'].includes('GEO') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                GEO
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
+                        <p className="text-sm opacity-70 md:w-2/5">
+                            Pilih Rombel
+                        </p>
+                        <div className="flex items-center gap-3 md:w-3/5">
+                            <button type="button" onClick={() => changeFilterKelas('no_rombel', '1')} className={` ${filterKelas['no_rombel'].includes('1') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                1
+                            </button>
+                            <button type="button"  onClick={() => changeFilterKelas('no_rombel', '2')} className={` ${filterKelas['no_rombel'].includes('2') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                2
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('no_rombel', '3')} className={` ${filterKelas['no_rombel'].includes('3') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                3
+                            </button>
+                            <button type="button" onClick={() => changeFilterKelas('no_rombel', '4')} className={` ${filterKelas['no_rombel'].includes('4') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
+                                4
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
+                        <p className="text-sm opacity-70 md:w-2/5">
+                            Cari Walikelas
+                        </p>
+                        <div className="flex items-center gap-3 md:w-3/5">
+                            <input type="text" onChange={e => changeFilterKelas('nama_walikelas', e.target.value)} className="text-sm w-full border h-10 px-3 rounded bg-white" placeholder="Masukkan Nama di sini" />
+                        </div>
+                    </div>
+                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
+                        <p className="text-sm opacity-70 md:w-2/5">
+                            Cari Guru BK
+                        </p>
+                        <div className="flex items-center gap-3 md:w-3/5">
+                            <input type="text" onChange={e => changeFilterKelas('nama_guru_bk', e.target.value)} className="text-sm w-full border h-10 px-3 rounded bg-white" placeholder="Masukkan Nama di sini" />
+                        </div>
+                    </div>
+                </div>
+                <hr className="my-3" />
                 {kelasListLoading !== 'fetched' && (
                     <div className="flex w-full h-screen  gap-5 items-center justify-center text-blue-400">
                         <div className="loading loading-spinner loading-lg text-inherit"></div>
