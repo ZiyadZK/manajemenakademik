@@ -1,6 +1,7 @@
 'use server'
 
 import { urlDelete, urlGet, urlPost } from "../fetcher"
+import { logRiwayat } from "./riwayatModel"
 
 export const getAllKelas = async () => {
     const responseData = await urlGet('/v1/data/kelas')
@@ -25,6 +26,13 @@ export const getDetailKelas = async (kelas, rombel, no_rombel) => {
 export const setWaliKelas = async (kelas, rombel, no_rombel, payload) => {
     const responseData = await urlPost(`/v1/data/kelas/${kelas}/${rombel}/${no_rombel}/walikelas`, payload)
 
+    await logRiwayat({
+        aksi: 'Ubah',
+        kategori: 'Data Kelas',
+        keterangan: `Mengubah 1 Data Wali Kelas ke dalam Data Kelas`,
+        records: `${JSON.stringify({kelas, rombel, no_rombel, payload})}`
+    })
+
     return {
         success: responseData.success,
         message: responseData.result
@@ -34,14 +42,12 @@ export const setWaliKelas = async (kelas, rombel, no_rombel, payload) => {
 export const setGuruBK = async (kelas, rombel, no_rombel, payload) => {
     const responseData = await urlPost(`/v1/data/kelas/${kelas}/${rombel}/${no_rombel}/gurubk`, payload)
 
-    return {
-        success: responseData.success,
-        message: responseData.result
-    }
-}
-
-export const deleteWaliKelas = async (kelas, rombel, no_rombel) => {
-    const responseData = await urlDelete(`/v1/data/kelas/${kelas}/${rombel}/${no_rombel}/walikelas`)
+    await logRiwayat({
+        aksi: 'Ubah',
+        kategori: 'Data Kelas',
+        keterangan: `Mengubah 1 Data Guru BK ke dalam Data Kelas`,
+        records: `${JSON.stringify({kelas, rombel, no_rombel, payload})}`
+    })
 
     return {
         success: responseData.success,
@@ -49,8 +55,15 @@ export const deleteWaliKelas = async (kelas, rombel, no_rombel) => {
     }
 }
 
-export const deleteGuruBK = async (kelas, rombel, no_rombel) => {
-    const responseData = await urlDelete(`/v1/data/kelas/${kelas}/${rombel}/${no_rombel}/gurubk`)
+export const deleteRoleKelas = async (parameter, role) => {
+    const responseData = await urlDelete('/v1/data/kelas', {parameter, role})
+
+    await logRiwayat({
+        aksi: 'Hapus',
+        kategori: 'Data Kelas',
+        keterangan: `Menghapus 1 Data ${role} dari Data Kelas`,
+        records: `${JSON.stringify({...parameter, payload})}`
+    })
 
     return {
         success: responseData.success,

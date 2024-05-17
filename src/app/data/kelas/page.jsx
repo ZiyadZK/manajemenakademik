@@ -2,7 +2,7 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, nunito, rale } from "@/config/fonts"
-import { getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
+import { deleteGuruBK, deleteRoleKelas, deleteWaliKelas, getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
 import { getAllPegawai } from "@/lib/model/pegawaiModel"
 import { getAllSiswa } from "@/lib/model/siswaModel"
 import { faEdit, faFile, faTrashCan } from "@fortawesome/free-regular-svg-icons"
@@ -32,7 +32,24 @@ export default function DataKelasPage() {
     const [filterKelas, setFilterKelas] = useState({
         kelas: [], rombel: [], no_rombel: [], nama_walikelas: '', nama_guru_bk: ''
     })
+    const [filterPegawai, setFilterPegawai] = useState('')
 
+    const submitFilterPegawai = () => {
+        let updatedData = pegawaiList
+
+        if(filterPegawai !== '') {
+            updatedData = updatedData.filter(pegawai => pegawai['nama_pegawai'].toLowerCase().includes(filterPegawai.toLowerCase()) ||
+                pegawai['nik'].toLowerCase().includes(filterPegawai.toLowerCase()) ||
+                pegawai['nip'].toLowerCase().includes(filterPegawai.toLowerCase())
+            )
+        }
+
+        setFilteredPegawaiList(updatedData)
+    }
+
+    useEffect(() => {
+        submitFilterPegawai()
+    }, [filterPegawai])
 
 
     const getPegawaiList = useCallback(async () => {
@@ -47,6 +64,12 @@ export default function DataKelasPage() {
         event.preventDefault()
 
         document.getElementById(modal).close()
+        const formData = new FormData(event.target)
+        const id = formData.get(radioname)
+
+        if(id === null) {
+            return toast.error('Anda harus memilih pegawai terlebih dahulu!')
+        }
 
         Swal.fire({
             title: 'Sedang memproses data',
@@ -54,8 +77,6 @@ export default function DataKelasPage() {
             showConfirmButton: false,
             timer: 15000,
             didOpen: async () => {
-                const formData = new FormData(event.target)
-                const id = formData.get(radioname)
 
                 const dataPegawai = pegawaiList.find(pegawai => pegawai.id_pegawai.toString() === id.toString())
                 
@@ -87,6 +108,46 @@ export default function DataKelasPage() {
                 }
             }
         }) 
+    }
+
+    const submitDeleteRoleKelas = async (kelas, rombel, no_rombel, role) => {
+        Swal.fire({
+            title: `Apakah anda yakin?`,
+            text: `Anda akan mencabut status ${role} untuk kelas ${kelas} ${rombel} ${no_rombel}`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(async result => {
+            if(result.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang memproses data',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    timer: 10000,
+                    didOpen: async () => {
+                        const responseData = await deleteRoleKelas({kelas, rombel, no_rombel}, role)
+
+                        if(responseData.success) {
+                            await getKelasList()
+                            await getPegawaiList()
+                            await getDataKelas()
+                            Swal.fire({
+                                title: 'Sukses',
+                                text: `Berhasil menghapus data ${role} untuk kelas ${kelas} ${rombel} ${no_rombel}`,
+                                icon: 'success'
+                            })
+                        }else{
+                            Swal.fire({
+                                title: 'Gagal',
+                                text: 'Terdapat error disaat menghapus data, silahkan cek log server!',
+                                icon: 'error'
+                            })
+                        }
+                    }
+                })
+            }
+        })
     }
 
     const getDataKelas = useCallback(async() => {
@@ -342,10 +403,6 @@ export default function DataKelasPage() {
                                         {dataKelasList.length} Siswa
                                     </p>
                                 </div>
-                                <button type="button" className="hover:text-blue-700 text-zinc-400 flex items-center justify-center gap-2 text-xs">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
-                                    Cek Detail
-                                </button>
                             </div>
                             <hr className="my-1 opacity-0" />
                             <div className="bg-zinc-50 p-5 md:p-2 rounded-lg">
@@ -364,7 +421,7 @@ export default function DataKelasPage() {
                                         )}
                                     </p>
                                     <div className="flex items-center gap-3">
-                                        <button className="hover:text-red-600 text-zinc-400 opacity-100 md:opacity-0 group-hover:opacity-100">
+                                        <button type="button" onClick={() => submitDeleteRoleKelas(dataKelasList.kelas, dataKelasList.rombel, dataKelasList.no_rombel, role)} className="hover:text-red-600 text-zinc-400 opacity-100 md:opacity-0 group-hover:opacity-100">
                                             <FontAwesomeIcon icon={faTrashCan} className="w-3 h-3 text-inherit" />
                                         </button>
                                         
@@ -372,13 +429,13 @@ export default function DataKelasPage() {
                                             <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                         </button>
                                         <dialog id={`modal_ubah_${index}_${i}`} className="modal">
-                                            <div className="modal-box ">
+                                            <div className="modal-box bg-white">
                                                 <form method="dialog">
                                                     <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                                 </form>
                                                 <h3 className="font-bold text-lg">Ubah {role} {dataKelasList.kelas} {dataKelasList.rombel} {dataKelasList.no_rombel}</h3>
                                                 <hr className="my-2 opacity-0" />
-                                                <input type="text" className="px-3 py-2 rounded border w-full text-xs md:text-sm" placeholder="Cari data guru disini" />
+                                                <input type="text" value={filterPegawai} onChange={e => setFilterPegawai(e.target.value)} className="px-3 py-2 bg-white rounded border w-full text-xs md:text-sm" placeholder="Cari data guru disini" />
                                                 <hr className="my-1 opacity-0" />
                                                 <form onSubmit={e => submitSetRoleKelas(e, `ubah_${role}_${index}_${i}`, `modal_ubah_${index}_${i}`, dataKelasList.kelas, dataKelasList.rombel, dataKelasList.no_rombel, role)}>
                                                     <div className="relative w-full h-80 overflow-auto space-y-1">

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { decryptKey, encryptKey } from "../encrypt";
 import axios from "axios";
 import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher";
+import { logRiwayat } from "./riwayatModel";
 
 export const loginAkun = async (email, password) => {
     // Ambil datanya
@@ -71,6 +72,12 @@ export const getAllAkun = async () => {
 
 export const createAkun = async (dataBody) => {
     const responseData = await urlPost('/v1/data/akun', dataBody)
+    await logRiwayat({
+        aksi: 'Tambah',
+        kategori: 'Data Akun',
+        keterangan: `Menambahkan ${dataBody.length} Data ke dalam Data Akun`,
+        records: `${JSON.stringify(dataBody)}`
+    })
     if(responseData.success) {
         return true
     }else{
@@ -81,6 +88,14 @@ export const createAkun = async (dataBody) => {
 export const deleteSingleAkunById = async (id) => {
     const responseData = await urlDelete(`/v1/data/akun`, {
         arrId_akun: id
+    })
+    await logRiwayat({
+        aksi: 'Hapus',
+        kategori: 'Data Akun',
+        keterangan: `Menghapus 1 Data dari Data Akun`,
+        records: `${JSON.stringify({
+            arrId_akun: id
+        })}`
     })
     return responseData.success
 }
@@ -94,6 +109,13 @@ export const updateSingleAkun = async (akun) => {
     }
 
     const responseData = await urlPut(`/v1/data/akun/id_akun/${akun.id_akun}`, newData)
+
+    await logRiwayat({
+        aksi: 'Ubah',
+        kategori: 'Data Akun',
+        keterangan: `Mengubah 1 Data ke dalam Data Akun`,
+        records: `${JSON.stringify(newData)}`
+    })
     return responseData.success
 
 }
@@ -102,5 +124,15 @@ export const deleteMultipleAkunById = async (arrayOfId) => {
     const responseData = await urlDelete('/v1/data/akun', {
         arrId_akun: arrayOfId
     })
+
+    await logRiwayat({
+        aksi: 'Hapus',
+        kategori: 'Data Akun',
+        keterangan: `Menghapus ${arrayOfId.length} Data dari Data Akun`,
+        records: `${JSON.stringify({
+            arrId_akun: arrayOfId
+        })}`
+    })
+
     return responseData.success
 }

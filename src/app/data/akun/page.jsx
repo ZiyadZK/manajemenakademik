@@ -27,7 +27,7 @@ export default function DataAkunPage() {
     const [filterRole, setFilterRole] = useState('')
     const [searchValue, setSearchValue] = useState('');
     const [selectedAkun, setSelectedAkun] = useState([])
-    const [loadingFetch, setLoadingFetch] = useState(true);
+    const [loadingFetch, setLoadingFetch] = useState('');
     const [pagination, setPagination] = useState(1);
     const [selectAll, setSelectAll] = useState(false)
     const [totalList, setTotalList] = useState(9000)
@@ -156,9 +156,9 @@ export default function DataAkunPage() {
     }
 
     const getAkun = async () => {
-        setLoadingFetch(state => true);
+        setLoadingFetch('loading');
         const result = await getAllAkun();
-        setLoadingFetch(state => false)
+        setLoadingFetch('fetched')
         setAkunList(result);
         setFilteredAkunList(result)
     }
@@ -442,6 +442,12 @@ export default function DataAkunPage() {
                     <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit" />
                 </div>
             </div>
+            {loadingFetch !== 'fetched' && (
+                <div className="flex items-center justify-center w-full py-5 gap-5 text-blue-500">
+                    <div className="loading loading-spinner loading-md"></div>
+                    Sedang mendapatkan data
+                </div>
+            )}
             <div className={`${mont.className} divide-y relative w-full h-fit max-h-[300px] overflow-auto`}>
                 {filteredAkunList.map((akun, index) => (
                     <div key={`${akun.id_akun} - ${index}`} className="grid grid-cols-12 w-full group hover:bg-zinc-50 divide-x *:px-2 *:py-3 text-sm">

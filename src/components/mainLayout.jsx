@@ -13,28 +13,28 @@ import withReactContent from "sweetalert2-react-content";
 const mySwal = withReactContent(Swal)
 
 const navLinkMasterData = [
-    { title: 'Siswa', icon: faUsersViewfinder, url: '/data/siswa', page: 'Data Siswa'},
-    { title: 'Mutasi Siswa', icon: faUserXmark, url: '/data/mutasisiswa', page: 'Data Mutasi Siswa'},
-    { title: 'Alumni', icon: faUserGraduate, url: '/data/alumni', page: 'Data Alumni'},
-    { title: 'Pegawai', icon: faUserTie, url: '/data/pegawai', page: 'Data Pegawai'},
-    { title: 'Sertifikasi', icon: faCertificate, url: '/data/sertifikasi', page: 'Data Sertifikasi'},
-    { title: 'Ijazah', icon: faCertificate, url: '/data/ijazah', page: 'Data Ijazah'},
-    { title: 'Kelas', icon: faUsersRectangle, url: '/data/kelas', page: 'Data Kelas'},
-    { title: 'Akun', icon: faUserShield, url: '/data/akun', page: 'Data Akun'},
-    { title: 'Riwayat', icon: faTimeline, url: '/data/riwayat', page: 'Data Riwayat Perubahan Data'}
+    { title: 'Siswa', icon: faUsersViewfinder, url: '/data/siswa', page: 'Data Siswa', role: ['Operator', 'Admin']},
+    { title: 'Mutasi Siswa', icon: faUserXmark, url: '/data/mutasisiswa', page: 'Data Mutasi Siswa', role: ['Operator', 'Admin']},
+    { title: 'Alumni', icon: faUserGraduate, url: '/data/alumni', page: 'Data Alumni', role: ['Operator', 'Admin']},
+    { title: 'Pegawai', icon: faUserTie, url: '/data/pegawai', page: 'Data Pegawai', role: ['Operator', 'Admin']},
+    { title: 'Sertifikasi', icon: faCertificate, url: '/data/sertifikasi', page: 'Data Sertifikasi', role: ['Operator', 'Admin']},
+    { title: 'Ijazah', icon: faCertificate, url: '/data/ijazah', page: 'Data Ijazah', role: ['Operator', 'Admin']},
+    { title: 'Kelas', icon: faUsersRectangle, url: '/data/kelas', page: 'Data Kelas', role: ['Operator', 'Admin']},
+    { title: 'Akun', icon: faUserShield, url: '/data/akun', page: 'Data Akun', role: ['Admin']},
+    { title: 'Riwayat', icon: faTimeline, url: '/data/riwayat', page: 'Data Riwayat Perubahan Data', role: ['Admin']}
 ]
 
 const navLinkKonfigurasi = [
-    { title: 'Role Akun', icon: faCog, url: '/konfigurasi/role', page: 'Konfigurasi Role Akun'},
-    { title: 'Jabatan Pegawai', icon: faCog, url: '/konfigurasi/jabatan', page: 'Konfigurasi Jabatan Pegawai'},
-    { title: 'Pendidikan Terakhir Pegawai', icon: faCog, url: '/konfigurasi/pendidikanterakhir', page: 'Konfigurasi Jabatan Pegawai'},
-    { title: 'Status Kepegawaian Pegawai', icon: faCog, url: '/konfigurasi/kepegawaian', page: 'Konfigurasi Status Kepegawaian Pegawai'},
+    { title: 'Role Akun', icon: faCog, url: '/konfigurasi/role', page: 'Konfigurasi Role Akun', role: ['Admin']},
+    { title: 'Jabatan Pegawai', icon: faCog, url: '/konfigurasi/jabatan', page: 'Konfigurasi Jabatan Pegawai', role: ['Admin']},
+    { title: 'Pendidikan Terakhir Pegawai', icon: faCog, url: '/konfigurasi/pendidikanterakhir', page: 'Konfigurasi Jabatan Pegawai', role: ['Admin']},
+    { title: 'Status Kepegawaian Pegawai', icon: faCog, url: '/konfigurasi/kepegawaian', page: 'Konfigurasi Status Kepegawaian Pegawai', role: ['Admin']},
 ]
 
 const navLink = [
     ...navLinkMasterData, ...navLinkKonfigurasi,
-    { title: 'Dashboard', icon: faHouse, url: '/', page: 'Dashboard Page'},
-    { title: 'Profil Sekolah', icon: faBook, url: '/profilsekolah', page: 'Profil Sekolah'},
+    { title: 'Dashboard', icon: faHouse, url: '/', page: 'Dashboard Page', role: ['Operator', 'Admin']},
+    { title: 'Profil Sekolah', icon: faBook, url: '/profilsekolah', page: 'Profil Sekolah', role: ['Operator', 'Admin']},
 ]
 
 export default function MainLayoutPage({children}) {
@@ -148,7 +148,7 @@ export default function MainLayoutPage({children}) {
                             <hr className="flex-grow" />
                         </div>
                         <div className="space-y-2">
-                            {navLinkMasterData.map((nav, index) => (
+                            {loggedAkun && navLinkMasterData.map((nav, index) => nav['role'].includes(loggedAkun.role_akun) && (
                                 <a key={index} href={nav.url} className={`flex items-center text-sm justify-between tracking-tighter ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'bg-white shadow-lg text-zinc-800' : 'hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600 group'}  font-medium rounded-lg px-3 py-2`}>
                                     <span className="flex items-center gap-6">
                                         <FontAwesomeIcon icon={nav.icon} className={`w-4 h-4  ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'text-blue-600' : 'text-zinc-300 group-hover:text-zinc-400'} `} />
@@ -221,7 +221,7 @@ function SidebarSection() {
                     <hr className="flex-grow" />
                 </div>
                 <div className="space-y-2">
-                    {navLinkMasterData.map((nav, index) => (
+                    {loggedAkun !== null && navLinkMasterData.map((nav, index) => nav['role'].includes(loggedAkun.role_akun) && (
                         <a key={index} href={nav.url} className={`flex items-center text-sm justify-between tracking-tighter ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'bg-white shadow-lg text-zinc-800' : 'hover:bg-zinc-200 text-zinc-400 hover:text-zinc-600 group'}  font-medium rounded-lg px-3 py-2`}>
                             <span className="flex items-center gap-6">
                                 <FontAwesomeIcon icon={nav.icon} className={`w-4 h-4  ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'text-blue-600' : 'text-zinc-300 group-hover:text-zinc-400'} `} />

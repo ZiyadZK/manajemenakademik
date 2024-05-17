@@ -16,7 +16,7 @@ export const urlGet = async (url) => {
                 data: responseData.data
             })
         }).catch(error => {
-            const responseData = error.response.data
+            const responseData = error.response
             reject({
                 success: false,
                 result: responseData
@@ -39,7 +39,7 @@ export const urlPost = async (url, payload) => {
                 data: responseData.data
             })
         }).catch(error => {
-            const responseData = error.response.data
+            const responseData = error.response
             reject({
                 success: false,
                 result: responseData
@@ -62,7 +62,7 @@ export const urlPut = async (url, payload) => {
                 data: responseData.data
             })
         }).catch(error => {
-            const responseData = error.response.data
+            const responseData = error.response
             reject({
                 success: false,
                 result: responseData
@@ -87,7 +87,7 @@ export const urlDelete = async (url, payload) => {
                 result: responseData
             })
         }).catch(error => {
-            const responseData = error.response.data
+            const responseData = error.response
             reject({
                 success: false,
                 result: responseData
