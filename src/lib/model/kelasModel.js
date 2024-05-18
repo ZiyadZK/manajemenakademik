@@ -62,7 +62,7 @@ export const deleteRoleKelas = async (parameter, role) => {
         aksi: 'Hapus',
         kategori: 'Data Kelas',
         keterangan: `Menghapus 1 Data ${role} dari Data Kelas`,
-        records: `${JSON.stringify({...parameter, payload})}`
+        records: `${JSON.stringify({parameter, role})}`
     })
 
     return {
