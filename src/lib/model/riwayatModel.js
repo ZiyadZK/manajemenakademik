@@ -35,3 +35,13 @@ export const logRiwayat = async ({aksi, kategori, keterangan, records}) => {
         message: responseData.result
     }
 }
+
+export const getSingleRiwayat = async (id_riwayat) => {
+    const responseData = await urlGet(`/v1/data/riwayat/detail/${id_riwayat}`)
+
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
+    }
+}
