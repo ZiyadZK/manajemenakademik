@@ -27,7 +27,8 @@ export default function LoginPage() {
         }
         setLoginLoading(state => !state)
         try {
-            const result = await loginAkun(email, password);
+            const duration = loginForm.rememberMe ? 7 * 24 * 60 * 60 * 1000 : 1 * 24 * 60 * 60 * 1000
+            const result = await loginAkun(email, password, duration);
             if(result.success === false) {
                 setLoginLoading(state => !state)
                 return toast.error(result.message, {

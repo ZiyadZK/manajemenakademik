@@ -1,7 +1,8 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { mont, open, rale } from "@/config/fonts"
+import { jakarta, mont, open, rale } from "@/config/fonts"
+import { exportToCSV } from "@/lib/csvLibs"
 import { deleteMutasiSiswa, getAllMutasiSiswa, updateMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
 import { createMultiSiswa, createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
@@ -16,6 +17,36 @@ import withReactContent from "sweetalert2-react-content"
 let listNoRombel = [];
 let listKelas = []
 let listRombel = []
+
+const exportKolom = {
+    kelas: 'Kelas',
+    rombel: 'Jurusan',
+    no_rombel: 'Rombel',
+    nama_siswa: 'Nama Siswa',
+    nis: 'NIS',
+    nisn: 'NISN',
+    nik: 'NIK',
+    no_kk: 'No KK',
+    tempat_lahir: 'Tempat Lahir',
+    tanggal_lahir: 'Tanggal Lahir',
+    jenis_kelamin: 'Jenis Kelamin',
+    agama: 'Agama',
+    status_dalam_keluarga: 'Status Dalam Keluarga',
+    anak_ke: 'Anak Ke',
+    alamat: 'Alamat',
+    no_hp_siswa: 'No HP Siswa',
+    asal_sekolah: 'Asal Sekolah',
+    kategori: 'Kategori',
+    tahun_masuk: 'Tahun Masuk',
+    tahun_keluar: 'Tahun Keluar',
+    tanggal_keluar: 'Tanggal Keluar',
+    nama_ayah: 'Nama Ayah',
+    nama_ibu: 'Nama Ibu',
+    telp_ortu: 'Telp Ortu',
+    pekerjaan_ayah: 'Pekerjaan Ayah',
+    pekerjaan_ibu: 'Pekerjaan Ibu',
+    keterangan: 'Keterangan'
+  }
 
 const mySwal = withReactContent(Swal)
 export default function DataSiswaMainPage() {
@@ -37,6 +68,10 @@ export default function DataSiswaMainPage() {
     const [siswaTidakNaikKelas, setSiswaTidakNaikKelas] = useState([])
     const [showSelected, setShowSelected] = useState(false)
     const [sorting, setSorting] = useState({nama_siswa: '', tahun_masuk: ''})
+
+    const [exportExcel, setExportExcel] = useState({
+        allKolom: true, kolomDataArr: []
+    })
 
     const SubmitAktifkanSiswa = async (modal, nis) => {
         Swal.fire({
@@ -367,6 +402,137 @@ export default function DataSiswaMainPage() {
         }
     }
 
+    const handleChangeExportExcel = (field, value) => {
+        setExportExcel(prevState => {
+            let updatedData = { ...prevState };
+
+            if (Array.isArray(prevState[field])) {
+                if (updatedData[field].some(kolom => kolom.key === value)) {
+                    updatedData[field] = updatedData[field].filter(kolom => kolom.key !== value);
+                } else {
+                    updatedData[field] = [...updatedData[field], { key: value, keyName: exportKolom[value] }];
+                }
+            } else {
+                updatedData[field] = value;
+            }
+
+            return updatedData;
+        });
+    }
+
+    const submitExportExcel = async (type, modal) => {
+        console.log(selectedSiswa)
+        if(!exportExcel['allKolom'] && exportExcel['kolomDataArr'].length < 1 === true) {
+            return toast.error('Anda harus memilih kolom data terlebih dahulu!')
+        }
+        
+        document.getElementById(modal).close()
+        
+        let updatedData
+        if(exportExcel['allKolom']) {
+            if(type === 'xlsx') {
+                if(selectedSiswa.length < 1) {
+                    return await exportToXLSX(siswaList, 'Data Mutasi Siswa', {
+                        header: Object.keys(siswaList[0]),
+                        sheetName: 'Sheet 1'
+                    })
+                }
+
+                updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
+                return await exportToXLSX(updatedData, 'Data Mutasi Siswa', {
+                    header: Object.keys(updatedData[0]),
+                    sheetName: 'Sheet 1'
+                })
+            }else{
+                if(selectedSiswa.length < 1) {
+                    return await exportToCSV(siswaList, 'Data Mutasi Siswa', {
+                        header: Object.keys(siswaList[0]),
+                        sheetName: 'Sheet 1'
+                    })
+                }
+
+                updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
+                return await exportToCSV(updatedData, 'Data Mutasi Siswa', {
+                    header: Object.keys(updatedData[0]),
+                    sheetName: 'Sheet 1'
+                })
+            }
+        }else{
+            if(type === 'xlsx') {
+                console.log(selectedSiswa.length)
+                if(selectedSiswa.length < 1) {
+                    updatedData = siswaList.map(obj => {
+                        let newObj = {}
+                        exportExcel['kolomDataArr'].forEach(({key}) => {
+                            if(obj.hasOwnProperty(key)) {
+                                newObj[key] = obj[key]
+                            }
+                        })
+                        return newObj
+                    })
+
+                    return await exportToXLSX(updatedData, 'Data Mutasi Siswa', {
+                        header: Object.keys(updatedData[0]),
+                        sheetName: 'Sheet 1'
+                    })
+                }else{
+                    updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
+    
+                    updatedData = updatedData.map(obj => {
+                        let newObj = {}
+                        exportExcel['kolomDataArr'].forEach(({key}) => {
+                            if(obj.hasOwnProperty(key)) {
+                                newObj[key] = obj[key]
+                            }
+                        })
+                        return newObj
+                    }) 
+    
+                    return await exportToXLSX(updatedData, 'Data Mutasi Siswa', {
+                        header: Object.keys(updatedData[0]),
+                        sheetName: 'Sheet 1'
+                    })
+                }
+
+            }else{
+                if(selectedSiswa.length < 1) {
+                    updatedData = siswaList.map(obj => {
+                        let newObj = {}
+                        exportExcel['kolomDataArr'].forEach(({key}) => {
+                            if(obj.hasOwnProperty(key)) {
+                                newObj[key] = obj[key]
+                            }
+                        })
+                        return newObj
+                    })
+
+                    return await exportToCSV(updatedData, 'Data Mutasi Siswa', {
+                        header: Object.keys(updatedData[0]),
+                        sheetName: 'Sheet 1'
+                    })
+                }
+
+                updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
+                console.log(updatedData)
+
+                updatedData = updatedData.map(obj => {
+                    let newObj = {}
+                    exportExcel['kolomDataArr'].forEach(({key}) => {
+                        if(obj.hasOwnProperty(key)) {
+                            newObj[key] = obj[key]
+                        }
+                    })
+                    return newObj
+                }) 
+
+                return await exportToCSV(updatedData, 'Data Mutasi Siswa', {
+                    header: Object.keys(updatedData[0]),
+                    sheetName: 'Sheet 1'
+                })
+            }
+        }
+    }
+
     return (
         <MainLayoutPage>
             <Toaster />
@@ -567,20 +733,140 @@ export default function DataSiswaMainPage() {
                         </div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit">
                             <li>
-                                <button type="button" className="flex items-center justify-start gap-2">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-red-600" />
-                                    PDF
-                                </button>
-                                <button type="button" className="flex items-center justify-start gap-2">
+                                <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     XLSX
                                 </button>
-                                <button type="button" className="flex items-center justify-start gap-2">
+                                <button type="button" onClick={() => document.getElementById('export_csv').showModal()} className="flex items-center justify-start gap-2">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     CSV
                                 </button>
                             </li>
                         </ul>
+                        <dialog id="export_csv" className="modal">
+                            <div className="modal-box">
+                                <form method="dialog">
+                                    <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                </form>
+                                <h3 className="font-bold text-lg">Export Data Excel CSV</h3>
+                                <hr className="my-2 opacity-0" />
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <p className="w-full text-sm opacity-70 md:w-2/5">
+                                        Semua Kolom Data?
+                                    </p>
+                                    <div className="flex w-full items-center gap-5 md:w-3/5">
+                                        <div className="flex items-center gap-2">
+                                            <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer" id="export_csv_semua_kolom" />
+                                             <label htmlFor="export_csv_semua_kolom" className="text-sm cursor-pointer">Ya</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {exportExcel.allKolom === false && (
+                                    <div className="">
+                                        <hr className="my-1 opacity-0" />
+                                        <div className="flex flex-col md:flex-row md:items-center">
+                                            <p className="w-full text-sm opacity-70 md:w-2/5">
+                                                Kolom
+                                            </p>
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                                {Object.keys(exportKolom).map((kolom, index) => (
+                                                    <option key={index} value={kolom}>{exportKolom[kolom]}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <hr className="my-1 opacity-0" />
+                                        <p className="text-sm opacity-70">
+                                            Daftar Kolom Data
+                                        </p>
+                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1">
+                                            {exportExcel.kolomDataArr.map((kolomData, index) => (
+                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium">
+                                                    {kolomData['keyName']}
+                                                    <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
+                                                        <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <hr className="my-2 opacity-0" />
+                                <p className={`${jakarta.className} text-sm`}>Apakah anda sudah yakin?</p>
+                                <hr className="my-1 opacity-0" />
+                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
+                                    <button type="button" onClick={() => submitExportExcel('csv', 'export_csv')} className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2 text-sm">
+                                        <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
+                                        Ya, Saya Yakin
+                                    </button>
+                                    <button type="button" onClick={() => {document.getElementById(`export_csv`).close(); setExportExcel({allKolom: true, kolomDataArr: []})}} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2 text-sm">
+                                        <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
+                                        Tidak
+                                    </button>
+                                </div>
+                            </div>
+                        </dialog>
+                        <dialog id="export_xlsx" className="modal">
+                            <div className="modal-box">
+                                <form method="dialog">
+                                    <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                </form>
+                                <h3 className="font-bold text-lg">Export Data Excel</h3>
+                                <hr className="my-2 opacity-0" />
+                                <div className="flex flex-col md:flex-row md:items-center">
+                                    <p className="w-full text-sm opacity-70 md:w-2/5">
+                                        Semua Kolom Data?
+                                    </p>
+                                    <div className="flex w-full items-center gap-5 md:w-3/5">
+                                        <div className="flex items-center gap-2">
+                                            <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer" id="export_xlsx_semua_kolom" />
+                                             <label htmlFor="export_xlsx_semua_kolom" className="text-sm cursor-pointer">Ya</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                {exportExcel.allKolom === false && (
+                                    <div className="">
+                                        <hr className="my-1 opacity-0" />
+                                        <div className="flex flex-col md:flex-row md:items-center">
+                                            <p className="w-full text-sm opacity-70 md:w-2/5">
+                                                Kolom
+                                            </p>
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                                {Object.keys(exportKolom).map((kolom, index) => (
+                                                    <option key={index} value={kolom}>{exportKolom[kolom]}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <hr className="my-1 opacity-0" />
+                                        <p className="text-sm opacity-70">
+                                            Daftar Kolom Data
+                                        </p>
+                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1">
+                                            {exportExcel.kolomDataArr.map((kolomData, index) => (
+                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium">
+                                                    {kolomData['keyName']}
+                                                    <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
+                                                        <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                <hr className="my-2 opacity-0" />
+                                <p className={`${jakarta.className} text-sm`}>Apakah anda sudah yakin?</p>
+                                <hr className="my-1 opacity-0" />
+                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
+                                    <button type="button" onClick={() => submitExportExcel('xlsx', 'export_xlsx')} className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2 text-sm">
+                                        <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
+                                        Ya, Saya Yakin
+                                    </button>
+                                    <button type="button" onClick={() => {document.getElementById(`export_xlsx`).close(); setExportExcel({allKolom: true, kolomDataArr: []})}} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2 text-sm">
+                                        <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
+                                        Tidak
+                                    </button>
+                                </div>
+                            </div>
+                        </dialog>
                     </div>
                 </div>
                 <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">

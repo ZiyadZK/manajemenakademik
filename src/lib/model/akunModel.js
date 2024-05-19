@@ -6,7 +6,7 @@ import axios from "axios";
 import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher";
 import { logRiwayat } from "./riwayatModel";
 
-export const loginAkun = async (email, password) => {
+export const loginAkun = async (email, password, duration) => {
     // Ambil datanya
     
     const jsonBody = {
@@ -23,7 +23,8 @@ export const loginAkun = async (email, password) => {
         const responseData = response.data
         cookies().set('userdata', responseData.token, {
             httpOnly: true,
-            sameSite: true
+            sameSite: true,
+            maxAge: duration
         })
 
         return {

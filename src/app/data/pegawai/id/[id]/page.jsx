@@ -32,15 +32,13 @@ export default function PegawaiIDPage({params}) {
     const [data, setData] = useState(null)
     const [dataSertifikat, setDataSertifikat] = useState([])
     const [loadingFetch, setLoadingFetch] = useState('')
-    const [showCert, setShowCert] = useState('')
+    const [showCert, setShowCert] = useState('asesor')
 
     const getPegawai = async (id) => {
         setLoadingFetch('loading')
         const result = await getSinglePegawai({id_pegawai: id})
         const sertif_result = await getSertifikat(id)
-        console.log(sertif_result.data)
         setDataSertifikat(sertif_result.data)
-        console.log(result.data)
         setData(result.data)
         setLoadingFetch('fetched')
     }
@@ -276,7 +274,7 @@ export default function PegawaiIDPage({params}) {
                             <hr className="my-2 opacity-0" />
                             {showCert && (
                                 <div className="space-y-2">
-                                    {dataSertifikat.map((sertifikat, index) => sertifikat.jenis_sertifikat === showCert ? (
+                                    {dataSertifikat.map((sertifikat, index) => sertifikat.jenis_sertifikat === showCert && (
                                         <div key={`${index} - ${sertifikat.jenis_sertifikat}`} className="p-5 rounded-xl border space-y-2">
                                             <div className="flex flex-col md:flex-row md:items-center gap-1">
                                                 <p className="text-xs md:text-sm text-zinc-500 w-full md:w-2/5">
@@ -295,18 +293,13 @@ export default function PegawaiIDPage({params}) {
                                                 </a>
                                             </div>
                                         </div>
-                                    ):(
-                                        <div key={`${index} - ${sertifikat.jenis_sertifikat}`} className="w-full flex justify-center items-center gap-3 opacity-40">
-                                            <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit"/>
-                                            Pegawai ini belum punya sertifikat 
-                                        </div>
                                     ))}
-                                    {dataSertifikat.length < 1 && (
-                                        <div className="w-full flex justify-center items-center gap-3 opacity-40">
-                                            <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit"/>
-                                            Pegawai ini belum punya sertifikat 
-                                        </div>
-                                    )}
+                                </div>
+                            )}
+                            {dataSertifikat.length < 1 && (
+                                <div className="w-full flex justify-center items-center gap-3 opacity-40">
+                                    <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit"/>
+                                    Pegawai ini belum punya sertifikat 
                                 </div>
                             )}
                         </div>
