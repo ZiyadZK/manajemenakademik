@@ -2,14 +2,46 @@
 
 import MainLayoutPage from "@/components/mainLayout";
 import { mont } from "@/config/fonts";
+import { ioServer } from "@/lib/io";
 import { faList, faPieChart } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 export default function Home() {
 
   const [display, setDisplay] = useState('simple')
+
+  const [socketConnected, setSocketConnected] = useState(false)
+
+  useEffect(() => {
+    if(ioServer.connected) {
+      setSocketConnected(true)
+      console.log('Server Socket is Connected!')
+    }
+
+    ioServer.on('connect', () => {
+      setSocketConnected(true)
+      console.log('Server Socket is Connected!')
+    })
+    
+    ioServer.on('disconnect', () => {
+      setSocketConnected(false)
+      console.log('Server Socket is Disconnected!')
+    })
+
+    return () => {
+      ioServer.off('connect', () => {
+        setSocketConnected(true)
+        console.log('Server Socket is Connected!')
+      })
+
+      ioServer.off('disconnect', () => {
+        setSocketConnected(false)
+        console.log('Server Socket is Disconnected!')
+      })
+    }
+  }, [])
 
   return (
     <MainLayoutPage>

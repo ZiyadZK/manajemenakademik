@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { mont, rale } from "@/config/fonts";
 import { downloadCSV } from "@/lib/csvDownload";
+import { ioServer } from "@/lib/io";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
 import { faAlignLeft, faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faEye, faFile, faInfo, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -36,6 +37,7 @@ export default function DataAkunPage() {
     const [updateFormData, setUpdateFormData] = useState({
         id_akun: '', email_akun: '', nama_akun: '', role_akun: ''
     })
+    const [statusSocket, setStatusSocket] = useState('')
 
     const handleSorting = (key, otherKey) => {
         if(sorting[key] === '') {  
@@ -143,7 +145,9 @@ export default function DataAkunPage() {
 
                     toast.success('Berhasil menambahkan data!');
                     setNewFormData([])
-                    getAkun()
+                    if(statusSocket === 'offline') {
+                        getAkun()
+                    }
                 }else{
                     mySwal.close();
                     toast.error('Gagal menambahkan data!');
@@ -232,6 +236,21 @@ export default function DataAkunPage() {
         }
         filterAkunList()
     }, [searchValue, filterRole, viewSelectedOnly, sorting])
+
+    useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_AKUN', (data) => {
+            setAkunList(data);
+            setFilteredAkunList(data)
+        })
+    }, [])
 
     const submitEditAkun = async (e) => {
         e.preventDefault()
@@ -636,6 +655,42 @@ export default function DataAkunPage() {
                     </div>
                 </div>
             </div>
+            <hr className="my-2 opacity-0" />
+            <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3">
+                    <p className="text-xs opacity-70">
+                        Socket Server:
+                    </p>
+                    {statusSocket === '' && (
+                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                    )}
+                    {statusSocket === 'online' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            Online
+                        </div>
+                    )}
+                    {statusSocket === 'offline' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            Offline
+                        </div>
+                    )}
+                </div>
+                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                </button>
+            </div>
+            <dialog id="info_socket" className="modal">
+                <div className="modal-box">
+                    <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    </form>
+                    <h3 className="font-bold text-lg">Hello!</h3>
+                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                </div>
+            </dialog>
         </MainLayoutPage>
     )
 }

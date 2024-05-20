@@ -2,11 +2,12 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, nunito, rale } from "@/config/fonts"
+import { ioServer } from "@/lib/io"
 import { deleteGuruBK, deleteRoleKelas, deleteWaliKelas, getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
 import { getAllPegawai } from "@/lib/model/pegawaiModel"
 import { getAllSiswa } from "@/lib/model/siswaModel"
 import { faEdit, faFile, faTrashCan } from "@fortawesome/free-regular-svg-icons"
-import { faCircleCheck, faCircleXmark, faUser } from "@fortawesome/free-solid-svg-icons"
+import { faCircleCheck, faCircleXmark, faInfoCircle, faUser } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useCallback, useEffect, useState } from "react"
 import toast, { Toaster } from "react-hot-toast"
@@ -33,6 +34,24 @@ export default function DataKelasPage() {
         kelas: [], rombel: [], no_rombel: [], nama_walikelas: '', nama_guru_bk: ''
     })
     const [filterPegawai, setFilterPegawai] = useState('')
+
+    const [statusSocket, setStatusSocket] = useState('')
+
+    useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_KELAS', () => {
+            getKelasList()
+            getPegawaiList()
+            getDataKelas()
+        })
+    }, [])
 
     const submitFilterPegawai = () => {
         let updatedData = pegawaiList
@@ -97,7 +116,11 @@ export default function DataKelasPage() {
 
                 if(responseData.success) {
                     Swal.close()
-                    await getKelasList()
+                    if(statusSocket !== 'online') {
+                        getKelasList()
+                        getPegawaiList()
+                        getDataKelas()
+                    }
                     return toast.success(`Berhasil menambahkan data ${role} ${kelas} ${rombel} ${no_rombel}`)
                 }else{
                     Swal.fire({
@@ -129,9 +152,11 @@ export default function DataKelasPage() {
                         const responseData = await deleteRoleKelas({kelas, rombel, no_rombel}, role)
 
                         if(responseData.success) {
-                            await getKelasList()
-                            await getPegawaiList()
-                            await getDataKelas()
+                            if(statusSocket !== 'online') {
+                                getKelasList()
+                                getPegawaiList()
+                                getDataKelas()
+                            }
                             Swal.fire({
                                 title: 'Sukses',
                                 text: `Berhasil menghapus data ${role} untuk kelas ${kelas} ${rombel} ${no_rombel}`,
@@ -158,9 +183,14 @@ export default function DataKelasPage() {
         } 
     })
 
-    const submitFilterKelas = () => {
+    const submitFilterKelas = (data) => {
 
-        let updatedData = kelasList
+        let updatedData
+        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
+            updatedData = kelasList
+        }else{
+            updatedData = data
+        }
 
         // Filter kelas
         if(filterKelas['kelas'].length > 0) {
@@ -382,6 +412,41 @@ export default function DataKelasPage() {
                             <input type="text" onChange={e => changeFilterKelas('nama_guru_bk', e.target.value)} className="text-sm w-full border h-10 px-3 rounded bg-white" placeholder="Masukkan Nama di sini" />
                         </div>
                     </div>
+                    <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-3">
+                            <p className="text-xs opacity-70">
+                                Socket Server:
+                            </p>
+                            {statusSocket === '' && (
+                                <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                            )}
+                            {statusSocket === 'online' && (
+                                <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                    Online
+                                </div>
+                            )}
+                            {statusSocket === 'offline' && (
+                                <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                    Offline
+                                </div>
+                            )}
+                        </div>
+                        <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                            <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                        </button>
+                    </div>
+                    <dialog id="info_socket" className="modal">
+                        <div className="modal-box">
+                            <form method="dialog">
+                            {/* if there is a button in form, it will close the modal */}
+                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                            </form>
+                            <h3 className="font-bold text-lg">Hello!</h3>
+                            <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                        </div>
+                    </dialog>
                 </div>
                 <hr className="my-3" />
                 {kelasListLoading !== 'fetched' && (

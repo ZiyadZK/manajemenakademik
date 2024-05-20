@@ -3,9 +3,10 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
+import { ioServer } from "@/lib/io"
 import { deleteManyPegawai, deleteSinglePegawai, getAllPegawai } from "@/lib/model/pegawaiModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
-import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faPlus, faPlusSquare, faPrint, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPrint, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -61,6 +62,25 @@ export default function DataPegawaiPage () {
         allKolom: true, kolomDataArr: []
     })
 
+    const [statusSocket, setStatusSocket] = useState('')
+
+useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_PEGAWAI', (data) => {
+            setDataPegawai(data);
+
+            filterDataPegawai(data)
+            
+        })
+    }, [])
+
     const getPegawai = async () => {
         setLoadingFetch('loading');
         const response = await getAllPegawai()
@@ -103,11 +123,17 @@ export default function DataPegawaiPage () {
         getPegawai()
     }, [])
 
-    const filterDataPegawai = () => {
+    const filterDataPegawai = (data) => {
 
-        let updatedData;
+        let updatedData
+        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
+            updatedData = dataPegawai
+        }else{
+            updatedData = data
+        }
+
         // Cek filter jabatan
-        updatedData = dataPegawai.filter(({jabatan}) => jabatan.toLowerCase().includes(filterJabatan.toLowerCase()))
+        updatedData = updatedData.filter(({jabatan}) => jabatan.toLowerCase().includes(filterJabatan.toLowerCase()))
 
         // Cek filter status kepegawaian
         updatedData = updatedData.filter(({status_kepegawaian}) => status_kepegawaian.toLowerCase().includes(filterKepegawaian.toLowerCase()))
@@ -173,7 +199,9 @@ export default function DataPegawaiPage () {
                         text: "Berhasil menghapus data pegawai tersebut!",
                         timer: 3000
                     }).then(async () => {
-                        await getPegawai()
+                        if(statusSocket !== 'online') {
+                            await getPegawai()
+                        }
                     })
                 }else{
                     mySwal.fire({
@@ -212,7 +240,9 @@ export default function DataPegawaiPage () {
                         timer: 3000
                     }).then(async () => {
                         setSelectedPegawai([])
-                        await getPegawai()
+                        if(statusSocket !== 'online') {
+                            await getPegawai()
+                        }
                     })
                 }else{
                     mySwal.fire({
@@ -669,6 +699,42 @@ export default function DataPegawaiPage () {
                     </div>
                 </div>
             </div>
+            <hr className="my-2 opacity-0" />
+            <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3">
+                    <p className="text-xs opacity-70">
+                        Socket Server:
+                    </p>
+                    {statusSocket === '' && (
+                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                    )}
+                    {statusSocket === 'online' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            Online
+                        </div>
+                    )}
+                    {statusSocket === 'offline' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            Offline
+                        </div>
+                    )}
+                </div>
+                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                </button>
+            </div>
+            <dialog id="info_socket" className="modal">
+                <div className="modal-box">
+                    <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    </form>
+                    <h3 className="font-bold text-lg">Hello!</h3>
+                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                </div>
+            </dialog>
             <hr className="my-3 opacity-0" />
         </MainLayoutPage>
     )

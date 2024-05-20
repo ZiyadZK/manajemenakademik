@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, open, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
+import { ioServer } from "@/lib/io"
 import { model_deleteAlumni, model_getAllAlumni, model_updateAlumni } from "@/lib/model/alumniModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
 import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faCircleXmark, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
@@ -69,6 +70,45 @@ export default function DataAlumniMainPage() {
         allKolom: true, kolomDataArr: []
     })
 
+    const [statusSocket, setStatusSocket] = useState('')
+
+    useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_SISWA', (data) => {
+            console.log(data)
+            setSiswaList(data);
+            // Get all No Rombel
+            data.filter(({no_rombel}) => {
+                if(!listNoRombel.includes(no_rombel)) {
+                    listNoRombel.push(no_rombel)
+                }
+            })
+
+            // Get all Kelas
+            data.filter(({kelas}) => {
+                if(!listKelas.includes(kelas)) {
+                    listKelas.push(kelas)
+                }
+            })
+
+            // Get all rombel
+            data.filter(({rombel}) => {
+                if(!listRombel.includes(rombel)) {
+                    listRombel.push(rombel)
+                }
+            })
+
+            handleSubmitFilter(data)
+        })
+    }, [])
+
     const getSiswa = async () => {
         setLoadingFetch('loading');
         const response = await model_getAllAlumni()
@@ -116,8 +156,13 @@ export default function DataAlumniMainPage() {
         }
     }
 
-    const handleSubmitFilter = () => {
-        let updatedFilter = siswaList
+    const handleSubmitFilter = (data) => {
+        let updatedFilter
+        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
+            updatedFilter = siswaList
+        }else{
+            updatedFilter = data
+        }
         
         // Search Kelas
         if(kelas !== '') {
@@ -812,6 +857,42 @@ export default function DataAlumniMainPage() {
                     </div>
                 </div>
             </div>
+            <hr className="my-2 opacity-0" />
+            <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3">
+                    <p className="text-xs opacity-70">
+                        Socket Server:
+                    </p>
+                    {statusSocket === '' && (
+                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                    )}
+                    {statusSocket === 'online' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            Online
+                        </div>
+                    )}
+                    {statusSocket === 'offline' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            Offline
+                        </div>
+                    )}
+                </div>
+                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                </button>
+            </div>
+            <dialog id="info_socket" className="modal">
+                <div className="modal-box">
+                    <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    </form>
+                    <h3 className="font-bold text-lg">Hello!</h3>
+                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                </div>
+            </dialog>
             <hr className="my-3 opacity-0" />
             <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300">
                 

@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta } from "@/config/fonts"
 import { formattedDateTime } from "@/lib/dateConvertes"
+import { ioServer } from "@/lib/io"
 import { getAllRiwayat } from "@/lib/model/riwayatModel"
 import { faEdit } from "@fortawesome/free-regular-svg-icons"
 import { faArrowUp, faEllipsisH, faExclamationCircle, faInfoCircle, faMinus, faPlus, faTable, faTimeline } from "@fortawesome/free-solid-svg-icons"
@@ -38,6 +39,24 @@ export default function DataRiwayatPage() {
         aksi: [], kategori: [], usernameOrName: ''
     })
 
+    const [statusSocket, setStatusSocket] = useState('')
+
+    useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_RIWAYAT', (data) => {
+            setDataRiwayat(data);
+
+            submitFilterDataRiwayat(data)
+        })
+    }, [])
+
     const getDataRiwayat = async () => {
         const responseData = await getAllRiwayat()
         if(responseData.success) {
@@ -72,8 +91,13 @@ export default function DataRiwayatPage() {
         setFilterDataRiwayat(updatedFilter)
     };
 
-    const submitFilterDataRiwayat =  () => {
-        let updatedData = dataRiwayat
+    const submitFilterDataRiwayat =  (data) => {
+        let updatedData
+        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
+            updatedData = dataRiwayat
+        }else{
+            updatedData = data
+        }
 
         if(filterDataRiwayat['aksi'].length > 0) {
             updatedData = updatedData.filter(data => filterDataRiwayat['aksi'].includes(data['aksi']))
@@ -156,6 +180,41 @@ export default function DataRiwayatPage() {
                         </p>
                         <input type="text" value={filterDataRiwayat['usernameOrName']} onChange={e => changeFilterRiwayat('usernameOrName', e.target.value)} className="px-3 py-2 bg-white rounded text-sm border w-full md:w-3/5" placeholder="Cari di sini" />
                     </div>
+                    <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-3">
+                            <p className="text-xs opacity-70">
+                                Socket Server:
+                            </p>
+                            {statusSocket === '' && (
+                                <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                            )}
+                            {statusSocket === 'online' && (
+                                <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                    Online
+                                </div>
+                            )}
+                            {statusSocket === 'offline' && (
+                                <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                                    Offline
+                                </div>
+                            )}
+                        </div>
+                        <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                            <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                        </button>
+                    </div>
+                    <dialog id="info_socket" className="modal">
+                        <div className="modal-box">
+                            <form method="dialog">
+                            {/* if there is a button in form, it will close the modal */}
+                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                            </form>
+                            <h3 className="font-bold text-lg">Hello!</h3>
+                            <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                        </div>
+                    </dialog>
                 </div>
                 <hr className="my-2" />
                 <div className="grid grid-cols-12 w-full  bg-blue-500 *:px-2 *:py-3 text-white text-sm">

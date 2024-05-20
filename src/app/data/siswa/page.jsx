@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, open, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
+import { ioServer } from "@/lib/io"
 import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
 import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
@@ -69,6 +70,45 @@ export default function DataSiswaMainPage() {
         allKolom: true, kolomDataArr: []
     })
 
+    const [statusSocket, setStatusSocket] = useState('')
+
+    useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_SISWA', (data) => {
+            console.log(data)
+            setSiswaList(data);
+            // Get all No Rombel
+            data.filter(({no_rombel}) => {
+                if(!listNoRombel.includes(no_rombel)) {
+                    listNoRombel.push(no_rombel)
+                }
+            })
+
+            // Get all Kelas
+            data.filter(({kelas}) => {
+                if(!listKelas.includes(kelas)) {
+                    listKelas.push(kelas)
+                }
+            })
+
+            // Get all rombel
+            data.filter(({rombel}) => {
+                if(!listRombel.includes(rombel)) {
+                    listRombel.push(rombel)
+                }
+            })
+
+            handleSubmitFilter(data)
+        })
+    }, [])
+
     const getSiswa = async () => {
         setLoadingFetch('loading');
         const data = await getAllSiswa()
@@ -113,8 +153,16 @@ export default function DataSiswaMainPage() {
         }
     }
 
-    const handleSubmitFilter = () => {
-        let updatedFilter = siswaList
+    const handleSubmitFilter = (data) => {
+        let updatedFilter
+        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
+            updatedFilter = siswaList
+        }else{
+            updatedFilter = data
+        }
+
+        console.log(updatedFilter)
+        
         
         // Search Kelas
         if(kelas !== '') {
@@ -211,7 +259,9 @@ export default function DataSiswaMainPage() {
                         text: 'Mutasi data siswa berhasil!',
                         icon: 'success'
                     }).then( async () => {
-                        await getSiswa()
+                        if(statusSocket === 'offline') {
+                            await getSiswa()
+                        }
                     })
                 }
             }
@@ -254,7 +304,9 @@ export default function DataSiswaMainPage() {
                     didOpen: async () => {
                         const response = await deleteSingleSiswaByNis(nis)
                         if(response.success) {
-                            await getSiswa()
+                            if(statusSocket !== 'online') {
+                                await getSiswa()
+                            }
                             mySwal.fire({
                                 icon: 'success',
                                 title: 'Berhasil memproses data!',
@@ -300,7 +352,9 @@ export default function DataSiswaMainPage() {
                                 title: 'Berhasil memproses data!',
                                 timer: 2000,
                             }).finally(async () => {
-                                await getSiswa()
+                                if(statusSocket !== 'online') {
+                                    await getSiswa()
+                                }
                             })
                         }else{
                             mySwal.fire({
@@ -340,7 +394,9 @@ export default function DataSiswaMainPage() {
                                 confirmButtonText: 'Baik',
                                 timer: 5000
                             }).then(async () => {
-                                await getSiswa()
+                                if(statusSocket !== 'online') {
+                                    await getSiswa()
+                                }
                                 setSiswaTidakNaikKelas([])
                             })
                         }else{
@@ -438,9 +494,11 @@ export default function DataSiswaMainPage() {
                                 icon: 'success',
                                 text: 'Berhasil mengubah data tersebut!',
                                 title: 'Sukses'
-                            }).then(() => {
+                            }).then(async () => {
                                 setSelectedSiswa([])
-                                getSiswa()
+                                if(statusSocket !== 'online') {
+                                    await getSiswa()
+                                }
                             })
                         }else{
                             mySwal.fire({
@@ -889,20 +947,20 @@ export default function DataSiswaMainPage() {
                             </div>
                         </dialog>
                         <dialog id="export_xlsx" className="modal">
-                            <div className="modal-box">
+                            <div className="modal-box dark:bg-zinc-800">
                                 <form method="dialog">
-                                    <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                    <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute dark:text-white right-2 top-2">✕</button>
                                 </form>
-                                <h3 className="font-bold text-lg">Export Data Excel</h3>
+                                <h3 className="font-bold text-lg dark:text-zinc-200">Export Data Excel CSV</h3>
                                 <hr className="my-2 opacity-0" />
                                 <div className="flex flex-col md:flex-row md:items-center">
-                                    <p className="w-full text-sm opacity-70 md:w-2/5">
+                                    <p className="w-full text-sm opacity-70 md:w-2/5 dark:text-zinc-200">
                                         Semua Kolom Data?
                                     </p>
                                     <div className="flex w-full items-center gap-5 md:w-3/5">
                                         <div className="flex items-center gap-2">
                                             <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer" id="export_xlsx_semua_kolom" />
-                                             <label htmlFor="export_xlsx_semua_kolom" className="text-sm cursor-pointer">Ya</label>
+                                             <label htmlFor="export_xlsx_semua_kolom" className="text-sm cursor-pointer dark:text-zinc-200">Ya</label>
                                         </div>
                                     </div>
                                 </div>
@@ -910,10 +968,10 @@ export default function DataSiswaMainPage() {
                                     <div className="">
                                         <hr className="my-1 opacity-0" />
                                         <div className="flex flex-col md:flex-row md:items-center">
-                                            <p className="w-full text-sm opacity-70 md:w-2/5">
+                                            <p className="w-full text-sm opacity-70 md:w-2/5 dark:text-zinc-200">
                                                 Kolom
                                             </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 dark:focus:border-zinc-600 hover:border-zinc-500 dark:hover:border-zinc-600 max-h-[100px]">
                                                 {Object.keys(exportKolom).map((kolom, index) => (
                                                     <option key={index} value={kolom}>{exportKolom[kolom]}</option>
                                                 ))}
@@ -953,22 +1011,22 @@ export default function DataSiswaMainPage() {
                     </div>
                 </div>
                 <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
-                    <p className={`${mont.className} px-2 text-xs`}>
+                    <p className={`${mont.className} px-2 text-xs dark:text-zinc-400`}>
                         {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > siswaList.length ? siswaList.length : totalList * pagination} dari {siswaList.length} data
                     </p>
                     <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 dark:bg-zinc-700/20 rounded flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700/40 text-zinc-500 hover:text-amber-700 dark:hover:text-amber-500 focus:bg-amber-100 dark:focus:bg-zinc-700/50 focus:text-amber-700 dark:focus:text-amber-500 outline-none">
                             <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
                         </button>
-                        <p className="font-medium text-zinc-600">
+                        <p className="font-medium text-zinc-600 dark:text-amber-500">
                             {pagination}
                         </p>
-                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(siswaList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(siswaList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 dark:bg-zinc-700/20 rounded flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700/40 text-zinc-500 hover:text-amber-700 dark:hover:text-amber-500 focus:bg-amber-100 dark:focus:bg-zinc-700/50 focus:text-amber-700 dark:focus:text-amber-500 outline-none">
                             <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
+                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 dark:bg-zinc-700/10 dark:hover:bg-zinc-700/50 dark:text-zinc-200 rounded bg-transparent">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
@@ -977,19 +1035,55 @@ export default function DataSiswaMainPage() {
                     </div>
                 </div>
             </div>
+            <hr className="my-2 opacity-0" />
+            <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3">
+                    <p className="text-xs opacity-70">
+                        Socket Server:
+                    </p>
+                    {statusSocket === '' && (
+                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                    )}
+                    {statusSocket === 'online' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            Online
+                        </div>
+                    )}
+                    {statusSocket === 'offline' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            Offline
+                        </div>
+                    )}
+                </div>
+                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                </button>
+            </div>
+            <dialog id="info_socket" className="modal">
+                <div className="modal-box">
+                    <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    </form>
+                    <h3 className="font-bold text-lg">Hello!</h3>
+                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                </div>
+            </dialog>
             <hr className="my-3 opacity-0" />
-            <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300">
+            <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 dark:border-zinc-700 flex flex-col md:flex-row gap-5 transition-all duration-300">
                 <div className="w-full md:w-1/2">
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/10 text-blue-600 flex items-center justify-center">
                             <FontAwesomeIcon icon={faAngleDoubleUp} className="w-4 h-4 text-inherit" />
                         </div>
-                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-zinc-800`}>
+                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-zinc-800 dark:from-blue-500 dark:to-white`}>
                             Kenaikan Kelas
                         </h1>
                     </div>
                     <hr className="my-2 opacity-0" />
-                    <select  value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border cursor-pointer bg-transparent">
+                    <select  value={kriteriaNaikKelas} onChange={e => setKriteriaNaiKelas(e.target.value)} className="w-full md:w-3/4 px-3 py-1 rounded-full border dark:border-zinc-700 cursor-pointer bg-transparent dark:text-zinc-300 dark:bg-zinc-700/50">
                         <option value="" disabled>-- Pilih Data --</option>
                         <option value="semua">Naikkan Semua Kelas</option>
                         <option value="beberapa">Naikkan Semua Kelas, kecuali..</option>
@@ -997,36 +1091,36 @@ export default function DataSiswaMainPage() {
                     <hr className="my-2 opacity-0" />
                     {kriteriaNaikKelas === 'beberapa' && (
                         <>
-                            <div className="grid grid-cols-10 px-1 py-2 border-y border-zinc-300 bg-zinc-50 text-xs">
-                                <p className="col-span-8 md:col-span-4 font-medium text-zinc-600">
+                            <div className="grid grid-cols-10 px-1 py-2 border-y border-zinc-300 bg-zinc-50 dark:bg-zinc-700/50 dark:border-zinc-600 text-xs">
+                                <p className="col-span-8 md:col-span-4 font-medium text-zinc-600 dark:text-zinc-300">
                                     Nama
                                 </p>
-                                <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                <div className="col-span-2 hidden md:block font-medium text-zinc-600 dark:text-zinc-300">
                                     Kelas
                                 </div>
-                                <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                <div className="col-span-2 hidden md:block font-medium text-zinc-600 dark:text-zinc-300">
                                     NIS
                                 </div>
                                 <div className="col-span-2  flex items-center justify-center"></div>
                             </div>
-                            <div className={`${mont.className} divide-y relative overflow-auto w-full h-fit max-h-48`}>
+                            <div className={`${mont.className} divide-y relative overflow-auto w-full h-fit max-h-48 dark:divide-zinc-700`}>
                                 {siswaTidakNaikKelas.map(siswa => (
                                     <div key={siswa} className="grid grid-cols-10 px-1 py-2  text-xs group">
-                                        <p className="col-span-8 md:col-span-4 font-medium text-zinc-600 flex items-center gap-2">
+                                        <p className="col-span-8 md:col-span-4 font-medium text-zinc-600 dark:text-zinc-300 flex items-center gap-2">
                                             {siswa.nama_siswa}
                                             
                                         </p>
-                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600 dark:text-zinc-300">
                                             {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
                                         </div>
-                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600">
+                                        <div className="col-span-2 hidden md:block font-medium text-zinc-600 dark:text-zinc-300">
                                             {siswa.nis}
                                         </div>
                                         <div className="col-span-2  flex items-center justify-center gap-1">
-                                            <a href={`/data/siswa/nis/${siswa.nis}`} target="_blank" className="w-5 h-5 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center hover:bg-blue-200 hover:text-blue-800 opacity-0 group-hover:opacity-100" title="Lihat detail">
+                                            <a href={`/data/siswa/nis/${siswa.nis}`} target="_blank" className="w-5 h-5 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-400 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-500/20 hover:text-blue-800 dark:hover:text-blue-500 opacity-0 group-hover:opacity-100" title="Lihat detail">
                                                 <FontAwesomeIcon icon={faSearch} className="w-2 h-2 text-inherit" />
                                             </a>
-                                            <button type="button" onClick={() => removeSiswaTidakNaikKelas(siswa.nis)} className="w-5 h-5 rounded-full bg-zinc-50 text-zinc-400 flex items-center justify-center hover:bg-zinc-200 hover:text-zinc-800">
+                                            <button type="button" onClick={() => removeSiswaTidakNaikKelas(siswa.nis)} className="w-5 h-5 rounded-full bg-zinc-50 dark:bg-zinc-700/10 text-zinc-400 flex items-center justify-center hover:bg-zinc-200 dark:hover:bg-zinc-700/30 hover:text-zinc-800 dark:hover:text-zinc-300">
                                                 <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
                                             </button>
                                         </div>
@@ -1038,19 +1132,19 @@ export default function DataSiswaMainPage() {
                     <hr className="my-2 opacity-0" />
                     <div className="flex items-center gap-5">
                         {kriteriaNaikKelas === 'semua' && (
-                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700  font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 dark:hover:bg-green-500/30 dark:hover:text-green-500 hover:text-white">
                                 <FontAwesomeIcon icon={faAnglesUp} className="w-4 h-4 text-inherit" />
                                 Naikkan Kelas
                             </button>
                         )}
                         {kriteriaNaikKelas === 'beberapa'  && siswaTidakNaikKelas.length > 0 && (
-                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                            <button type="button" onClick={() => naikKelasSemua()} className="px-3 py-2 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 dark:hover:bg-green-500/30 dark:hover:text-green-500 hover:text-white">
                                 <FontAwesomeIcon icon={faAnglesUp} className="w-4 h-4 text-inherit" />
                                 Naikkan Kelas
                             </button>
                         )}
                         {kriteriaNaikKelas !== "" && (
-                            <button type="button" onClick={() => batalNaikKelas()} className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-400 font-medium flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-700">
+                            <button type="button" onClick={() => batalNaikKelas()} className="px-3 py-2 rounded-full bg-zinc-100 dark:bg-zinc-700/50 text-zinc-400 font-medium flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-300">
                                 <FontAwesomeIcon icon={faXmarkCircle} className="w-4 h-4 text-inherit" />
                                 Batal
                             </button>
@@ -1060,41 +1154,41 @@ export default function DataSiswaMainPage() {
                 </div>
                 <form onSubmit={submitUpdateBersama} className="w-full md:w-1/2">
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-cyan-100 dark:bg-cyan-500/10 text-cyan-600 flex items-center justify-center">
                             <FontAwesomeIcon icon={faWandMagicSparkles} className="w-4 h-4 text-inherit" />
                         </div>
-                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-zinc-800`}>
+                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-zinc-800 dark:to-white`}>
                             Ubah Data Bersamaan
                         </h1>
                     </div>
                     <hr className="my-2 opacity-0" />
                     <div className={`${selectedSiswa && selectedSiswa.length < 1 ? 'flex' : 'hidden'} items-center gap-3`}>
-                        <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
+                        <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300 dark:text-zinc-600" />
                         <h1 className="text-zinc-500">Silahkan pilih data diatas terlebih dahulu.</h1>
                     </div>
                     <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} gap-3 flex-col md:flex-row w-full`}>
                         <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:border-zinc-700 dark:bg-zinc-700/50 dark:text-white">
                                 <option value="" disabled>-- Pilih Kelas --</option>
                                 <option value="X">X</option>
                                 <option value="XI">XI</option>
                                 <option value="XII">XII</option>
                             </select>
-                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:border-zinc-700 dark:bg-zinc-700/50 dark:text-white">
                                 <option value="" disabled>-- Pilih No Rombel --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
                                 <option value="4">4</option>
                             </select>
-                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full bg-transparent" placeholder="Tahun Masuk" />
+                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full bg-transparent dark:border-zinc-700 dark:bg-zinc-700/50 dark:text-white" placeholder="Tahun Masuk" />
                             <div className="flex w-full items-center gap-2">
-                                <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
-                                <h1 className="text-zinc-500 text-xs">Jangan di isi jika tidak ingin mengubah tahun masuk</h1>
+                                <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300 dark:textx-zinc-700" />
+                                <h1 className="text-zinc-500 text-xs ">Jangan di isi jika tidak ingin mengubah tahun masuk</h1>
                             </div>
                         </div>
                         <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:border-zinc-700 dark:bg-zinc-700/50 dark:text-white">
                                 <option value="" disabled>-- Pilih Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="TITL">TITL</option>
@@ -1103,7 +1197,7 @@ export default function DataSiswaMainPage() {
                                 <option value="TKR">TKR</option>
                                 <option value="TPM">TPM</option>
                             </select>
-                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:border-zinc-700 dark:bg-zinc-700/50 dark:text-white">
                                 <option value="" disabled>-- Pilih Status --</option>
                                 <option value="aktif">Aktif</option>
                                 <option value="tidak">Tidak Aktif</option>
@@ -1112,7 +1206,7 @@ export default function DataSiswaMainPage() {
                     </div>
                     <hr className="my-2 opacity-0" />
                     <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center gap-3`}>
-                        <button type="submit"  className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                        <button type="submit"  className="px-3 py-2 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 dark:hover:bg-green-500/20 hover:text-white dark:hover:text-green-400">
                             <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
                             Simpan Perubahan
                         </button>

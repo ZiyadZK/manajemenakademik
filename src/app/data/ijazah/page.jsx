@@ -4,9 +4,10 @@ import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
 import { dateToIso, isoToDate } from "@/lib/dateConvertes"
+import { ioServer } from "@/lib/io"
 import { deleteMultiIjazah, getAllIjazah, updateMultiIjazah } from "@/lib/model/ijazahModel"
 import { exportToXLSX } from "@/lib/xlsxLibs"
-import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckCircle, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faPlus, faPrint, faTrash, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckCircle, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPrint, faTrash, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -46,6 +47,25 @@ export default function DataIjazahPage() {
         allKolom: true, kolomDataArr: []
     })
 
+    const [statusSocket, setStatusSocket] = useState('')
+
+    useEffect(() => {
+
+        if(ioServer.connected) {
+            setStatusSocket('online')
+        }else{
+            console.log('Socket Server is offline!')
+            setStatusSocket('offline')
+        }
+
+        ioServer.on('SIMAK_IJAZAH', (data) => {
+            setDataIjazah(data)
+            handleSubmitFilter(data)
+        })
+
+    }, [])
+    
+
     const getDataIjazah = async () => {
         setLoadingFetch('loading')
         const response = await getAllIjazah()
@@ -60,8 +80,13 @@ export default function DataIjazahPage() {
         getDataIjazah()
     }, [])
 
-    const handleSubmitFilter = () => {
-        let updatedFilter = dataIjazah
+    const handleSubmitFilter = (data) => {
+        let updatedFilter
+        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
+            updatedFilter = dataIjazah
+        }else{
+            updatedFilter = data
+        }
         
         // Search Kelas
         if(kelas !== '') {
@@ -162,7 +187,9 @@ export default function DataIjazahPage() {
                 const response = await updateMultiIjazah([nisn], payload)
                 if(response.success) {
                     Swal.close()
-                    await getDataIjazah()
+                    if(statusSocket !== 'online') {
+                        await getDataIjazah()
+                    }
                     return toast.success(`Berhasil mengubah data ijazah untuk ${nama_lulusan}`)
                 }else{
                     Swal.fire({
@@ -201,7 +228,9 @@ export default function DataIjazahPage() {
                         }
                         if(response.success){
                             Swal.close()
-                            await getDataIjazah()
+                            if(statusSocket !== 'online') {
+                                await getDataIjazah()
+                            }
                             return toast.success('Berhasil menghapus data ijazah tersebut!')
                         }else{
                             Swal.fire({
@@ -247,7 +276,9 @@ export default function DataIjazahPage() {
                 const response = await updateMultiIjazah([nisn], editFormData)
                 document.getElementById(modal).close()
                 if(response.success) {
-                    await getDataIjazah()
+                    if(statusSocket !== 'online') {
+                        await getDataIjazah()
+                    }
                     return toast.success('Berhasil mengubah data tersebut!')
                 }else{
                     Swal.fire({
@@ -934,6 +965,42 @@ export default function DataIjazahPage() {
                     </div>
                 </div>
             </div>
+            <hr className="my-2 opacity-0" />
+            <div className="flex items-center gap-5">
+                <div className="flex items-center gap-3">
+                    <p className="text-xs opacity-70">
+                        Socket Server:
+                    </p>
+                    {statusSocket === '' && (
+                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                    )}
+                    {statusSocket === 'online' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            Online
+                        </div>
+                    )}
+                    {statusSocket === 'offline' && (
+                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
+                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                            Offline
+                        </div>
+                    )}
+                </div>
+                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
+                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+                </button>
+            </div>
+            <dialog id="info_socket" className="modal">
+                <div className="modal-box">
+                    <form method="dialog">
+                    {/* if there is a button in form, it will close the modal */}
+                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                    </form>
+                    <h3 className="font-bold text-lg">Hello!</h3>
+                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                </div>
+            </dialog>
         </MainLayoutPage>
     )
 }
