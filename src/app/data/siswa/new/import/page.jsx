@@ -417,12 +417,12 @@ export default function DataSiswaNewImportPage() {
             <hr className="my-1 md:my-2 opacity-0" />
             <div className={`flex md:items-center md:justify-between w-full md:flex-row flex-col gap-5`}>
                 <div className="flex items-center gap-5 md:gap-5">
-                    <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
+                    <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-700/50 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700">
                         <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
                     </button>
                     <div className="flex items-center gap-2">
                         <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-blue-600" />
-                        <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text">
+                        <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text dark:to-white">
                             Import Data Siswa
                         </h1>
                     </div>
@@ -430,17 +430,17 @@ export default function DataSiswaNewImportPage() {
             </div>
             <hr className="my-3 opacity-0" />
             <div className="flex md:items-center md:justify-between md:flex-row flex-col gap-5 md:gap-0">
-                <p className="text-sm md:w-1/2 w-full">
-                    Anda bisa melakukan <span className=" text-blue-600 font-medium">import data</span> menggunakan file <span className="font-medium">Excel (.xlsx)</span> ataupun menggunakan <span className="font-medium">CSV</span> yang berisi data-data sesuai dengan ketentuan yang sudah disiapkan. <br /> <br />
+                <p className="text-sm md:w-1/2 w-full dark:text-zinc-400">
+                    Anda bisa melakukan <span className=" text-blue-600 dark:text-blue-400 font-medium">import data</span> menggunakan file <span className="font-medium">Excel (.xlsx)</span> ataupun menggunakan <span className="font-medium">CSV</span> yang berisi data-data sesuai dengan ketentuan yang sudah disiapkan. <br /> <br />
                     Sebelum melakukan Import, anda bisa terlebih dahulu mengecek apa saja kolom-kolom yang diperlukan sebelum melakukan import data di <span className=" inline md:hidden font-medium">bawah</span> <span className="md:inline hidden font-medium">pinggir</span> ini. <br /> <br />
                     Jika anda mengalami kesulitan untuk menyesuaikan data yang anda miliki, anda bisa menghubungi <span className="font-medium">Administrator</span> agar bisa disesuaikan oleh mereka.
                 </p>
-                <div className="p-3 rounded bg-zinc-50 w-full md:w-1/3">
-                    <p>
-                        <span className="text-zinc-300 font-bold">#</span> Contoh File Excel
+                <div className="p-3 rounded bg-zinc-50 dark:bg-zinc-700/50 w-full md:w-1/3">
+                    <p className="dark:text-zinc-500">
+                        <span className="text-zinc-300 font-bold dark:text-zinc-700">#</span> Contoh File Excel
                     </p>
                     <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => downloadFormatExample('xlsx')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
+                        <button type="button" onClick={() => downloadFormatExample('xlsx')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-zinc-700 dark:hover:bg-blue-500/10 dark:text-zinc-500 dark:hover:text-blue-600">
                             <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                             Unduh
                         </button>
@@ -449,11 +449,11 @@ export default function DataSiswaNewImportPage() {
                         </p>
                     </div>
                     <hr className="my-2 opacity-0" />
-                    <p>
-                        <span className="text-zinc-300 font-bold">#</span> Contoh File CSV
+                    <p className="dark:text-zinc-500">
+                        <span className="text-zinc-300 font-bold dark:text-zinc-700">#</span> Contoh File CSV
                     </p>
                     <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => downloadFormatExample('csv')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
+                        <button type="button" onClick={() => downloadFormatExample('csv')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-zinc-700 dark:hover:bg-blue-500/10 dark:text-zinc-500 dark:hover:text-blue-600">
                             <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                             Unduh
                         </button>
@@ -463,11 +463,11 @@ export default function DataSiswaNewImportPage() {
                     </div>
                 </div>
             </div>
-            <hr className="my-3 w-full" />
+            <hr className="my-3 w-full dark:opacity-20" />
             <div className="flex items-center gap-5 flex-col md:flex-row">
 
                 <form onSubmit={submitFile} className="flex items-center gap-5 flex-col md:flex-row">
-                    <input type="file"  required onChange={e => handleChangeFile(e.target.files[0])} className=" border" />
+                    <input type="file"  required onChange={e => handleChangeFile(e.target.files[0])} className=" border dark:border-zinc-700 dark:text-zinc-500" />
                     {file && file.name.split('.').pop() === 'xlsx' && (
                         <select className="border rounded px-3 py-1 w-full md:w-fit" value={namaSheet} onChange={e => setNamaSheet(e.target.value)}>
                             <option value={''} disabled>-- Pilih Sheets --</option>
@@ -476,23 +476,23 @@ export default function DataSiswaNewImportPage() {
                             ))}
                         </select>
                     )}
-                    <button type="submit" disabled={loadingReadFormat === 'loading' ? true : false} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 w-full md:w-fit text-teal-600 hover:bg-teal-200 hover:text-teal-800">
+                    <button type="submit" disabled={loadingReadFormat === 'loading' ? true : false} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 dark:bg-teal-500/10 w-full md:w-fit text-teal-600 hover:bg-teal-200 dark:hover:bg-teal-500/20 dark:hover:text-teal-500 hover:text-teal-800">
                         <FontAwesomeIcon icon={loadingReadFormat === 'loading' ? faSpinner : faUpload} className={`${loadingReadFormat === 'loading' && 'animate-spin'} w-3 h-3 text-inherit`} />
                         Upload
                     </button>
                 </form>
                 <div className="flex items-center gap-5 w-full">
                     {uploadedFile && (
-                        <button type="button" onClick={() => document.getElementById('informasi_file').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
+                        <button type="button" onClick={() => document.getElementById('informasi_file').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100  w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800 dark:bg-zinc-100/10 dark:text-zinc-100/50 dark:hover:bg-zinc-100/20 dark:hover:text-zinc-100/50">
                             <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
                             Cek File
                         </button>
                     )}
                     <dialog id="informasi_file" className="modal">
-                        <div className="modal-box bg-white">
+                        <div className="modal-box bg-white dark:bg-zinc-800">
                             <div className="flex items-center gap-3">
-                                <h3 className="font-bold text-lg">Informasi File</h3>
-                                <p className={`w-fit px-3 py-1 rounded-full text-xs bg-green-50 text-green-700`}>
+                                <h3 className="font-bold text-lg dark:text-zinc-200">Informasi File</h3>
+                                <p className={`w-fit px-3 py-1 rounded-full text-xs bg-green-50 text-green-700 dark:bg-green-500/10`}>
                                     Sukses
                                 </p>
                             </div>
@@ -501,7 +501,7 @@ export default function DataSiswaNewImportPage() {
                                     <p className="text-zinc-500 md:text-sm text-xs">
                                         Ekstensi
                                     </p>
-                                    <p className="font-medium">
+                                    <p className="font-medium dark:text-zinc-200">
                                         .{informasiFile.ekstensi}
                                     </p>
                                 </div>
@@ -509,7 +509,7 @@ export default function DataSiswaNewImportPage() {
                                     <p className="text-zinc-500 md:text-sm text-xs">
                                         Ukuran
                                     </p>
-                                    <p className="font-medium">
+                                    <p className="font-medium dark:text-zinc-200">
                                         {informasiFile.size}
                                     </p>
                                 </div>
@@ -517,7 +517,7 @@ export default function DataSiswaNewImportPage() {
                                     <p className="text-zinc-500 md:text-sm text-xs">
                                         Jumlah data
                                     </p>
-                                    <p className="font-medium">
+                                    <p className="font-medium dark:text-zinc-200">
                                         {informasiFile.jumlahData} baris
                                     </p>
                                 </div>
@@ -528,16 +528,16 @@ export default function DataSiswaNewImportPage() {
                         </form>
                     </dialog>
                     {uploadedFile && (
-                        <button type="button" onClick={() => document.getElementById('informasi_kolom').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
+                        <button type="button" onClick={() => document.getElementById('informasi_kolom').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800 dark:bg-zinc-100/10 dark:text-zinc-100/50 dark:hover:bg-zinc-100/20 dark:hover:text-zinc-100/50">
                             <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
                             Cek Kolom
                         </button>
                     )}
                     <dialog id="informasi_kolom" className="modal">
-                        <div className="modal-box bg-white">
-                            <h3 className="font-bold text-lg">Informasi Kolom</h3>
-                            <div className="divide-y mt-3">    
-                                <div className=" grid grid-cols-7 divide-x">
+                        <div className="modal-box bg-white dark:bg-zinc-800">
+                            <h3 className="font-bold text-lg dark:text-zinc-200">Informasi Kolom</h3>
+                            <div className="divide-y mt-3 dark:divide-zinc-700">    
+                                <div className=" grid grid-cols-7 divide-x dark:divide-zinc-700">
                                     <div className="col-span-4">
                                         <div className="flex items-center">
                                             <p className="text-xs md:text-sm text-zinc-400 text-center w-full">
@@ -557,7 +557,7 @@ export default function DataSiswaNewImportPage() {
                                     <div key={format} className=" grid grid-cols-7 py-1">
                                         <div className="col-span-4">
                                             <div className="flex items-center h-full">
-                                                <p className="text-xs md:text-sm text-zinc-700 font-medium text-center w-full align-middle">
+                                                <p className="text-xs md:text-sm text-zinc-700 font-medium text-center w-full align-middle dark:text-zinc-300">
                                                     {format}
                                                 </p>
                                             </div>
@@ -565,7 +565,7 @@ export default function DataSiswaNewImportPage() {
                                         <div className="col-span-3">
                                             {informasiKolom[format] === 'cocok' && (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-green-700 bg-green-50 gap-3 rounded-full">
+                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-green-700 bg-green-50 gap-3 rounded-full dark:bg-green-500/10 dark:text-green-500">
                                                         <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-green-700" />
                                                         Cocok
                                                     </div>
@@ -573,7 +573,7 @@ export default function DataSiswaNewImportPage() {
                                             )}
                                             {informasiKolom[format] === 'tidak cocok' && (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full">
+                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full dark:bg-red-500/10 dark:text-red-500">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-red-700" />
                                                         Tidak Cocok
                                                     </div>
@@ -581,7 +581,7 @@ export default function DataSiswaNewImportPage() {
                                             )}
                                            {informasiKolom[format] === 'tidak ada' && (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full">
+                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full dark:bg-red-500/10 dark:text-red-500">
                                                         <FontAwesomeIcon icon={faExclamation} className="w-3 h-3 text-red-700" />
                                                         Tidak Ada Kolom
                                                     </div>
@@ -599,7 +599,7 @@ export default function DataSiswaNewImportPage() {
                 </div>
             </div>
             <hr className="my-3 w-full opacity-0" />
-            <div className="grid grid-cols-12 w-full  bg-blue-500 *:px-2 *:py-3 text-white text-sm shadow-xl">
+            <div className="grid grid-cols-12 w-full  bg-blue-500 dark:bg-blue-700/70 *:px-2 *:py-3 text-white text-sm shadow-xl">
                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                     <input type="checkbox" name="" id="" />
                     Nama
@@ -617,27 +617,27 @@ export default function DataSiswaNewImportPage() {
                     <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full h-full rounded py-2 px-3 text-zinc-800" placeholder="Cari" />
                 </div>
             </div>
-            <div className="relative w-full h-fit max-h-[300px] divide-y overflow-auto">
+            <div className="relative w-full h-fit max-h-[300px] divide-y overflow-auto dark:divide-zinc-600">
                 {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map(siswa => (
-                    <div key={siswa.nis} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
+                    <div key={siswa.nis} className="grid grid-cols-12 w-full  dark:divide-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-700/30 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
                         <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
-                            <div className="flex-grow flex items-center gap-2">
+                            <div className="flex-grow flex items-center gap-2 dark:text-zinc-400">
                                 <input type="checkbox" checked={selectedSiswa.includes(siswa.nis)} onChange={() => addSelectedSiswa(siswa.nis)} />
                                 {siswa.nama_siswa}
                             </div>
                             <FontAwesomeIcon icon={faCircleCheck} className="w-4 h-4 flex-shrink-0 text-green-600/50" />
                         </div>
-                        <div className="hidden md:flex items-center col-span-2">
+                        <div className="hidden md:flex items-center col-span-2 dark:text-zinc-400">
                             {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
                         </div>
-                        <div className="hidden md:flex items-center col-span-2 gap-3">
+                        <div className="hidden md:flex items-center col-span-2 gap-3 dark:text-zinc-400">
                             {siswa.tahun_masuk}
                         </div>
-                        <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1`}>
-                            <p className="px-2 py-1 rounded-full bg-zinc-100">
+                        <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1 dark:text-zinc-400`}>
+                            <p className="px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-100/10">
                                 {siswa.nis}
                             </p>
-                            <p className="px-2 py-1 rounded-full bg-zinc-100">
+                            <p className="px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-100/10">
                                 {siswa.nisn}
                             </p>
                         </div>
@@ -646,9 +646,9 @@ export default function DataSiswaNewImportPage() {
                                 <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                             </button>
                             <dialog id={`informasi_siswa_${siswa.nis}`} className="modal">
-                                <div className="modal-box bg-white max-w-[64rem]">
+                                <div className="modal-box bg-white max-w-[64rem] dark:bg-zinc-800">
                                     <div className="flex items-center gap-3">
-                                        <h3 className="font-bold text-lg">Informasi Siswa</h3>
+                                        <h3 className="font-bold text-lg dark:text-zinc-200">Informasi Siswa</h3>
                                     </div>
                                     <article className={`${mont.className}  mt-3 flex gap-3 md:flex-row flex-col font-normal`}>
                                         <div className="md:w-1/2 w-full space-y-1">
@@ -657,7 +657,7 @@ export default function DataSiswaNewImportPage() {
                                                     <div className="col-span-2 text-zinc-400 font-normal">
                                                         {format.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
                                                     </div>
-                                                    <div className="col-span-4">
+                                                    <div className="col-span-4 dark:text-zinc-200">
                                                         {siswa[format]}
                                                     </div>
                                                 </div>
@@ -669,7 +669,7 @@ export default function DataSiswaNewImportPage() {
                                                     <div className="col-span-2 text-zinc-400 font-normal">
                                                         {format.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
                                                     </div>
-                                                    <div className="col-span-4">
+                                                    <div className="col-span-4 dark:text-zinc-200">
                                                         {siswa[format]}
                                                     </div>
                                                 </div>
@@ -688,43 +688,43 @@ export default function DataSiswaNewImportPage() {
                     </div>
                 ))}
             </div>
-            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300">
+            <div className="w-full flex md:items-center md:justify-between px-2 dark:border-zinc-600 dark:bg-zinc-700/30 py-1 flex-col md:flex-row border-y border-zinc-300">
                 <div className="flex-grow flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium">
+                        <p className="text-xs font-medium dark:text-zinc-500">
                             {selectedSiswa.length} Data terpilih
                         </p>
                         
                     </div>
                     <div className="flex items-center gap-2">
-                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
+                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
                             <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                         </button>
-                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300`}>
+                        <button type="button"  className={`w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 `}>
                             <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
-                        <button type="button" className={`w-7 h-7 ${selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
+                        <button type="button" className={`w-7 h-7 ${selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500`}>
                             <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
                     </div>
                 </div>
                 <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
-                    <p className={`${mont.className} px-2 text-xs`}>
-                    {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > filteredData.length ? filteredData.length : totalList * pagination} dari {data.length} data
+                    <p className={`${mont.className} px-2 text-xs dark:text-zinc-500`}>
+                        {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > filteredData.length ? filteredData.length : totalList * pagination} dari {data.length} data
                     </p>
                     <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)}  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)}  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-amber-500">
                             <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
                         </button>
                         <p className="font-medium text-zinc-600">
                             {pagination}
                         </p>
-                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(filteredData.length / totalList) ? state + 1 : state)}  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(filteredData.length / totalList) ? state + 1 : state)}  className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-amber-500">
                             <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select value={totalList} onChange={e => setTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
+                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 dark:bg-zinc-700/10 dark:hover:bg-zinc-700/50 dark:text-zinc-200 rounded bg-transparent">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
