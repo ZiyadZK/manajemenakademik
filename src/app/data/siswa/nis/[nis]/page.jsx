@@ -6,7 +6,8 @@ import { deleteSingleSiswaByNis, getSiswaByNIS } from "@/lib/model/siswaModel"
 import { faArrowLeft, faCheckCircle, faDownload, faEdit, faPrint, faTrash, faUserCheck, faUserTag } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useReactToPrint } from "react-to-print"
 import Swal from "sweetalert2"
 
 const formatDataPribadi = ['kelas', 'nama_siswa', 'nis', 'nisn', 'nik', 'no_kk', 'tempat_lahir', 'tanggal_lahir', 'jenis_kelamin', 'agama', 'status_dalam_keluarga', 'anak_ke', 'alamat', 'no_hp_siswa', 'asal_sekolah', 'kategori', 'tahun_masuk', 'aktif']
@@ -41,6 +42,7 @@ export default function DataSiswaNISPage({params}) {
     const [dataSiswa, setDataSiswa] = useState()
     const [dataExist, setDataExist] = useState()
     const [loadingState, setLoadingState] = useState('')
+
     const getSiswa = async (nis) => {
         setLoadingState('loading')
         const result = await getSiswaByNIS(nis)
@@ -101,7 +103,7 @@ export default function DataSiswaNISPage({params}) {
             <div className={`${mont.className} w-full`}>
                 {loadingState === '' && <Skeleton/>}
                 {loadingState === 'data exist' && (
-                    <>
+                    <div>
                         <div className="flex md:justify-between md:items-center md:flex-row flex-col gap-5 w-full">
                             <div className="flex items-center gap-5 md:gap-5">
                                 <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-700/50 text-zinc-800 dark:text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700">
@@ -117,7 +119,7 @@ export default function DataSiswaNISPage({params}) {
                             <div className={`w-full md:w-1/4 md:flex-row flex-col flex items-center gap-5 ${mont.className}`}>
                                 
                                 <div className="flex items-center gap-0.5 md:gap-5 w-full md:w-fit">
-                                    <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-zinc-700 bg-zinc-100 dark:bg-zinc-700/50 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 dark:text-zinc-200" >
+                                    <button type="button" onClick={() => handlePrint()} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-zinc-700 bg-zinc-100 dark:bg-zinc-700/50 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 dark:text-zinc-200" >
                                         <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                                         Export
                                     </button>
@@ -170,7 +172,7 @@ export default function DataSiswaNISPage({params}) {
                                 ))}
                             </div>
                         </div>
-                    </>
+                    </div>
                         
                 )}
             </div>
@@ -178,15 +180,6 @@ export default function DataSiswaNISPage({params}) {
         </MainLayoutPage>
     )
 }
-
-function DataNotExist({nis}) {
-    return (
-        <div className="flex w-full h-screen justify-center items-center">
-            Data siswa dengan nis <b>{nis}</b> tidak ditemukan!
-        </div>
-    )
-}
-
 
 
 function Skeleton() {

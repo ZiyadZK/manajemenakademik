@@ -3,7 +3,7 @@
 import { mont, rale, open, quicksand, jakarta } from "@/config/fonts";
 // import { nunito, quicksand } from "@/config/fonts";
 import { getLoggedUserdata, logoutAkun } from "@/lib/model/akunModel";
-import { faBars, faBook, faCertificate, faClipboard, faCog, faCogs, faDatabase, faFolderTree, faHouse, faLayerGroup, faMoon, faQuidditchBroomBall, faSignOut, faSpinner, faSun, faTimeline, faUserGraduate, faUserLock, faUserShield, faUserTie, faUserXmark, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBook, faCertificate, faClipboard, faCog, faCogs, faDatabase, faFolderTree, faHouse, faLayerGroup, faMoon, faPrint, faQuidditchBroomBall, faSignOut, faSpinner, faSun, faTimeline, faUserGraduate, faUserLock, faUserShield, faUserTie, faUserXmark, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -35,6 +35,7 @@ const navLink = [
     ...navLinkMasterData, ...navLinkKonfigurasi,
     { title: 'Dashboard', icon: faHouse, url: '/', page: 'Dashboard Page', role: ['Operator', 'Admin']},
     { title: 'Profil Sekolah', icon: faBook, url: '/profilsekolah', page: 'Profil Sekolah', role: ['Operator', 'Admin']},
+    { title: 'Export Data Siswa', icon: faPrint, url: '/print/data/siswa', page: 'Export Data Siswa', role: ['Operator', 'Admin']}
 ]
 
 export default function MainLayoutPage({children}) {
@@ -61,8 +62,6 @@ export default function MainLayoutPage({children}) {
         }else{
             document.body.classList.remove('dark')
         }
-
-        console.log(themeData)
 
         setTheme(themeData)
     }

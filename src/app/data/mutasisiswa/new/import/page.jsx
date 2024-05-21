@@ -396,12 +396,12 @@ export default function DataMutasiSiswaNewImportPage() {
             <hr className="my-1 md:my-2 opacity-0" />
             <div className={`flex md:items-center md:justify-between w-full md:flex-row flex-col gap-5`}>
                 <div className="flex items-center gap-5 md:gap-5">
-                    <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
+                    <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200">
                         <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
                     </button>
                     <div className="flex items-center gap-2">
                         <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-blue-600" />
-                        <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text">
+                        <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text dark:to-white">
                             Import Data Alumni
                         </h1>
                     </div>
@@ -409,17 +409,17 @@ export default function DataMutasiSiswaNewImportPage() {
             </div>
             <hr className="my-3 opacity-0" />
             <div className="flex md:items-center md:justify-between md:flex-row flex-col gap-5 md:gap-0">
-                <p className="text-sm md:w-1/2 w-full">
-                    Anda bisa melakukan <span className=" text-blue-600 font-medium">import data</span> menggunakan file <span className="font-medium">Excel (.xlsx)</span> ataupun menggunakan <span className="font-medium">CSV</span> yang berisi data-data sesuai dengan ketentuan yang sudah disiapkan. <br /> <br />
+                <p className="text-sm md:w-1/2 w-full dark:text-zinc-300">
+                    Anda bisa melakukan <span className=" text-blue-600 dark:text-cyan-400 font-medium">import data</span> menggunakan file <span className="font-medium">Excel (.xlsx)</span> ataupun menggunakan <span className="font-medium">CSV</span> yang berisi data-data sesuai dengan ketentuan yang sudah disiapkan. <br /> <br />
                     Sebelum melakukan Import, anda bisa terlebih dahulu mengecek apa saja kolom-kolom yang diperlukan sebelum melakukan import data di <span className=" inline md:hidden font-medium">bawah</span> <span className="md:inline hidden font-medium">pinggir</span> ini. <br /> <br />
                     Jika anda mengalami kesulitan untuk menyesuaikan data yang anda miliki, anda bisa menghubungi <span className="font-medium">Administrator</span> agar bisa disesuaikan oleh mereka.
                 </p>
-                <div className="p-3 rounded bg-zinc-50 w-full md:w-1/3">
+                <div className="p-3 rounded bg-zinc-50 w-full md:w-1/3 dark:bg-zinc-800 dark:text-zinc-200">
                     <p>
                         <span className="text-zinc-300 font-bold">#</span> Contoh File Excel
                     </p>
                     <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => downloadFormatExample('xlsx')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
+                        <button type="button" onClick={() => downloadFormatExample('xlsx')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-zinc-700/50 dark:hover:bg-zinc-700">
                             <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                             Unduh
                         </button>
@@ -432,7 +432,7 @@ export default function DataMutasiSiswaNewImportPage() {
                         <span className="text-zinc-300 font-bold">#</span> Contoh File CSV
                     </p>
                     <div className="flex items-center gap-3">
-                        <button type="button" onClick={() => downloadFormatExample('csv')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600">
+                        <button type="button" onClick={() => downloadFormatExample('csv')} className="px-3 py-2 rounded-full bg-zinc-200 flex items-center justify-center gap-2 text-sm text-zinc-600 hover:bg-blue-100 hover:text-blue-600 dark:bg-zinc-700/50 dark:hover:bg-zinc-700">
                             <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                             Unduh
                         </button>
@@ -446,29 +446,29 @@ export default function DataMutasiSiswaNewImportPage() {
             <div className="flex items-center gap-5 flex-col md:flex-row">
 
                 <form onSubmit={submitFile} className="flex items-center gap-5 flex-col md:flex-row">
-                    <input type="file"  required onChange={e => handleChangeFile(e.target.files[0])} className=" border" />
+                    <input type="file"  required onChange={e => handleChangeFile(e.target.files[0])} className=" border dark:border-zinc-800 dark:text-zinc-200" />
                     {file && file.name.split('.').pop() === 'xlsx' && (
-                        <select className="border rounded px-3 py-1 w-full md:w-fit" value={namaSheet} onChange={e => setNamaSheet(e.target.value)}>
+                        <select className="border rounded px-3 py-1 w-full md:w-fit dark:border-zinc-800 dark:bg-zinc-800 dark:text-zinc-400" value={namaSheet} onChange={e => setNamaSheet(e.target.value)}>
                             <option value={''} disabled>-- Pilih Sheets --</option>
                             {listSheet.map(sheet => (
                                 <option key={sheet} value={`${sheet}`}>{sheet}</option>
                             ))}
                         </select>
                     )}
-                    <button type="submit" disabled={loadingReadFormat === 'loading' ? true : false} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 w-full md:w-fit text-teal-600 hover:bg-teal-200 hover:text-teal-800">
+                    <button type="submit" disabled={loadingReadFormat === 'loading' ? true : false} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-teal-100 w-full md:w-fit text-teal-600 hover:bg-teal-200 hover:text-teal-800 dark:bg-teal-500/10 dark:hover:bg-teal-500/20 dark:text-teal-500">
                         <FontAwesomeIcon icon={loadingReadFormat === 'loading' ? faSpinner : faUpload} className={`${loadingReadFormat === 'loading' && 'animate-spin'} w-3 h-3 text-inherit`} />
                         Upload
                     </button>
                 </form>
                 <div className="flex items-center gap-5 w-full">
                     {uploadedFile && (
-                        <button type="button" onClick={() => document.getElementById('informasi_file').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
+                        <button type="button" onClick={() => document.getElementById('informasi_file').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-200">
                             <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
                             Cek File
                         </button>
                     )}
                     <dialog id="informasi_file" className="modal">
-                        <div className="modal-box bg-white">
+                        <div className="modal-box bg-white dark:text-zinc-200 dark:bg-zinc-800">
                             <div className="flex items-center gap-3">
                                 <h3 className="font-bold text-lg">Informasi File</h3>
                                 <p className={`w-fit px-3 py-1 rounded-full text-xs bg-green-50 text-green-700`}>
@@ -507,26 +507,26 @@ export default function DataMutasiSiswaNewImportPage() {
                         </form>
                     </dialog>
                     {uploadedFile && (
-                        <button type="button" onClick={() => document.getElementById('informasi_kolom').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800">
+                        <button type="button" onClick={() => document.getElementById('informasi_kolom').showModal()} className="px-3 py-2 md:py-1 rounded-full flex items-center justify-center gap-3 bg-zinc-100 w-full md:w-fit text-zinc-600 hover:bg-zinc-200 hover:text-zinc-800 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-200 ">
                             <FontAwesomeIcon icon={faFileCircleCheck} className="w-3 h-3 text-inherit" />
                             Cek Kolom
                         </button>
                     )}
                     <dialog id="informasi_kolom" className="modal">
-                        <div className="modal-box bg-white">
+                        <div className="modal-box bg-white dark:text-zinc-200 dark:bg-zinc-800">
                             <h3 className="font-bold text-lg">Informasi Kolom</h3>
-                            <div className="divide-y mt-3">    
-                                <div className=" grid grid-cols-7 divide-x">
+                            <div className="divide-y mt-3 dark:divide-zinc-600">    
+                                <div className=" grid grid-cols-7 divide-x dark:divide-zinc-600">
                                     <div className="col-span-4">
                                         <div className="flex items-center">
-                                            <p className="text-xs md:text-sm text-zinc-400 text-center w-full">
+                                            <p className="text-xs md:text-sm text-zinc-400 text-center w-full dark:text-zinc-200">
                                                 Nama Kolom
                                             </p>
                                         </div>
                                     </div>
                                     <div className="col-span-3">
                                         <div className="flex items-center">
-                                            <p className="text-xs md:text-sm text-zinc-400 text-center w-full">
+                                            <p className="text-xs md:text-sm text-zinc-400 text-center w-full dark:text-zinc-200">
                                                 Status
                                             </p>
                                         </div>
@@ -536,7 +536,7 @@ export default function DataMutasiSiswaNewImportPage() {
                                     <div key={format} className=" grid grid-cols-7 py-1">
                                         <div className="col-span-4">
                                             <div className="flex items-center h-full">
-                                                <p className="text-xs md:text-sm text-zinc-700 font-medium text-center w-full align-middle">
+                                                <p className="text-xs md:text-sm text-zinc-700 font-medium text-center w-full align-middle dark:text-zinc-400">
                                                     {format}
                                                 </p>
                                             </div>
@@ -544,7 +544,7 @@ export default function DataMutasiSiswaNewImportPage() {
                                         <div className="col-span-3">
                                             {informasiKolom[format] === 'cocok' && (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-green-700 bg-green-50 gap-3 rounded-full">
+                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-green-700 bg-green-50 gap-3 rounded-full dark:bg-green-500/10">
                                                         <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-green-700" />
                                                         Cocok
                                                     </div>
@@ -552,7 +552,7 @@ export default function DataMutasiSiswaNewImportPage() {
                                             )}
                                             {informasiKolom[format] === 'tidak cocok' && (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full">
+                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full dark:bg-red-500/10">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-red-700" />
                                                         Tidak Cocok
                                                     </div>
@@ -560,7 +560,7 @@ export default function DataMutasiSiswaNewImportPage() {
                                             )}
                                            {informasiKolom[format] === 'tidak ada' && (
                                                 <div className="flex items-center justify-center">
-                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full">
+                                                    <div className="flex items-center justify-between px-3 py-1 text-xs text-red-700 bg-red-50 gap-3 rounded-full dark:bg-red-500/10">
                                                         <FontAwesomeIcon icon={faExclamation} className="w-3 h-3 text-red-700" />
                                                         Tidak Ada Kolom
                                                     </div>
