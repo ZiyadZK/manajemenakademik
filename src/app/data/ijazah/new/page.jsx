@@ -99,7 +99,7 @@ export default function DataIjazahNewPage() {
 
             return true
         }).map(siswa => ({
-            tgl_diambil: null,
+            tgl_diambil: '',
             nama_lulusan: siswa.nama_siswa,
             nisn: siswa.nisn,
             kelas: siswa.kelas,
@@ -258,22 +258,22 @@ export default function DataIjazahNewPage() {
             <div className="mt-3">
                 <div className={`flex md:items-center md:justify-between w-full md:flex-row flex-col gap-3`}>
                     <div className="flex items-center gap-2 md:gap-5">
-                        <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
+                        <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200">
                             <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
                         </button>
                         <div className="flex items-center gap-2">
                             <FontAwesomeIcon icon={faFileCirclePlus} className="w-4 h-4 text-blue-600" />
-                            <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text">
+                            <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text dark:to-white">
                                 Penambahan Data Ijazah
                             </h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-5">
-                        <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className="w-1/2 md:w-fit px-4 py-2 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center gap-3">
+                        <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className="w-1/2 md:w-fit px-4 py-2 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center gap-3 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200">
                             <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
                             Import 
                         </button>
-                        <button type="button" onClick={() => submitFormData()} className="w-1/2 rounded-full py-2 px-4 bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white flex items-center justify-center gap-4">
+                        <button type="button" onClick={() => submitFormData()} className="w-1/2 rounded-full py-2 px-4 bg-green-500 hover:bg-green-600 focus:bg-green-700 text-white flex items-center justify-center gap-4 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:text-green-500">
                             <FontAwesomeIcon icon={faSave} className="w-5 h-5 text-inherit" />
                             Simpan
                         </button>
@@ -283,14 +283,14 @@ export default function DataIjazahNewPage() {
                 <div className="flex md:flex-row flex-col md:divide-x divide-y-2 md:divide-y-0 md:gap-0">
                     <div className="w-full md:w-2/6 md:pr-5 pb-5 ">
                         <div className="flex items-center gap-5">
-                            <div className="relative flex-grow rounded border py-2 border-zinc-600 peer-has-[:placeholder-shown]:border-zinc-300">
+                            <div className="relative flex-grow rounded border py-2 border-zinc-600 dark:text-zinc-200">
                                 <div className="absolute top-0 left-0 w-10 h-full flex items-center justify-center">
                                     <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
                                 </div>
-                                <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full bg-white pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
+                                <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full bg-white dark:bg-transparent pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                             </div>
                             <div className="md:flex gap-1 items-center hidden">
-                                <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                     <option disabled>-- Rombel --</option>
                                     <option value="TKJ">TKJ</option>
                                     <option value="DPIB">DPIB</option>
@@ -300,7 +300,7 @@ export default function DataIjazahNewPage() {
                                     <option value="GEO">GEO</option>
                                     <option value="">Semua</option>
                                 </select>
-                                <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                     <option disabled>-- No --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -312,7 +312,7 @@ export default function DataIjazahNewPage() {
                         </div>
                         <hr className="my-1 md:my-0 opacity-0" />
                         <div className="flex gap-1 items-center md:hidden">
-                            <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option disabled>-- Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="DPIB">DPIB</option>
@@ -322,7 +322,7 @@ export default function DataIjazahNewPage() {
                                 <option value="GEO">GEO</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option disabled>-- No --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -345,21 +345,21 @@ export default function DataIjazahNewPage() {
                             </div>
                         )}
                             {filteredSiswaList.slice(0, 100).map((siswa, index) => (
-                                <button key={`${siswa.nis} - ${index}`} onClick={() => addFormData(siswa.nisn)} type="button" className={`w-full rounded-lg border p-2 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/50 focus:border-blue-300 focus:bg-blue-50/50 group`}>
+                                <button key={`${siswa.nis} - ${index}`} onClick={() => addFormData(siswa.nisn)} type="button" className={`w-full rounded-lg border p-2 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/50 focus:border-blue-300 focus:bg-blue-50/50 group dark:border-zinc-800 dark:hover:bg-zinc-700/30 dark:focus:bg-zinc-700/50`}>
                                     <div className={`${mont.className} flex-grow text-start`}>
-                                        <p className="text-sm font-medium tracking-tighter group-hover:text-blue-700 group-focus:text-blue-700">
+                                        <p className="text-sm font-medium tracking-tighter group-hover:text-blue-700 group-focus:text-blue-700 dark:text-zinc-500 dark:group-hover:text-zinc-200 dark:group-focus:text-zinc-200">
                                             {siswa.nama_siswa}
                                         </p>
-                                        <p className="text-xs tracking-tighter text-zinc-400">{siswa.kelas} {siswa.rombel} {siswa.no_rombel} - {siswa.nisn}</p>
+                                        <p className="text-xs tracking-tighter text-zinc-400 dark:text-zinc-600">{siswa.kelas} {siswa.rombel} {siswa.no_rombel} - {siswa.nisn}</p>
                                     </div>
                                     <div className="space-y-2 flex flex-col items-end">
                                         {ijazahList.map((ijazah, index) => ijazah['nisn'] === siswa.nisn && ijazah['status'] === 'belum diambil' && (
-                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-blue-50 text-blue-700">
+                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500">
                                                 Belum Diambil
                                             </p>
                                         ))}
                                         {ijazahList.map((ijazah, index) => ijazah['nisn'] === siswa.nisn && ijazah['status'] === 'sudah diambil' && (
-                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-amber-50 text-amber-700">
+                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-500">
                                                 Sudah Diambil
                                             </p>
                                         ))}
@@ -370,7 +370,7 @@ export default function DataIjazahNewPage() {
                                 </button>
                             ))}
                         </div>
-                        <hr className="my-2" />
+                        <hr className="my-2 dark:opacity-20" />
                         {loadingFetch !== 'fetched' && (
                             <div className="flex items-center justify-center gap-4 py-5 text-blue-600/50">
                                 <div className="loading loading-spinner loading-md text-inherit"></div>
@@ -385,8 +385,8 @@ export default function DataIjazahNewPage() {
                         )}
                         <div className="md:grid md:grid-cols-2 flex gap-2 relative overflow-auto max-h-40">
                             {kelasList.map((kelas, index) => (
-                                <button key={`${index}`} type="button" onClick={() => toggleAddBulkFormData(kelas.kelas, kelas.rombel, kelas.no_rombel)} className={` ${mont.className} px-2 py-4 rounded-lg border flex items-center gap-5 hover:border-zinc-600 hover:shadow-lg flex-shrink-0 w-1/2 md:w-full`}>
-                                    <div className="w-8 h-8 rounded-full bg-violet-50 flex items-center justify-center font-medium text-violet-500">
+                                <button key={`${index}`} type="button" onClick={() => toggleAddBulkFormData(kelas.kelas, kelas.rombel, kelas.no_rombel)} className={` ${mont.className} px-2 py-4 rounded-lg border flex items-center gap-5 hover:border-zinc-600 hover:shadow-lg flex-shrink-0 w-1/2 md:w-full dark:border-zinc-800 dark:hover:border-zinc-700 dark:bg-gradient-to-t dark:hover:from-zinc-700/10 dark:text-zinc-500 dark:hover:text-zinc-200`}>
+                                    <div className="w-8 h-8 rounded-full bg-violet-50 flex items-center justify-center font-medium text-violet-500 dark:bg-violet-500/10">
                                         {kelas.length}
                                     </div>
                                     <article className="text-start">
@@ -403,12 +403,12 @@ export default function DataIjazahNewPage() {
                         <div className={`${formData.length > 0 ? 'flex' : 'hidden'} items-center gap-5`}>
                             <div className="relative flex-grow rounded border py-2 border-zinc-600 peer-has-[:placeholder-shown]:border-zinc-300">
                                 <div className="absolute top-0 left-0 w-10 h-full flex items-center justify-center">
-                                    <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
+                                    <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit dark:text-zinc-200" />
                                 </div>
-                                <input type="text" value={searchValueForm} onChange={e => setSearchValueForm(e.target.value)} className="w-full bg-white pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
+                                <input type="text" value={searchValueForm} onChange={e => setSearchValueForm(e.target.value)} className="w-full bg-white dark:bg-transparent dark:text-zinc-200 pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                             </div>
                             <div className="md:flex gap-1 items-center hidden">
-                                <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                     <option disabled>-- Rombel --</option>
                                     <option value="TKJ">TKJ</option>
                                     <option value="DPIB">DPIB</option>
@@ -418,7 +418,7 @@ export default function DataIjazahNewPage() {
                                     <option value="GEO">GEO</option>
                                     <option value="">Semua</option>
                                 </select>
-                                <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                     <option disabled>-- No --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -430,7 +430,7 @@ export default function DataIjazahNewPage() {
                         </div>
                         <hr className="my-1 md:my-0 opacity-0" />
                         <div className={`${formData.length > 0 ? 'flex' : 'hidden'} gap-1 items-center md:hidden`}>
-                            <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option disabled>-- Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="DPIB">DPIB</option>
@@ -440,7 +440,7 @@ export default function DataIjazahNewPage() {
                                 <option value="GEO">GEO</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option disabled>-- No --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -450,21 +450,21 @@ export default function DataIjazahNewPage() {
                             </select>
                         </div>
                         {filteredFormData.map((form, index) => (
-                            <div key={`formData-${index}`} className="collapse collapse-arrow bg-zinc-50/50 hover:bg-zinc-50">
+                            <div key={`formData-${index}`} className="collapse collapse-arrow bg-zinc-50/50 hover:bg-zinc-50 dark:bg-zinc-800/30 dark:text-zinc-200 dark:hover:bg-gradient-to-t dark:hover:from-zinc-700/50 has-[:checked]:dark:from-zinc-700/50">
                                 <input type="checkbox" /> 
                                 <div className="collapse-title flex md:flex-row flex-col md:gap-5 md:items-center md:justify-start items-start font-medium">
                                     <p>
                                         {form.nama_lulusan}
                                     </p>
-                                    <div className={`${mont.className} opacity-50 text-xs flex items-center gap-1 md:gap-3`}>
-                                        <p className="px-2 py-1 rounded-full bg-blue-100 text-blue-600">
+                                    <div className={`${mont.className} opacity-50 dark:opacity-100 text-xs flex items-center gap-1 md:gap-3`}>
+                                        <p className="px-2 py-1 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500">
                                             {form.kelas} {form.rombel} {form.no_rombel}
                                         </p>
-                                        <p className="px-2 py-1 rounded-full bg-amber-100 text-amber-600">
+                                        <p className="px-2 py-1 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400">
                                             {form.nisn}
                                         </p>
                                         {form['status'] === 'sudah diambil' && (
-                                            <p className="rounded-full bg-green-100 text-green-600">
+                                            <p className="rounded-full bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-300">
                                                 <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4 text-inherit" />
                                             </p>
                                         )}
@@ -484,7 +484,7 @@ export default function DataIjazahNewPage() {
                                         <div className="w-full md:w-1/4 text-sm text-zinc-400">
                                             Status <span className="float-end hidden md:block">:</span>
                                         </div>
-                                        <select value={form['status']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'status')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border cursor-pointer">
+                                        <select value={form['status']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'status')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border cursor-pointer dark:bg-zinc-700 dark:border-zinc-700 dark:text-zinc-200">
                                             <option value="" disabled>-- Pilih Status --</option>
                                             <option value="sudah diambil">Sudah di Ambil</option>
                                             <option value="belum diambil">Belum di Ambil</option>
@@ -496,13 +496,13 @@ export default function DataIjazahNewPage() {
                                                 <div className="w-full md:w-1/4 text-sm text-zinc-400">
                                                     Tanggal diambil <span className="float-end hidden md:block">:</span>
                                                 </div>
-                                                <input type="date" value={dateToIso(form['tgl_diambil'])} onChange={e => handleChangeFormData(form.nisn, isoToDate(e.target.value), 'tgl_diambil')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" />
+                                                <input type="date" value={dateToIso(form['tgl_diambil']) || ''} onChange={e => handleChangeFormData(form.nisn, isoToDate(e.target.value), 'tgl_diambil')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border dark:bg-zinc-700 dark:border-zinc-700 dark:text-zinc-200" />
                                             </div>
                                             <div className="flex md:items-center md:flex-row flex-col gap-1">
                                                 <div className="w-full md:w-1/4 text-sm text-zinc-400">
                                                     Diambil Oleh <span className="float-end hidden md:block">:</span>
                                                 </div>
-                                                <input type="text" value={form['nama_pengambil']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'nama_pengambil')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" placeholder="Masukkan Nama" />
+                                                <input type="text" value={form['nama_pengambil']} onChange={e => handleChangeFormData(form.nisn, e.target.value, 'nama_pengambil')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border dark:bg-zinc-700 dark:border-zinc-700 dark:text-zinc-200" placeholder="Masukkan Nama" />
                                             </div>
                                         </div>
                                     )}

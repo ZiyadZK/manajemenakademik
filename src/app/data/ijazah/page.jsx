@@ -436,33 +436,33 @@ export default function DataIjazahPage() {
             <Toaster />
             <div className="mt-3">
                 <div className="flex items-center md:gap-5 w-full justify-center md:justify-start gap-2">
-                    <button type="button" onClick={() => router.push('/data/ijazah/new')} className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                    <button type="button" onClick={() => router.push('/data/ijazah/new')} className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200`}>
                         <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-inherit" />
                         Tambah Data
                     </button>
-                    <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                    <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200`}>
                         <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
                         Import Data
                     </button>
                 </div>
                 <hr className="my-3 opacity-0" />
-                <div className="p-5 rounded-2xl bg-zinc-50  text-zinc-800">
+                <div className="p-5 rounded-2xl bg-zinc-50  text-zinc-800 dark:bg-zinc-700/20 dark:text-zinc-200">
                     <div className="flex items-center gap-2 md:gap-5">
-                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                        <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 dark:bg-orange-500/10">
                             <FontAwesomeIcon icon={faFilter} className="w-4 h-4 text-inherit" />
                         </div>
-                        <h1 className="font-medium text-xl text-transparent bg-clip-text bg-gradient-to-r from-orange-900 to-zinc-800">Filterisasi Data</h1>
+                        <h1 className="font-medium text-xl text-transparent bg-clip-text bg-gradient-to-r from-orange-900 to-zinc-800 dark:from-orange-500 dark:to-white">Filterisasi Data</h1>
                     </div>
                     <hr className="my-1 opacity-0" />
                     <div className="flex md:flex-row flex-col gap-5">
                     <div className="w-full md:w-1/2 flex gap-2">
-                        <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             <option value="X">X</option>
                             <option value="XI">XI</option>
                             <option value="XII">XII</option>
                             <option value="">Semua Kelas</option>
                         </select>
-                        <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             <option value="TKJ">TKJ</option>
                             <option value="DPIB">DPIB</option>
                             <option value="TKR">TKR</option>
@@ -473,14 +473,14 @@ export default function DataIjazahPage() {
                         </select>
                     </div>
                     <div className="w-full md:w-1/2 flex gap-2">
-                        <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             <option value="1">1</option>
                             <option value="2">2</option>
                             <option value="3">3</option>
                             <option value="4">4</option>
                             <option value="">Semua No Rombel</option>
                         </select>
-                        <select value={status} onChange={e => setStatus(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={status} onChange={e => setStatus(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             <option value="sudah diambil">Sudah di Ambil</option>
                             <option value="belum diambil">Belum di Ambil</option>
                             <option value="">Semua Status</option>
@@ -490,7 +490,7 @@ export default function DataIjazahPage() {
                 </div>
             </div>
             <hr className="my-2 opacity-0" />
-            <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="bg-white w-full px-3 py-2 rounded-lg border transition-all duration-300 my-3 block md:hidden" placeholder="Cari data disini" />
+            <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="bg-white w-full px-3 py-2 rounded-lg border transition-all duration-300 my-3 block md:hidden dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Cari data disini" />
             <div className="grid grid-cols-12 w-full mt-0 md:mt-3 bg-blue-500 *:px-2 *:py-3 text-white text-sm shadow-xl">
                 <div className="flex items-center gap-3 col-span-8 md:col-span-3 place-items-center">
                     <input type="checkbox"  />
@@ -531,10 +531,10 @@ export default function DataIjazahPage() {
                     Data kosong
                 </div>
             )}
-            <div className={`divide-y relative w-full max-h-[300px] overflow-auto ${mont.className}`}>
+            <div className={`divide-y relative w-full max-h-[300px] overflow-auto dark:divide-zinc-700 ${mont.className}`}>
                 {filteredDataIjazah.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((ijazah, index) => (
-                    <div key={`${ijazah.nisn} - ${index}`} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
-                        <div className={`flex items-center gap-3 col-span-8 md:col-span-3 ${ijazah.status === 'sudah diambil' && 'text-blue-700 md:text-inherit'}  `}>
+                    <div key={`${ijazah.nisn} - ${index}`} className="grid grid-cols-12 w-full dark:divide-zinc-700 hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x dark:hover:bg-zinc-800 dark:text-zinc-200">
+                        <div className={`flex items-center gap-3 col-span-8 md:col-span-3 ${ijazah.status === 'sudah diambil' && 'text-blue-700 md:text-inherit dark:text-blue-400 dark:md:text-inherit'}  `}>
                             <input type="checkbox" checked={selectedDataIjazah.includes(ijazah.nisn)} onChange={() => handleSelectedSiswa(ijazah.nisn)} />
                             {ijazah.nama_lulusan}
                         </div>
@@ -548,11 +548,11 @@ export default function DataIjazahPage() {
                             {ijazah.tahun_lulus}
                         </div>
                         <div className="hidden md:flex items-center col-span-2 gap-2">
-                            <button type="button" onClick={() => document.getElementById(`modal_change_sudah_${ijazah.no}`).showModal()} disabled={ijazah.status === 'sudah diambil'} className={`px-2  py-1 rounded-full ${ijazah.status === 'sudah diambil' ? 'bg-green-600' : 'bg-green-600/50 hover:bg-green-600'}  text-white flex items-center gap-2 w-fit`}>
+                            <button type="button" onClick={() => document.getElementById(`modal_change_sudah_${ijazah.no}`).showModal()} disabled={ijazah.status === 'sudah diambil'} className={`px-2  py-1 rounded-full ${ijazah.status === 'sudah diambil' ? 'bg-green-600 dark:bg-green-500/50 dark:text-green-300' : 'bg-green-600/50 dark:bg-green-500/10 hover:bg-green-600 dark:hover:bg-green-500/20 dark:text-green-500'}  text-white flex items-center gap-2 w-fit`}>
                                 <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
                                 Ya
                             </button>
-                            <button type="button" disabled={ijazah.status === 'belum diambil'} onClick={() => document.getElementById(`modal_change_belum_${ijazah.no}`).showModal()} className={`px-2 py-1 rounded-full ${ijazah.status === 'belum diambil' ? 'bg-red-500' : 'bg-red-500/50 hover:bg-red-500'} text-white flex items-center gap-2 w-fit`}>
+                            <button type="button" disabled={ijazah.status === 'belum diambil'} onClick={() => document.getElementById(`modal_change_belum_${ijazah.no}`).showModal()} className={`px-2 py-1 rounded-full ${ijazah.status === 'belum diambil' ? 'bg-red-500 dark:bg-red-500/50 dark:text-red-300' : 'bg-red-500/50 hover:bg-red-500 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-500'} text-white flex items-center gap-2 w-fit`}>
                                 <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
                                 Belum
                             </button>
@@ -562,7 +562,7 @@ export default function DataIjazahPage() {
                                 <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                             </button>
                             <dialog id={`modal_info_${ijazah.no}`} className="modal w-full">
-                                <div className="modal-box bg-white">
+                                <div className="modal-box bg-white dark:bg-zinc-800">
                                     <form method="dialog">
                                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                     </form>
@@ -617,11 +617,11 @@ export default function DataIjazahPage() {
                                                 Sudah di Ambil
                                             </p>
                                             <div className="md:hidden flex items-center col-span-2 gap-2">
-                                                <button type="button" onClick={() => document.getElementById(`modal_change_sudah_${ijazah.no}`).showModal()} disabled={ijazah.status === 'sudah diambil'} className={`px-2  py-1 rounded-full ${ijazah.status === 'sudah diambil' ? 'bg-green-600' : 'bg-green-600/50 hover:bg-green-600'}  text-white flex items-center gap-2 w-fit`}>
+                                                <button type="button" onClick={() => document.getElementById(`modal_change_sudah_${ijazah.no}`).showModal()} disabled={ijazah.status === 'sudah diambil'} className={`px-2  py-1 rounded-full ${ijazah.status === 'sudah diambil' ? 'bg-green-600 dark:bg-green-500/50 dark:text-green-300' : 'bg-green-600/50 hover:bg-green-600 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:text-green-500'}  text-white flex items-center gap-2 w-fit`}>
                                                     <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
                                                     Ya
                                                 </button>
-                                                <button type="button" disabled={ijazah.status === 'belum diambil'} onClick={() => document.getElementById(`modal_change_belum_${ijazah.no}`).showModal()} className={`px-2 py-1 rounded-full ${ijazah.status === 'belum diambil' ? 'bg-red-500' : 'bg-red-500/50 hover:bg-red-500'} text-white flex items-center gap-2 w-fit`}>
+                                                <button type="button" disabled={ijazah.status === 'belum diambil'} onClick={() => document.getElementById(`modal_change_belum_${ijazah.no}`).showModal()} className={`px-2 py-1 rounded-full ${ijazah.status === 'belum diambil' ? 'bg-red-500 dark:bg-red-500/50 dark:text-red-300' : 'bg-red-500/50 hover:bg-red-500 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-500'} text-white flex items-center gap-2 w-fit`}>
                                                     <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
                                                     Belum
                                                 </button>
@@ -637,12 +637,12 @@ export default function DataIjazahPage() {
                                 <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                             </button>
                             <dialog id={`modal_change_sudah_${ijazah.no}`} className="modal">
-                                <div className="modal-box bg-white">
+                                <div className="modal-box bg-white dark:bg-zinc-800">
                                     <form method="dialog">
                                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                     </form>
                                     <h3 className="font-bold md:text-lg flex items-center gap-3">
-                                        Ubah menjadi <span className="px-2 py-1 font-normal rounded-full bg-green-50 text-green-700">
+                                        Ubah menjadi <span className="px-2 py-1 font-normal rounded-full bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-500">
                                             Sudah di Ambil
                                         </span>?
                                     </h3>
@@ -654,7 +654,7 @@ export default function DataIjazahPage() {
                                                     Nama Pengambil
                                                 </p>
                                                 <div className="w-full md:w-3/5">
-                                                    <input type="text" className="bg-white px-3 py-2 rounded-lg border w-full" placeholder="Masukkan nama pengambil" />
+                                                    <input type="text" className="bg-white px-3 py-2 rounded-lg border w-full dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-700" placeholder="Masukkan nama pengambil" />
                                                 </div>
                                             </div>
                                             <div className="flex md:items-center md:gap-0 gap-1 flex-col md:flex-row">
@@ -662,12 +662,12 @@ export default function DataIjazahPage() {
                                                     Tanggal di Ambil
                                                 </p>
                                                 <div className="w-full md:w-3/5">
-                                                    <input type="date" className="bg-white px-3 py-2 rounded-lg border w-full" placeholder="Masukkan nama pengambil" />
+                                                    <input type="date" className="bg-white px-3 py-2 rounded-lg border w-full dark:bg-zinc-700 dark:text-zinc-200 dark:border-zinc-700" placeholder="Masukkan nama pengambil" />
                                                 </div>
                                             </div>
                                         </div>
                                         
-                                        <p className="py-4">Jika anda mengubahnya menjadi status <span className="px-2 rounded-full bg-green-50 text-green-700">Sudah di Ambil</span>, Nama Pengambil dan Tanggal Pengambil akan di <span className="text-green-700">Isi secara Otomatis</span> untuk data ijazah milik <span className="text-blue-600">{ijazah.nama_lulusan}</span> jika anda tidak mengisi keduanya.
+                                        <p className="py-4">Jika anda mengubahnya menjadi status <span className="px-2 rounded-full bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-500">Sudah di Ambil</span>, Nama Pengambil dan Tanggal Pengambil akan di <span className="text-green-700">Isi secara Otomatis</span> untuk data ijazah milik <span className="text-blue-600">{ijazah.nama_lulusan}</span> jika anda tidak mengisi keduanya.
                                             <br /> <br />
                                             Apakah anda yakin?
                                         </p>
@@ -685,17 +685,17 @@ export default function DataIjazahPage() {
                                 </div>
                             </dialog>
                             <dialog id={`modal_change_belum_${ijazah.no}`} className="modal">
-                                <div className="modal-box bg-white">
+                                <div className="modal-box bg-white dark:bg-zinc-800">
                                     <form method="dialog">
                                         <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                     </form>
                                     <h3 className="font-bold md:text-lg flex items-center gap-3">
-                                        Ubah menjadi <span className="px-2 py-1 font-normal rounded-full bg-red-50 text-red-700">
+                                        Ubah menjadi <span className="px-2 py-1 font-normal rounded-full bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-500">
                                             Belum di Ambil
                                         </span>?
                                     </h3>
                                     <form onSubmit={e => changeStatusIjazah(e, `modal_change_belum_${ijazah.no}`, ijazah.nisn, ijazah.nama_lulusan, 'belum diambil')}>
-                                        <p className="py-4">Jika anda mengubahnya menjadi status <span className="px-2 rounded-full bg-red-50 text-red-700">Belum di Ambil</span>, maka Nama Pengambil dan Tanggal Pengambil akan di <span className="text-red-700">di Hapus</span> untuk data ijazah milik <span className="text-blue-600">{ijazah.nama_lulusan}</span>
+                                        <p className="py-4">Jika anda mengubahnya menjadi status <span className="px-2 rounded-full bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-500">Belum di Ambil</span>, maka Nama Pengambil dan Tanggal Pengambil akan di <span className="text-red-700">di Hapus</span> untuk data ijazah milik <span className="text-blue-600">{ijazah.nama_lulusan}</span>
                                             <br /> <br />
                                             Apakah anda yakin?
                                         </p>
@@ -781,41 +781,41 @@ export default function DataIjazahPage() {
                     </div>
                 ))}
             </div>
-            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300">
+            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300 dark:border-zinc-700 dark:text-zinc-500">
                 <div className="flex-grow flex justify-between items-center">
                     <div className="flex items-center gap-2">
                         <p className="text-xs font-medium">
                             {selectedDataIjazah.length} Data terpilih
                         </p>
-                        <button type="button" onClick={() => handleDeleteIjazah()} className={`w-7 h-7 ${selectedDataIjazah && selectedDataIjazah.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
+                        <button type="button" onClick={() => handleDeleteIjazah()} className={`w-7 h-7 ${selectedDataIjazah && selectedDataIjazah.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
                             <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                         </button>
-                        <button type="button" onClick={() => setShowSelected(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   ${showSelected ? 'bg-blue-200 text-blue-700 hover:bg-blue-300' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'} group transition-all duration-300`}>
+                        <button type="button" onClick={() => setShowSelected(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   ${showSelected ? 'bg-blue-200 text-blue-700 hover:bg-blue-300' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'} group transition-all duration-300 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
                             <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
-                        <button type="button" onClick={() => setSelectedDataIjazah([])} className={`w-7 h-7 ${selectedDataIjazah && selectedDataIjazah.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
+                        <button type="button" onClick={() => setSelectedDataIjazah([])} className={`w-7 h-7 ${selectedDataIjazah && selectedDataIjazah.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
                             <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
                     </div>
                     <div className=" dropdown dropdown-hover dropdown-bottom dropdown-end">
-                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2">
+                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300">
                             <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
                             Export
                         </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit">
+                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit dark:bg-zinc-800">
                             <li>
-                                <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2">
+                                <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2 dark:hover:bg-zinc-900 dark:focus:text-zinc-200">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     XLSX
                                 </button>
-                                <button type="button" onClick={() => document.getElementById('export_csv').showModal()} className="flex items-center justify-start gap-2">
+                                <button type="button" onClick={() => document.getElementById('export_csv').showModal()} className="flex items-center justify-start gap-2 dark:hover:bg-zinc-900 dark:focus:text-zinc-200">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     CSV
                                 </button>
                             </li>
                         </ul>
                         <dialog id="export_csv" className="modal">
-                            <div className="modal-box">
+                            <div className="modal-box dark:bg-zinc-800 dark:text-zinc-200">
                                 <form method="dialog">
                                     <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                 </form>
@@ -839,7 +839,7 @@ export default function DataIjazahPage() {
                                             <p className="w-full text-sm opacity-70 md:w-2/5">
                                                 Kolom
                                             </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px] dark:bg-zinc-700 dark:border-zinc-700">
                                                 {Object.keys(exportKolom).map((kolom, index) => (
                                                     <option key={index} value={kolom}>{exportKolom[kolom]}</option>
                                                 ))}
@@ -849,9 +849,9 @@ export default function DataIjazahPage() {
                                         <p className="text-sm opacity-70">
                                             Daftar Kolom Data
                                         </p>
-                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1">
+                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1 dark:border-zinc-700">
                                             {exportExcel.kolomDataArr.map((kolomData, index) => (
-                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium">
+                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium dark:bg-zinc-700">
                                                     {kolomData['keyName']}
                                                     <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
@@ -877,7 +877,7 @@ export default function DataIjazahPage() {
                             </div>
                         </dialog>
                         <dialog id="export_xlsx" className="modal">
-                            <div className="modal-box">
+                            <div className="modal-box dark:bg-zinc-800 dark:text-zinc-200">
                                 <form method="dialog">
                                     <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                 </form>
@@ -901,7 +901,7 @@ export default function DataIjazahPage() {
                                             <p className="w-full text-sm opacity-70 md:w-2/5">
                                                 Kolom
                                             </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px] dark:bg-zinc-700 dark:border-zinc-700">
                                                 {Object.keys(exportKolom).map((kolom, index) => (
                                                     <option key={index} value={kolom}>{exportKolom[kolom]}</option>
                                                 ))}
@@ -911,9 +911,9 @@ export default function DataIjazahPage() {
                                         <p className="text-sm opacity-70">
                                             Daftar Kolom Data
                                         </p>
-                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1">
+                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1 dark:border-zinc-700">
                                             {exportExcel.kolomDataArr.map((kolomData, index) => (
-                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium">
+                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium dark:bg-zinc-700">
                                                     {kolomData['keyName']}
                                                     <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
@@ -945,18 +945,18 @@ export default function DataIjazahPage() {
                         {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > dataIjazah.length ? dataIjazah.length : totalList * pagination} dari {dataIjazah.length} data
                     </p>
                     <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-orange-500">
                             <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
                         </button>
-                        <p className="font-medium text-zinc-600">
+                        <p className="font-medium text-zinc-600 dark:text-orange-500">
                             {pagination}
                         </p>
-                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(dataIjazah.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(dataIjazah.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-orange-500">
                             <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
+                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent dark:hover:bg-zinc-800 dark:text-zinc-200">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
