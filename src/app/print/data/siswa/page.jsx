@@ -67,10 +67,29 @@ export default function PrintDataSiswaPage() {
     const [selectedSiswa, setSelectedSiswa] = useState([])
     const [printedData, setPrintedData] = useState(null)
     const [loadingFetch, setLoadingFetch] = useState('')
+    const [searchValue, setSearchValue] = useState('')
 
     const [pageSettings, setPageSettings] = useState({
         kertas: 'a4', panjang: 0, lebar: 0, marginKiri: 0, marginKanan: 0, marginAtas: 0, marginBawah: 0, portrait: ''
     })
+
+    const handleFilter = () => {
+        let updatedData = dataSiswa
+
+        if(updatedData !== '') {
+            updatedData = updatedData.filter(siswa => 
+                siswa['nama_siswa'].toLowerCase().includes(searchValue.toLowerCase()) ||
+                siswa['nis'].toLowerCase().includes(searchValue.toLowerCase()) ||
+                siswa['nisn'].toLowerCase().includes(searchValue.toLowerCase()) 
+            )
+        }
+
+        setFilteredDataSiswa(updatedData)
+    }
+
+    useEffect(() => {
+        handleFilter()
+    }, [searchValue])
 
     const getDataSiswa = async () => {
         const responseData = await getAllSiswa()
@@ -146,7 +165,7 @@ export default function PrintDataSiswaPage() {
                     )}
                     {loadingFetch === 'fetched' && (
                         <div className="w-full md:w-1/2">
-                            <input type="text" className="border px-3 py-2 rounded md:w-1/2 w-full dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Cari data siswa di sini" />
+                            <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="border px-3 py-2 rounded md:w-1/2 w-full dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Cari data siswa di sini" />
                             <hr className="my-1 opacity-0" />
                             <div className="relative w-full overflow-auto max-h-[300px] space-y-1">
                                 {filteredDataSiswa.slice(0, 40).map((siswa, index) => (
