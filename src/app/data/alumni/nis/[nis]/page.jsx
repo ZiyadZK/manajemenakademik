@@ -106,12 +106,12 @@ export default function DataAlumniNISPage({params}) {
                     <>
                         <div className="flex md:justify-between md:items-center md:flex-row flex-col gap-5 w-full">
                             <div className="flex items-center gap-5 md:gap-5">
-                                <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
+                                <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300">
                                     <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
                                 </button>
                                 <div className="flex items-center gap-2">
                                     <FontAwesomeIcon icon={faUserTag} className="w-4 h-4 text-blue-600" />
-                                    <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text">
+                                    <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text dark:to-white">
                                         Informasi Alumni
                                     </h1>
                                 </div>
@@ -119,15 +119,15 @@ export default function DataAlumniNISPage({params}) {
                             <div className={`w-full md:w-1/4 md:flex-row flex-col flex items-center gap-5 ${mont.className}`}>
                                 
                                 <div className="flex items-center gap-0.5 md:gap-5 w-full md:w-fit">
-                                    <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-zinc-700 bg-zinc-100 rounded-full hover:bg-zinc-200" >
+                                    <button type="button" className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-zinc-700 bg-zinc-100 rounded-full hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300" >
                                         <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
                                         Export
                                     </button>
-                                    <button type="button" onClick={() => router.push(`/data/alumni/update/${dataSiswa.nis}`)} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200" >
+                                    <button type="button" onClick={() => router.push(`/data/alumni/update/${dataSiswa.nis}`)} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-blue-700 bg-blue-100 rounded-full hover:bg-blue-200 dark:bg-blue-500/10 dark:hover:bg-blue-500/20" >
                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                         Ubah
                                     </button>
-                                    <button type="button" onClick={() => deleteThisSiswa()} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-red-700 bg-red-100 rounded-full hover:bg-red-200" >
+                                    <button type="button" onClick={() => deleteThisSiswa()} className="px-4 py-2 w-full md:w-fit flex items-center justify-center gap-3 text-red-700 bg-red-100 rounded-full hover:bg-red-200 dark:bg-red-500/10 dark:hover:bg-red-500/20" >
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                         Hapus
                                     </button>
@@ -135,10 +135,10 @@ export default function DataAlumniNISPage({params}) {
                             </div>
                         </div>
                         <hr className="my-2 opacity-0" />
-                        <h1 className="font-medium text-2xl md:text-6xl">
+                        <h1 className="font-medium text-2xl md:text-6xl dark:text-zinc-200">
                             {dataSiswa.nama_siswa}
                         </h1>
-                        <hr className="my-3 w-full" />
+                        <hr className="my-3 w-full dark:opacity-20" />
                         <div className="flex gap-5 md:flex-row flex-col md:p-5">
                             <div className="w-full md:w-1/2 space-y-3">
                                 {formatDataPribadi.map((format, index) => (
@@ -147,9 +147,9 @@ export default function DataAlumniNISPage({params}) {
                                             <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
                                                 {formattedData[format]}
                                             </h1>
-                                            <div className="hidden md:block">:</div>
+                                            <div className="hidden md:block dark:text-zinc-500">:</div>
                                         </div>
-                                        <p className="w-full md:w-3/4 font-medium">
+                                        <p className="w-full md:w-3/4 font-medium dark:text-zinc-200">
                                             {format === 'kelas' ? `${dataSiswa['kelas']} ${dataSiswa['rombel']} ${dataSiswa['no_rombel']}` : dataSiswa[format]}
                                         </p>
                                     </div>
@@ -163,9 +163,9 @@ export default function DataAlumniNISPage({params}) {
                                             <h1 className="flex-grow text-zinc-500 text-xs md:text-lg">
                                                 {formattedData[format]}
                                             </h1>
-                                            <div className="hidden md:block">:</div>
+                                            <div className="hidden md:block dark:text-zinc-500">:</div>
                                         </div>
-                                        <p className="w-full md:w-3/4 font-medium">
+                                        <p className="w-full md:w-3/4 font-medium dark:text-zinc-200">
                                             {dataSiswa[format]}
                                         </p>
                                     </div>

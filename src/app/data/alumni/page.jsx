@@ -537,33 +537,33 @@ export default function DataAlumniMainPage() {
             <Toaster />
             <hr className="my-1 md:my-2 opacity-0" />
             <div className="flex items-center md:gap-5 w-full justify-center md:justify-start gap-2">
-                <a href="/data/alumni/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                <a href="/data/alumni/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300`}>
                     <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-inherit" />
                     Tambah Data
                 </a>
-                <a href="/data/alumni/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
+                <a href="/data/alumni/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300`}>
                     <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
                     Import Data
                 </a>
             </div>
             <hr className="my-1 md:my-2 opacity-0" />
-            <div className="p-5 rounded-2xl bg-zinc-50 md:bg-zinc-100 text-zinc-800">
+            <div className="p-5 rounded-2xl bg-zinc-50 md:bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
                 <div className="flex items-center gap-2 md:gap-5">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600">
                         <FontAwesomeIcon icon={faFilter} className="w-4 h-4 text-inherit" />
                     </div>
-                    <h1 className="font-medium text-xl text-transparent bg-clip-text bg-gradient-to-r from-orange-900 to-zinc-800">Filterisasi Data</h1>
+                    <h1 className="font-medium text-xl text-transparent bg-clip-text bg-gradient-to-r from-orange-900 to-zinc-800 dark:from-orange-500 dark:to-white">Filterisasi Data</h1>
                 </div>
                 <hr className="my-1 opacity-0" />
                 <div className="flex md:flex-row flex-col gap-5">
                     <div className="w-full md:w-1/2 flex gap-2">
-                        <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             {listKelas.map((kelasItem, index) => (
                                 <option key={index} value={kelasItem}>{kelasItem}</option>
                             ))}
                             <option value="">Semua Kelas</option>
                         </select>
-                        <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             {listRombel.map((namaRombel, index) => (
                                 <option key={index} value={namaRombel}>{namaRombel}</option>
                             ))}
@@ -571,7 +571,7 @@ export default function DataAlumniMainPage() {
                         </select>
                     </div>
                     <div className="w-full md:w-1/2 flex gap-2">
-                        <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer">
+                        <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
                             {listNoRombel.map((no_rombel, index) => (
                                 <option key={index} value={no_rombel}>{no_rombel}</option>
                             ))}
@@ -583,8 +583,8 @@ export default function DataAlumniMainPage() {
             </div>
             <hr className="my-2 opacity-0" />
             <div className="flex items-center gap-5 w-full">
-                <input type="text" onChange={e => setSearchValue(e.target.value)} className=" bg-zinc-100 flex-grow md:flex-grow-0 md:w-80 px-3 py-2 text-xs md:text-lg rounded-xl border bg-transparent" placeholder="Cari data anda disini" />
-                <select value={searchCriteria} onChange={e => setSearchCriteria(e.target.value)}  className=" px-3 py-2 rounded-xl border text-xs md:text-lg bg-white  cursor-pointer">
+                <input type="text" onChange={e => setSearchValue(e.target.value)} className=" bg-zinc-100 flex-grow md:flex-grow-0 md:w-80 px-3 py-2 text-xs md:text-lg rounded-xl border bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-white" placeholder="Cari data anda disini" />
+                <select value={searchCriteria} onChange={e => setSearchCriteria(e.target.value)}  className=" px-3 py-2 rounded-xl border text-xs md:text-lg bg-white  cursor-pointer dark:bg-zinc-800 dark:border-zinc-800 dark:text-white">
                     <option disabled>-- Kriteria --</option>
                     <option value="nama_siswa">Nama</option>
                     <option value="nisn">NISN</option>
@@ -628,9 +628,9 @@ export default function DataAlumniMainPage() {
 
             {loadingFetch === 'fetched' && (siswaList.length > 0 ? (
                 <div className="relative w-full h-fit max-h-[300px] overflow-auto">
-                    <div className="divide-y">
+                    <div className="divide-y dark:divide-zinc-800">
                         {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (
-                            <div key={siswa.nis} className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x">
+                            <div key={siswa.nis} className="grid grid-cols-12 w-full dark:divide-zinc-800 hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x dark:text-zinc-200 dark:hover:bg-zinc-800">
                                 <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
                                     <div className="flex-grow flex items-center gap-2">
                                         <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
@@ -644,10 +644,10 @@ export default function DataAlumniMainPage() {
                                     {siswa.tahun_masuk}
                                 </div>
                                 <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1`}>
-                                    <p className="px-2 py-1 rounded-full bg-zinc-100">
+                                    <p className="px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-100/10">
                                         {siswa.nis}
                                     </p>
-                                    <p className="px-2 py-1 rounded-full bg-zinc-100">
+                                    <p className="px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-100/10">
                                         {siswa.nisn}
                                     </p>
                                 </div>
@@ -673,41 +673,41 @@ export default function DataAlumniMainPage() {
                 </div>
             ))}
 
-            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300">
+            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300 dark:border-zinc-700">
                 <div className="flex-grow flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium">
+                        <p className="text-xs font-medium dark:text-zinc-500">
                             {selectedSiswa.length} Data terpilih
                         </p>
-                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
+                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
                             <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                         </button>
-                        <button type="button" onClick={() => setShowSelected(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   ${showSelected ? 'bg-blue-200 text-blue-700 hover:bg-blue-300' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'} group transition-all duration-300`}>
+                        <button type="button" onClick={() => setShowSelected(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   ${showSelected ? 'bg-blue-200 text-blue-700 hover:bg-blue-300' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'} group transition-all duration-300 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
                             <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
-                        <button type="button" onClick={() => setSelectedSiswa([])} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
+                        <button type="button" onClick={() => setSelectedSiswa([])} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500`}>
                             <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
                         </button>
                     </div>
                     <div className=" dropdown dropdown-hover dropdown-bottom dropdown-end">
-                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2">
+                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200">
                             <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
                             Export
                         </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit">
+                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit dark:bg-zinc-800 dark:text-zinc-200">
                             <li>
-                                <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2">
+                                <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2 dark:hover:bg-zinc-900">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     XLSX
                                 </button>
-                                <button type="button" onClick={() => document.getElementById('export_csv').showModal()} className="flex items-center justify-start gap-2">
+                                <button type="button" onClick={() => document.getElementById('export_csv').showModal()} className="flex items-center justify-start gap-2 dark:hover:bg-zinc-900">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     CSV
                                 </button>
                             </li>
                         </ul>
                         <dialog id="export_csv" className="modal">
-                            <div className="modal-box">
+                            <div className="modal-box dark:bg-zinc-800 dark:text-zinc-200">
                                 <form method="dialog">
                                     <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                 </form>
@@ -719,7 +719,7 @@ export default function DataAlumniMainPage() {
                                     </p>
                                     <div className="flex w-full items-center gap-5 md:w-3/5">
                                         <div className="flex items-center gap-2">
-                                            <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer" id="export_csv_semua_kolom" />
+                                            <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer " id="export_csv_semua_kolom" />
                                              <label htmlFor="export_csv_semua_kolom" className="text-sm cursor-pointer">Ya</label>
                                         </div>
                                     </div>
@@ -731,7 +731,7 @@ export default function DataAlumniMainPage() {
                                             <p className="w-full text-sm opacity-70 md:w-2/5">
                                                 Kolom
                                             </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px] dark:bg-zinc-700 dark:border-zinc-700">
                                                 {Object.keys(exportKolom).map((kolom, index) => (
                                                     <option key={index} value={kolom}>{exportKolom[kolom]}</option>
                                                 ))}
@@ -741,9 +741,9 @@ export default function DataAlumniMainPage() {
                                         <p className="text-sm opacity-70">
                                             Daftar Kolom Data
                                         </p>
-                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1">
+                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1 dark:border-zinc-600">
                                             {exportExcel.kolomDataArr.map((kolomData, index) => (
-                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium">
+                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium dark:bg-zinc-700">
                                                     {kolomData['keyName']}
                                                     <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
@@ -769,7 +769,7 @@ export default function DataAlumniMainPage() {
                             </div>
                         </dialog>
                         <dialog id="export_xlsx" className="modal">
-                            <div className="modal-box">
+                            <div className="modal-box dark:bg-zinc-800 dark:text-zinc-200">
                                 <form method="dialog">
                                     <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                 </form>
@@ -793,7 +793,7 @@ export default function DataAlumniMainPage() {
                                             <p className="w-full text-sm opacity-70 md:w-2/5">
                                                 Kolom
                                             </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px]">
+                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px] dark:bg-zinc-700 dark:border-zinc-700">
                                                 {Object.keys(exportKolom).map((kolom, index) => (
                                                     <option key={index} value={kolom}>{exportKolom[kolom]}</option>
                                                 ))}
@@ -803,9 +803,9 @@ export default function DataAlumniMainPage() {
                                         <p className="text-sm opacity-70">
                                             Daftar Kolom Data
                                         </p>
-                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1">
+                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1 dark:border-zinc-600">
                                             {exportExcel.kolomDataArr.map((kolomData, index) => (
-                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium">
+                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium dark:bg-zinc-700 dark:border-zinc-700">
                                                     {kolomData['keyName']}
                                                     <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
                                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
@@ -833,22 +833,22 @@ export default function DataAlumniMainPage() {
                     </div>
                 </div>
                 <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
-                    <p className={`${mont.className} px-2 text-xs`}>
+                    <p className={`${mont.className} px-2 text-xs dark:text-zinc-500`}>
                         {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > siswaList.length ? siswaList.length : totalList * pagination} dari {siswaList.length} data
                     </p>
                     <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-orange-500">
                             <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
                         </button>
-                        <p className="font-medium text-zinc-600">
+                        <p className="font-medium text-zinc-600 dark:text-orange-500">
                             {pagination}
                         </p>
-                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(siswaList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(siswaList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-orange-500">
                             <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
                         </button>
                     </div>
                     <div className={`${mont.className} px-2 text-xs`}>
-                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
+                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent dark:hover:bg-zinc-800 dark:text-zinc-200">
                             <option value={10}>10</option>
                             <option value={20}>20</option>
                             <option value={50}>50</option>
@@ -887,21 +887,21 @@ export default function DataAlumniMainPage() {
                 <div className="modal-box">
                     <form method="dialog">
                     {/* if there is a button in form, it will close the modal */}
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                     </form>
                     <h3 className="font-bold text-lg">Hello!</h3>
                     <p className="py-4">Press ESC key or click on ✕ button to close</p>
                 </div>
             </dialog>
             <hr className="my-3 opacity-0" />
-            <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300">
+            <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300 dark:border-zinc-700">
                 
                 <form onSubmit={submitUpdateBersama} className="w-full md:w-1/2">
                     <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center dark:bg-cyan-500/10">
                             <FontAwesomeIcon icon={faWandMagicSparkles} className="w-4 h-4 text-inherit" />
                         </div>
-                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-zinc-800`}>
+                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-zinc-800 dark:to-white`}>
                             Ubah Data Bersamaan
                         </h1>
                     </div>
@@ -912,27 +912,27 @@ export default function DataAlumniMainPage() {
                     </div>
                     <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} gap-3 flex-col md:flex-row w-full`}>
                         <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option value="" disabled>-- Pilih Kelas --</option>
                                 <option value="X">X</option>
                                 <option value="XI">XI</option>
                                 <option value="XII">XII</option>
                             </select>
-                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option value="" disabled>-- Pilih No Rombel --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
                                 <option value="3">3</option>
                                 <option value="4">4</option>
                             </select>
-                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full bg-transparent" placeholder="Tahun Masuk" />
+                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Tahun Masuk" />
                             <div className="flex w-full items-center gap-2">
                                 <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
                                 <h1 className="text-zinc-500 text-xs">Jangan di isi jika tidak ingin mengubah tahun masuk</h1>
                             </div>
                         </div>
                         <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option value="" disabled>-- Pilih Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="TITL">TITL</option>
@@ -941,7 +941,7 @@ export default function DataAlumniMainPage() {
                                 <option value="TKR">TKR</option>
                                 <option value="TPM">TPM</option>
                             </select>
-                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent">
+                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
                                 <option value="" disabled>-- Pilih Status --</option>
                                 <option value="aktif">Aktif</option>
                                 <option value="tidak">Tidak Aktif</option>
@@ -950,11 +950,11 @@ export default function DataAlumniMainPage() {
                     </div>
                     <hr className="my-2 opacity-0" />
                     <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center gap-3`}>
-                        <button type="submit"  className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white">
+                        <button type="submit"  className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:hover:text-green-500">
                             <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
                             Simpan Perubahan
                         </button>
-                        <button type="button" onClick={() => setSelectedSiswa([])}  className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-700 font-medium md:hidden flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-800">
+                        <button type="button" onClick={() => setSelectedSiswa([])}  className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-700 font-medium md:hidden flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-800 dark:bg-zinc-100/10 dark:hover:bg-zinc-100/20 dark:text-zinc-200">
                             <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-inherit" />
                             Batalkan
                         </button>
