@@ -874,6 +874,10 @@ export default function DataSiswaMainPage() {
                         </div>
                         <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white dark:bg-zinc-800 rounded-box w-fit">
                             <li>
+                                <button type="button" onClick={() => router.push('/print/data/siswa')} className="flex items-center justify-start gap-2 dark:text-zinc-200 dark:hover:bg-zinc-700/50">
+                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-red-600" />
+                                    PDF
+                                </button>
                                 <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2 dark:text-zinc-200 dark:hover:bg-zinc-700/50">
                                     <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
                                     XLSX
