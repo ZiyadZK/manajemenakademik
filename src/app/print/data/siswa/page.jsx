@@ -66,6 +66,7 @@ export default function PrintDataSiswaPage() {
     const [filteredDataSiswa, setFilteredDataSiswa] = useState([])
     const [selectedSiswa, setSelectedSiswa] = useState([])
     const [printedData, setPrintedData] = useState(null)
+    const [loadingFetch, setLoadingFetch] = useState('')
 
     const [pageSettings, setPageSettings] = useState({
         kertas: 'a4', panjang: 0, lebar: 0, marginKiri: 0, marginKanan: 0, marginAtas: 0, marginBawah: 0, portrait: ''
@@ -75,6 +76,7 @@ export default function PrintDataSiswaPage() {
         const responseData = await getAllSiswa()
         setDataSiswa(responseData)
         setFilteredDataSiswa(responseData)
+        setLoadingFetch('fetched')
     }
 
     useEffect(() => {
@@ -85,7 +87,6 @@ export default function PrintDataSiswaPage() {
 
     const handleExportPdf = () => {
         const content = componentPDF.current
-        console.log(content)
         html2canvas(content, {scale: 3}).then(canvas => {
             const imgData = canvas.toDataURL('image/jpeg', 0.1);
 
@@ -115,7 +116,7 @@ export default function PrintDataSiswaPage() {
             const imgY = (pdfH - imgHeight) / 2;
             // Add the image to the PDF without any additional padding
             pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth, imgHeight);
-            pdf.save('test.pdf');
+            pdf.save(`DATA SISWA - ${printedData.nama_siswa} - ${printedData.kelas} ${printedData.rombel} ${printedData.no_rombel}`);
         })
     }
 
@@ -138,32 +139,39 @@ export default function PrintDataSiswaPage() {
                 </div>
                 <hr className="my-2 opacity-0" />
                 <div className="flex md:flex-row flex-col gap-2">
-                    <div className="w-full md:w-1/2">
-                        <input type="text" className="border px-3 py-2 rounded md:w-1/2 w-full dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Cari data siswa di sini" />
-                        <hr className="my-1 opacity-0" />
-                        <div className="relative w-full overflow-auto max-h-[300px] space-y-1">
-                            {filteredDataSiswa.slice(0, 40).map((siswa, index) => (
-                                <button key={index} onClick={() => setPrintedData(siswa)} type="button" className="w-full  rounded border p-3 flex items-center justify-between text-start hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800">
-                                    <div className="space-y-1">
-                                        <p>{siswa.nama_siswa}</p>
-                                        <div className="flex items-center gap-2 text-xs">
-                                            <p className="opacity-50">{siswa.nis}</p>
-                                            -
-                                            <p className="opacity-50">{siswa.nisn}</p>
-                                        </div>
-                                    </div>
-                                    <p className="opacity-50">{siswa.kelas} {siswa.rombel} {siswa.no_rombel}</p>
-                                </button>
-                            ))}
+                    {loadingFetch !== 'fetched' && (
+                        <div className="w-full md:w-1/2 flex justify-center items-center gap-3">
+                            <div className="loading loading-spinner loading-lg text-blue-500 dark:text-zinc-400"></div>
                         </div>
-                        <hr className="my-1 opacity-0" />
-                        {printedData !== null && (
-                            <button type="button" onClick={() => handleExportPdf()} className="w-full md:w-fit px-3 py-2 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center gap-2">
-                                <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
-                                Export menjadi PDF
-                            </button>
-                        )}
-                    </div>
+                    )}
+                    {loadingFetch === 'fetched' && (
+                        <div className="w-full md:w-1/2">
+                            <input type="text" className="border px-3 py-2 rounded md:w-1/2 w-full dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Cari data siswa di sini" />
+                            <hr className="my-1 opacity-0" />
+                            <div className="relative w-full overflow-auto max-h-[300px] space-y-1">
+                                {filteredDataSiswa.slice(0, 40).map((siswa, index) => (
+                                    <button key={index} onClick={() => setPrintedData(siswa)} type="button" className="w-full  rounded border p-3 flex items-center justify-between text-start hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800">
+                                        <div className="space-y-1">
+                                            <p>{siswa.nama_siswa}</p>
+                                            <div className="flex items-center gap-2 text-xs">
+                                                <p className="opacity-50">{siswa.nis}</p>
+                                                -
+                                                <p className="opacity-50">{siswa.nisn}</p>
+                                            </div>
+                                        </div>
+                                        <p className="opacity-50">{siswa.kelas} {siswa.rombel} {siswa.no_rombel}</p>
+                                    </button>
+                                ))}
+                            </div>
+                            <hr className="my-1 opacity-0" />
+                            {printedData !== null && (
+                                <button type="button" onClick={() => handleExportPdf()} className="w-full md:w-fit px-3 py-2 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-700 flex items-center justify-center gap-2">
+                                    <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
+                                    Export menjadi PDF
+                                </button>
+                            )}
+                        </div>
+                    )}
                     <div className="w-full md:w-1/2">
                         a
                     </div>
