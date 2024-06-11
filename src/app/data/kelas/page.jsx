@@ -104,13 +104,15 @@ export default function DataKelasPage() {
                     responseData = await setWaliKelas(kelas, rombel, no_rombel, {
                         id_pegawai: String(dataPegawai.id_pegawai),
                         nama_pegawai: dataPegawai.nama_pegawai,
-                        nik_pegawai: dataPegawai.nik
+                        nik_pegawai: dataPegawai.nik,
+                        email_pegawai: dataPegawai.email_pegawai
                     })
                 }else{
                     responseData = await setGuruBK(kelas, rombel, no_rombel, {
                         id_pegawai: String(dataPegawai.id_pegawai),
                         nama_pegawai: dataPegawai.nama_pegawai,
-                        nik_pegawai: dataPegawai.nik
+                        nik_pegawai: dataPegawai.nik,
+                        email_pegawai: dataPegawai.email_pegawai
                     })
                 }
 
