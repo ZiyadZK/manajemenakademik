@@ -192,7 +192,7 @@ export default function DataPegawaiUpdatePage({params}) {
                                     </div>
 
                                     <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
-                                        <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Nama</p>
+                                        <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Email</p>
                                         <input required type="text" value={formPegawai.email_pegawai} onChange={e => setFormPegawai(state => ({...state, email_pegawai: e.target.value}))} className={" bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full md:w-3/5 text-sm outline-none " + mont.className} placeholder="Email Pegawai " />
                                     </div>
 
