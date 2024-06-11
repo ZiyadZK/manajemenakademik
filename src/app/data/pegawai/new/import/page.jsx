@@ -20,6 +20,7 @@ import { createMultiPegawai } from "@/lib/model/pegawaiModel"
 
 const formatInputFile = {
     nama_pegawai: '',
+    email_pegawai: '',
     jabatan: '',
     status_kepegawaian: '',
     nik: '',
@@ -45,12 +46,12 @@ const formatInputFile = {
   }
 
 
-const formatDataPribadi = ['nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nik', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'pensiun']
+const formatDataPribadi = ['nama_pegawai', 'email_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nik', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'pensiun']
 const formatDataPendidikan = ['tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi']
 const formatDataSertifikat = ['sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan']
 
 const allowedFileTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-const formatDataPegawai = ['id_pegawai', 'nama_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi', 'sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan', 'pensiun']
+const formatDataPegawai = ['id_pegawai', 'nama_pegawai', 'email_pegawai', 'jabatan', 'status_kepegawaian', 'nip', 'nuptk', 'tmpt_lahir', 'tgl_lahir', 'tmt', 'pendidikan_terakhir', 'sekolah_pendidikan', 'sarjana_universitas', 'sarjana_fakultas', 'sarjana_prodi', 'magister_universitas', 'magister_fakultas', 'magister_prodi', 'sertifikat_pendidik', 'sertifikat_teknik', 'sertifikat_magang', 'sertifikat_asesor', 'keterangan', 'pensiun']
 
 const formatInformasiFile = {status: '', ekstensi: '', size: '', jumlahData: ''}
 const mySwal = withReactContent(Swal)

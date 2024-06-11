@@ -13,7 +13,7 @@ import { Toaster } from "react-hot-toast"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
-const formatPegawai = {  nama_pegawai: "", jabatan: "", status_kepegawaian: "", nik: '', nip: "", nuptk: "", tmpt_lahir: "", tgl_lahir: "", tmt: "", pendidikan_terakhir: "", sekolah_pendidikan: "", sarjana_universitas: "", sarjana_fakultas: "", sarjana_prodi: "", magister_universitas: "", magister_fakultas: "", magister_prodi: "", keterangan: "", pensiun: "", sertifikat: [], pensiun: false };
+const formatPegawai = {  nama_pegawai: "", email_pegawai: "", jabatan: "", status_kepegawaian: "", nik: '', nip: "", nuptk: "", tmpt_lahir: "", tgl_lahir: "", tmt: "", pendidikan_terakhir: "", sekolah_pendidikan: "", sarjana_universitas: "", sarjana_fakultas: "", sarjana_prodi: "", magister_universitas: "", magister_fakultas: "", magister_prodi: "", keterangan: "", pensiun: "", sertifikat: [], pensiun: false };
 
 const mySwal = withReactContent(Swal)
 export default function DataPegawaiNewPage() {
@@ -162,6 +162,11 @@ export default function DataPegawaiNewPage() {
                                 <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
                                     <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Nama</p>
                                     <input required type="text" onChange={e => setFormPegawai(state => ({...state, nama_pegawai: e.target.value}))} className={" bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full md:w-3/5 text-sm outline-none " + mont.className} placeholder="Nama Panjang " />
+                                </div>
+
+                                <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
+                                    <p className="text-xs md:text-md font-medium text-zinc-400 w-full md:w-2/5">Email</p>
+                                    <input required type="text" onChange={e => setFormPegawai(state => ({...state, email_pegawai: e.target.value}))} className={" bg-white hover:outline-zinc-200 focus:outline-zinc-400 border px-2 py-1 rounded w-full md:w-3/5 text-sm outline-none " + mont.className} placeholder="Email " />
                                 </div>
 
                                 <div className="flex md:flex-row flex-col gap-1 md:gap-0 md:items-center">
