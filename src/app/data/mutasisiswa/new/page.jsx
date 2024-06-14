@@ -2,7 +2,7 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont } from "@/config/fonts"
-import { dateToIso, isoToDate } from "@/lib/dateConvertes"
+import {  date_getDay, date_getMonth, date_getYear} from "@/lib/dateConvertes"
 import { createMultiIjazah } from "@/lib/model/ijazahModel"
 import { createMutasiSiswa, getAllMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
 import { deleteMultiSiswaByNis, getAllSiswa } from "@/lib/model/siswaModel"
@@ -201,8 +201,8 @@ export default function DataMutasiSiswaNewPage() {
 
         updatedData = updatedData.map(form => ({
             ...form,
-            ['tanggal_keluar']: form['tanggal_keluar'] === '' ? `${new Date().toLocaleDateString('en-GB')}` : form['tanggal_keluar'],
-            ['tahun_keluar']: form['tanggal_keluar'] === '' ? `${new Date().toLocaleDateString('en-GB').split('/')[2]}` : `${form['tanggal_keluar'].split('/')[2]}`,
+            ['tanggal_keluar']: form['tanggal_keluar'] === '' ? `${date_getYear()}-${date_getMonth()}-${date_getDay()}` : form['tanggal_keluar'],
+            ['tahun_keluar']: form['tanggal_keluar'] === '' ? `${date_getYear()}` : `${date_getYear(form['tanggal_keluar'])}`,
             ['keterangan']: form['keterangan'] === '' ? `-` : form['keterangan']
         }))
 
@@ -466,7 +466,7 @@ export default function DataMutasiSiswaNewPage() {
                                         <div className="w-full md:w-1/4 text-sm text-zinc-400">
                                             Tanggal Keluar <span className="float-end hidden md:block">:</span>
                                         </div>
-                                        <input type="date" value={dateToIso(form['tanggal_keluar'])} onChange={e => handleChangeFormData(form.nis, isoToDate(e.target.value), 'tanggal_keluar')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" />
+                                        <input type="date" value={form['tanggal_keluar']} onChange={e => handleChangeFormData(form.nis, e.target.value, 'tanggal_keluar')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" />
                                     </div>
                                     <div className="flex md:items-center md:flex-row flex-col gap-1">
                                         <div className="w-full md:w-1/4 text-sm text-zinc-400">

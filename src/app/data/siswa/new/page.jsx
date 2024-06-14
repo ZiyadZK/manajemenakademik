@@ -186,7 +186,7 @@ export default function DataSiswaNewPage() {
                         <div className="grid grid-cols-2 gap-2 md:gap-5">
                             <div className="space-y-1">
                                 <h1 className="text-xs dark:text-zinc-500">Tanggal Lahir</h1>
-                                <input type="date" required value={dateToIso(formData.tanggal_lahir)} onChange={e => setFormData(state => ({...state, tanggal_lahir: isoToDate(e.target.value)}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer dark:text-white dark:border-zinc-700 dark:bg-zinc-700" placeholder="Masukkan Tanggal Lahir" />
+                                <input type="date" required value={formData.tanggal_lahir} onChange={e => setFormData(state => ({...state, tanggal_lahir: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium focus:outline-blue-400 bg-transparent cursor-pointer dark:text-white dark:border-zinc-700 dark:bg-zinc-700" placeholder="Masukkan Tanggal Lahir" />
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-xs dark:text-zinc-500">Tempat Lahir</h1>

@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, open, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
+import { date_getDay, date_getMonth, date_getYear } from "@/lib/dateConvertes"
 import { ioServer } from "@/lib/io"
 import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
 import { deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, updateBulkSiswa } from "@/lib/model/siswaModel"
@@ -231,8 +232,6 @@ export default function DataSiswaMainPage() {
         event.preventDefault()
 
         document.getElementById(modal).close()
-        console.log(event.target[0].value)
-        console.log(new Date(event.target[0].value).toLocaleDateString('en-GB'))
 
         Swal.fire({
             title: "Sedang memproses data",
@@ -245,8 +244,8 @@ export default function DataSiswaMainPage() {
                 const {aktif, ...newObj} = payload
                 const newData = {
                     ...newObj,
-                    tanggal_keluar: event.target[0].value !== '' ? `${new Date(event.target[0].value).toLocaleDateString('en-GB')}` : `${new Date().toLocaleDateString('en-GB')}`,
-                    tahun_keluar: event.target[0].value !== '' ? `${new Date(event.target[0].value).toLocaleDateString('en-GB').split('/')[2]}` : `${new Date().toLocaleDateString('en-GB').split('/')[2]}`,
+                    tanggal_keluar: event.target[0].value !== '' ? event.target[0].value : `${date_getYear()}-${date_getMonth()}-${date_getDay()}`,
+                    tahun_keluar: event.target[0].value !== '' ? `${date_getYear(event.target[0].value)}` : `${date_getYear()}`,
                     keterangan: event.target[1].value
                 }
 
@@ -266,8 +265,6 @@ export default function DataSiswaMainPage() {
                 }
             }
         })
-        console.log(event.target[0].value)
-        console.log(event.target[1].value)
     }
 
     const handleSelectAll = () => {

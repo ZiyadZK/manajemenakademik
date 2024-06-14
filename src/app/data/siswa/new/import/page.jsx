@@ -223,7 +223,16 @@ export default function DataSiswaNewImportPage() {
                         if(row.length > 0) {
                             let obj = {};
                             columns.forEach((column, index) => {
-                                obj[column] = String(row[index])
+                                if(column === 'tanggal_lahir') {
+                                    const dateValue = new Date((row[index] - 25569) * 86400 * 1000)
+                                    // Construct the date string in the format 'dd/MM/yyyy'
+                                    const day = String(dateValue.getDate()).padStart(2, '0');
+                                    const month = String(dateValue.getMonth() + 1).padStart(2, '0'); // Month is zero-based
+                                    const year = dateValue.getFullYear();
+                                    obj[column] = `${year}-${month}-${day}`;
+                                }else{
+                                    obj[column] = String(row[index])
+                                }
                             });
                             return obj
                         } else{

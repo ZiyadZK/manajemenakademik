@@ -231,7 +231,7 @@ export default function DataMutasiSiswaNewImportPage() {
                                     const day = String(dateValue.getDate()).padStart(2, '0');
                                     const month = String(dateValue.getMonth() + 1).padStart(2, '0'); // Month is zero-based
                                     const year = dateValue.getFullYear();
-                                    obj[column] = `${day}/${month}/${year}`;
+                                    obj[column] = `${year}-${month}-${day}`;
                                 }else{
                                     obj[column] = String(row[index])
                                 }

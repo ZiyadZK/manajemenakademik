@@ -152,9 +152,16 @@ export default function DataMutasiSiswaNISPage({params}) {
                                             </h1>
                                             <div className="hidden md:block dark:text-zinc-500">:</div>
                                         </div>
-                                        <p className="w-full md:w-3/4 font-medium dark:text-zinc-200">
-                                            {format === 'kelas' ? `${dataSiswa['kelas']} ${dataSiswa['rombel']} ${dataSiswa['no_rombel']}` : dataSiswa[format]}
-                                        </p>
+                                        {format === 'kelas' ? (
+                                            <p className="w-full md:w-3/4 font-medium dark:text-zinc-200">
+                                                {format === 'kelas' ? `${dataSiswa['kelas']} ${dataSiswa['rombel']} ${dataSiswa['no_rombel']}` : dataSiswa[format]}
+                                            </p>
+
+                                        ):(
+                                            <p className="w-full md:w-3/4 font-medium dark:text-zinc-200">
+                                                {format !== 'tanggal_lahir' ? dataSiswa[format] : dataSiswa[format].split('-').reverse().join('/')}
+                                            </p>
+                                        )}
                                     </div>
                                 ))}
                                 

@@ -2,7 +2,6 @@
 
 import MainLayoutPage from "@/components/mainLayout"
 import { mont } from "@/config/fonts"
-import { dateToIso, isoToDate } from "@/lib/dateConvertes"
 import { model_getAlumniByNis, model_updateAlumni } from "@/lib/model/alumniModel"
 import { getSiswaByNIS, updateSiswaByNIS } from "@/lib/model/siswaModel"
 import { faAngleDown, faArrowLeft, faArrowLeftLong, faSave, faSpinner, faUpload, faUserEdit } from "@fortawesome/free-solid-svg-icons"
@@ -165,7 +164,7 @@ export default function DataAlumniEditPage({params}) {
                                     <div className="grid grid-cols-2 gap-5">
                                         <div className="space-y-1">
                                             <h1 className="text-xs dark:text-zinc-500">Tanggal Lahir</h1>
-                                            <input type="date" value={dateToIso(formData.tanggal_lahir)} onChange={e => setFormData(state => state = {...state, tanggal_lahir: isoToDate(e.target.value)})} className="px-2 py-1 rounded border bg-white w-full font-medium dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Masukkan Tanggal Lahir" />
+                                            <input type="date" value={formData.tanggal_lahir} onChange={e => setFormData(state => state = {...state, tanggal_lahir: e.target.value})} className="px-2 py-1 rounded border bg-white w-full font-medium dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Masukkan Tanggal Lahir" />
                                         </div>
                                         <div className="space-y-1">
                                             <h1 className="text-xs dark:text-zinc-500">Tempat Lahir</h1>
@@ -262,7 +261,7 @@ export default function DataAlumniEditPage({params}) {
                                         </div>
                                         <div className="space-y-1">
                                             <h1 className="text-xs dark:text-zinc-500">Tanggal Lahir</h1>
-                                            <input type="date" value={dateToIso(formData.tanggal_keluar)} onChange={e => setFormData(state => state = {...state, tanggal_keluar: isoToDate(e.target.value)})} className="px-2 py-1 rounded border bg-white w-full font-medium dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Masukkan Tanggal Lahir" />
+                                            <input type="date" value={formData.tanggal_keluar} onChange={e => setFormData(state => state = {...state, tanggal_keluar: e.target.value})} className="px-2 py-1 rounded border bg-white w-full font-medium dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Masukkan Tanggal Lahir" />
                                         </div>
                                     </div>
                                 </div>
@@ -414,7 +413,7 @@ function oldSection() {
                                         <div className="grid grid-cols-2 gap-5">
                                             <div className="space-y-1">
                                                 <h1 className="text-xs">Tanggal Lahir</h1>
-                                                <input type="date" value={dateToIso(formData.tanggal_lahir)} onChange={e => setFormData(state => state = {...state, tanggal_lahir: isoToDate(e.target.value)})} className="px-2 py-1 rounded border bg-white w-full font-medium dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Masukkan Tanggal Lahir" />
+                                                <input type="date" value={formData.tanggal_lahir} onChange={e => setFormData(state => state = {...state, tanggal_lahir: e.target.value})} className="px-2 py-1 rounded border bg-white w-full font-medium dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Masukkan Tanggal Lahir" />
                                             </div>
                                             <div className="space-y-1">
                                                 <h1 className="text-xs">Tempat Lahir</h1>
