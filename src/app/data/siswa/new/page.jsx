@@ -1,8 +1,6 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { mont } from "@/config/fonts"
-import { dateToIso, isoToDate } from "@/lib/dateConvertes"
 import { createSingleSiswa, getAllSiswa } from "@/lib/model/siswaModel"
 import { faAngleDown, faArrowLeft, faArrowLeftLong, faDownload, faRecycle, faSave, faUpload, faUserPlus } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -435,7 +433,7 @@ function oldSection() {
                             <div className="grid grid-cols-2 gap-5">
                                 <div className="space-y-1">
                                     <h1 className="text-xs">Tanggal Lahir</h1>
-                                    <input type="date" required value={dateToIso(formData.tanggal_lahir)} onChange={e => setFormData(state => ({...state, tanggal_lahir: isoToDate(e.target.value)}))} className="px-2 py-1 rounded border outline-none w-full font-medium" placeholder="Masukkan Tanggal Lahir" />
+                                    <input type="date" required value={formData.tanggal_lahir} onChange={e => setFormData(state => ({...state, tanggal_lahir: e.target.value}))} className="px-2 py-1 rounded border outline-none w-full font-medium" placeholder="Masukkan Tanggal Lahir" />
                                 </div>
                                 <div className="space-y-1">
                                     <h1 className="text-xs">Tempat Lahir</h1>
