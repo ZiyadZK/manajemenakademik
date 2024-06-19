@@ -245,21 +245,21 @@ export default function DataMutasiSiswaNewPage() {
     return (
         <MainLayoutPage>
             <Toaster />
-            <div className="mt-3">
+            <div className="mt-3 dark:text-zinc-200">
                 <div className={`flex md:items-center md:justify-between w-full md:flex-row flex-col gap-3`}>
                     <div className="flex items-center gap-2 md:gap-5">
-                        <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200">
+                        <button type="button" onClick={() => router.back()} className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-100 text-zinc-800 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
                             <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4 text-inherit" />
                         </button>
                         <div className="flex items-center gap-2">
                             <FontAwesomeIcon icon={faFileCirclePlus} className="w-4 h-4 text-blue-600" />
-                            <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 bg-clip-text">
+                            <h1 className="md:text-xl text-transparent bg-gradient-to-r from-blue-600 to-zinc-800 dark:to-white bg-clip-text">
                                 Penambahan Data Mutasi Siswa
                             </h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-5">
-                        <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className="w-1/2 md:w-fit px-4 py-2 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center gap-3">
+                        <button type="button" onClick={() => router.push('/data/ijazah/new/import')} className="w-1/2 md:w-fit px-4 py-2 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center gap-3 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700">
                             <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
                             Import 
                         </button>
@@ -277,10 +277,10 @@ export default function DataMutasiSiswaNewPage() {
                                 <div className="absolute top-0 left-0 w-10 h-full flex items-center justify-center">
                                     <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
                                 </div>
-                                <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full bg-white pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
+                                <input type="text" value={searchValue} onChange={e => setSearchValue(e.target.value)} className="w-full bg-white dark:bg-transparent pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                             </div>
                             <div className="md:flex gap-1 items-center hidden">
-                                <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:border-zinc-800 dark:bg-zinc-800">
                                     <option disabled>-- Rombel --</option>
                                     <option value="TKJ">TKJ</option>
                                     <option value="DPIB">DPIB</option>
@@ -290,7 +290,7 @@ export default function DataMutasiSiswaNewPage() {
                                     <option value="GEO">GEO</option>
                                     <option value="">Semua</option>
                                 </select>
-                                <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:border-zinc-800 dark:bg-zinc-800">
                                     <option disabled>-- No --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -302,7 +302,7 @@ export default function DataMutasiSiswaNewPage() {
                         </div>
                         <hr className="my-1 md:my-0 opacity-0" />
                         <div className="flex gap-1 items-center md:hidden">
-                            <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterRombel} onChange={e => setFilterRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit dark:border-zinc-800 dark:bg-zinc-800">
                                 <option disabled>-- Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="DPIB">DPIB</option>
@@ -312,7 +312,7 @@ export default function DataMutasiSiswaNewPage() {
                                 <option value="GEO">GEO</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterNoRombel} onChange={e => setFilterNoRombel(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit dark:border-zinc-800 dark:bg-zinc-800">
                                 <option disabled>-- No --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -339,32 +339,32 @@ export default function DataMutasiSiswaNewPage() {
                                 </div>
                             )}
                             {filteredSiswaList.slice(0, 100).map((siswa, index) => (
-                                <button key={`${siswa.nis} - ${index}`} onClick={() => addFormData(siswa.nis)} type="button" className={`w-full rounded-lg border p-2 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/50 focus:border-blue-300 focus:bg-blue-50/50 group`}>
+                                <button key={`${siswa.nis} - ${index}`} onClick={() => addFormData(siswa.nis)} type="button" className={`w-full rounded-lg border p-2 flex items-center justify-between hover:border-blue-300 hover:bg-blue-50/50 focus:border-blue-300 focus:bg-blue-50/50 group dark:border-zinc-800 dark:hover:bg-zinc-700 dark:hover:bg-zinc-700/30 dark:focus:bg-zinc-700/20`}>
                                     <div className={`${mont.className} flex-grow text-start`}>
-                                        <p className="text-sm font-medium tracking-tighter group-hover:text-blue-700 group-focus:text-blue-700">
+                                        <p className="text-sm font-medium tracking-tighter group-hover:text-blue-700 group-focus:text-blue-700 dark:group-hover:text-blue-300  dark:group-focus:text-blue-300">
                                             {siswa.nama_siswa}
                                         </p>
                                         <p className="text-xs tracking-tighter text-zinc-400">{siswa.kelas} {siswa.rombel} {siswa.no_rombel} - {siswa.nis}</p>
                                     </div>
                                     <div className="space-y-2 flex flex-col items-end">
                                         {mutasiSiswa.map((ijazah, index) => ijazah['nis'] === siswa.nis && ijazah['status'] === 'belum diambil' && (
-                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-blue-50 text-blue-700">
+                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500">
                                                 Belum Diambil
                                             </p>
                                         ))}
                                         {mutasiSiswa.map((ijazah, index) => ijazah['nis'] === siswa.nis && ijazah['status'] === 'sudah diambil' && (
-                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-amber-50 text-amber-700">
+                                            <p key={`${ijazah.no_ijazah} - ${index}`} className="text-xs w-fit px-2 py-1 rounded bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-500">
                                                 Sudah Diambil
                                             </p>
                                         ))}
                                         {formData.map((form, index) => siswa['nis'] === form['nis'] && (
-                                            <FontAwesomeIcon key={`form ${index}`} icon={faCircleCheck} className="w-3 h-3 text-blue-600" />
+                                            <FontAwesomeIcon key={`form ${index}`} icon={faCircleCheck} className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                                         ))}
                                     </div>
                                 </button>
                             ))}
                         </div>
-                        <hr className="my-2" />
+                        <hr className="my-2 dark:opacity-20" />
                         {fetchedSiswaList !== 'fetched' && (
                             <div className="flex justify-center w-full my-3">
                                 <div className="flex items-center gap-3 opacity-60">
@@ -375,8 +375,8 @@ export default function DataMutasiSiswaNewPage() {
                         )}
                         <div className="md:grid md:grid-cols-2 flex gap-2 relative overflow-auto max-h-40">
                             {kelasList.map((kelas, index) => (
-                                <button key={`${index}`} type="button" onClick={() => toggleAddBulkFormData(kelas.kelas, kelas.rombel, kelas.no_rombel)} className={` ${mont.className} px-2 py-4 rounded-lg border flex items-center gap-5 hover:border-zinc-600 hover:shadow-lg flex-shrink-0 w-1/2 md:w-full`}>
-                                    <div className="w-8 h-8 rounded-full bg-violet-50 flex items-center justify-center font-medium text-violet-500">
+                                <button key={`${index}`} type="button" onClick={() => toggleAddBulkFormData(kelas.kelas, kelas.rombel, kelas.no_rombel)} className={` ${mont.className} px-2 py-4 rounded-lg border flex items-center gap-5 hover:border-zinc-600 hover:shadow-lg flex-shrink-0 w-1/2 md:w-full dark:border-zinc-700 dark:hover:border-zinc-500 transition-all duration-300 dark:hover:bg-zinc-800`}>
+                                    <div className="w-8 h-8 rounded-full bg-violet-50 flex items-center justify-center font-medium text-violet-500 dark:bg-violet-500/10 dark:text-violet-400">
                                         {kelas.length}
                                     </div>
                                     <article className="text-start">
@@ -395,10 +395,10 @@ export default function DataMutasiSiswaNewPage() {
                                 <div className="absolute top-0 left-0 w-10 h-full flex items-center justify-center">
                                     <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
                                 </div>
-                                <input type="text" value={searchValueForm} onChange={e => setSearchValueForm(e.target.value)} className="w-full bg-white pl-10  text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
+                                <input type="text" value={searchValueForm} onChange={e => setSearchValueForm(e.target.value)} className="w-full  pl-10 bg-transparent text-sm outline-none peer" placeholder="Cari Data Siswa di sini" />
                             </div>
                             <div className="md:flex gap-1 items-center hidden">
-                                <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm dark:bg-zinc-800">
                                     <option disabled>-- Rombel --</option>
                                     <option value="TKJ">TKJ</option>
                                     <option value="DPIB">DPIB</option>
@@ -408,7 +408,7 @@ export default function DataMutasiSiswaNewPage() {
                                     <option value="GEO">GEO</option>
                                     <option value="">Semua</option>
                                 </select>
-                                <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm">
+                                <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm  dark:bg-zinc-800">
                                     <option disabled>-- No --</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
@@ -420,7 +420,7 @@ export default function DataMutasiSiswaNewPage() {
                         </div>
                         <hr className="my-1 md:my-0 opacity-0" />
                         <div className={`${formData.length > 0 ? 'flex' : 'hidden'} gap-1 items-center md:hidden`}>
-                            <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterRombelForm} onChange={e => setFilterRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit  dark:bg-zinc-800">
                                 <option disabled>-- Rombel --</option>
                                 <option value="TKJ">TKJ</option>
                                 <option value="DPIB">DPIB</option>
@@ -430,7 +430,7 @@ export default function DataMutasiSiswaNewPage() {
                                 <option value="GEO">GEO</option>
                                 <option value="">Semua</option>
                             </select>
-                            <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit">
+                            <select value={filterNoRombelForm} onChange={e => setFilterNoRombelForm(e.target.value)} className="border bg-white rounded py-2.5 border-zinc-600 cursor-pointer text-sm w-full md:w-fit  dark:bg-zinc-800">
                                 <option disabled>-- No --</option>
                                 <option value="1">1</option>
                                 <option value="2">2</option>
@@ -440,24 +440,19 @@ export default function DataMutasiSiswaNewPage() {
                             </select>
                         </div>
                         {filteredFormData.map((form, index) => (
-                            <div key={`formData-${index}`} className="collapse collapse-arrow bg-zinc-50/50 hover:bg-zinc-50">
+                            <div key={`formData-${index}`} className="collapse collapse-arrow bg-zinc-50/50 hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700">
                                 <input type="checkbox" /> 
                                 <div className="collapse-title flex md:flex-row flex-col md:gap-5 md:items-center md:justify-start items-start font-medium">
                                     <p>
                                         {form.nama_siswa}
                                     </p>
-                                    <div className={`${mont.className} opacity-50 text-xs flex items-center gap-1 md:gap-3`}>
-                                        <p className="px-2 py-1 rounded-full bg-blue-100 text-blue-600">
+                                    <div className={`${mont.className} opacity-50 dark:opacity-100 text-xs flex items-center gap-1 md:gap-3`}>
+                                        <p className="px-2 py-1 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500">
                                             {form.kelas} {form.rombel} {form.no_rombel}
                                         </p>
-                                        <p className="px-2 py-1 rounded-full bg-amber-100 text-amber-600">
+                                        <p className="px-2 py-1 rounded-full bg-amber-100 text-amber-600  dark:bg-amber-500/10 dark:text-amber-500">
                                             {form.nis}
                                         </p>
-                                        {form['status'] === 'sudah diambil' && (
-                                            <p className="rounded-full bg-green-100 text-green-600">
-                                                <FontAwesomeIcon icon={faCheckCircle} className="w-4 h-4 text-inherit" />
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
                             
@@ -466,13 +461,13 @@ export default function DataMutasiSiswaNewPage() {
                                         <div className="w-full md:w-1/4 text-sm text-zinc-400">
                                             Tanggal Keluar <span className="float-end hidden md:block">:</span>
                                         </div>
-                                        <input type="date" value={form['tanggal_keluar']} onChange={e => handleChangeFormData(form.nis, e.target.value, 'tanggal_keluar')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" />
+                                        <input type="date" value={form['tanggal_keluar']} onChange={e => handleChangeFormData(form.nis, e.target.value, 'tanggal_keluar')} className="bg-white dark:bg-zinc-900 dark:border-zinc-800 w-full text-sm md:w-fit px-3 py-1 rounded border" />
                                     </div>
                                     <div className="flex md:items-center md:flex-row flex-col gap-1">
                                         <div className="w-full md:w-1/4 text-sm text-zinc-400">
                                             Keterangan <span className="float-end hidden md:block">:</span>
                                         </div>
-                                        <input type="text" value={form['keterangan']} onChange={e => handleChangeFormData(form.nis, e.target.value, 'keterangan')} className="bg-white w-full text-sm md:w-fit px-3 py-1 rounded border" placeholder="Masukkan Keterangan" />
+                                        <input type="text" value={form['keterangan']} onChange={e => handleChangeFormData(form.nis, e.target.value, 'keterangan')} className="bg-white dark:bg-zinc-900 dark:border-zinc-800 w-full text-sm md:w-fit px-3 py-1 rounded border" placeholder="Masukkan Keterangan" />
                                     </div>
                                     <button type="button" onClick={() => deleteFormData(form['nisn'])} className="flex items-center gap-3 px-3 py-1 rounded-lg bg-red-400 hover:bg-red-500 focus:bg-red-600 text-white text-sm">
                                         <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
