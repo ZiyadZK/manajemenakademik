@@ -229,10 +229,8 @@ export default function MainLayoutPage({children}) {
                         </div>
                     )}
                 </div>
-                <div className="px-5 md:px-10 pt-5 pb-10 relative overflow-auto w-full h-screen">
-                    <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-2xl">
-                        {children}
-                    </div>
+                <div className="px-3  md:pt-5 md:px-10 pt-3 pb-10 relative overflow-auto w-full h-screen text-zinc-700 dark:text-zinc-200">
+                    {children}
                 </div>
             </div> 
             <div className="drawer-side">

@@ -1,11 +1,11 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { mont, rale } from "@/config/fonts";
+import { jakarta, mont, rale } from "@/config/fonts";
 import { downloadCSV } from "@/lib/csvDownload";
-import { ioServer } from "@/lib/io";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
-import { faAlignLeft, faAngleLeft, faAngleRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faEye, faFile, faInfo, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { getAllPegawai } from "@/lib/model/pegawaiModel";
+import { faAlignLeft, faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckSquare, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faEye, faFile, faFilter, faInfo, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { nanoid } from "nanoid";
 import { Nunito, Quicksand } from "next/font/google";
@@ -13,684 +13,577 @@ import { Suspense, useEffect, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+const formatForm = {
+    fk_akun_id_pegawai: '',
+    nama_akun: '',
+    email_akun: '',
+    password_akun: '',
+    role_akun: ''
+}
 
-const nunito = Nunito({subsets: ['latin']})
-const quicksand = Quicksand({subsets: ['latin']})
-const formatUpdateFormData = {id_akun: '', email_akun: '', nama_akun: '', role_akun: ''}
+const showModal = (id) => {
+    return {
+        show: (type) => {
+            if(type === 'show') {
+                document.getElementById(id).showModal()
+            }else{
+                document.getElementById(id).close()
+            }
+        }
+    }
+}
 
-const mySwal = withReactContent(Swal)
 export default function DataAkunPage() {
 
-    // let selectedAkun = []
-    const [newFormData, setNewFormData] = useState([])
-    const [akunList, setAkunList] = useState([])
-    const [filteredAkunList, setFilteredAkunList] = useState([])
-    const [filterRole, setFilterRole] = useState('')
-    const [searchValue, setSearchValue] = useState('');
-    const [selectedAkun, setSelectedAkun] = useState([])
-    const [loadingFetch, setLoadingFetch] = useState('');
-    const [pagination, setPagination] = useState(1);
-    const [selectAll, setSelectAll] = useState(false)
-    const [totalList, setTotalList] = useState(9000)
-    const [viewSelectedOnly, setViewSelectedOnly] = useState(false)
-    const [sorting, setSorting] = useState({email_akun: '', nama_akun: ''})
-    const [updateFormData, setUpdateFormData] = useState({
-        id_akun: '', email_akun: '', nama_akun: '', role_akun: ''
+    const [data, setData] = useState([])
+    const [dataPegawai, setDataPegawai] = useState([])
+    const [formTambah, setFormTambah] = useState(formatForm)
+    const [filteredDataPegawai, setFilteredDataPegawai] = useState([])
+    const [searchDataPegawai, setSearchDataPegawai] = useState('')
+    const [loadingFetch, setLoadingFetch] = useState({
+        data: '', pegawai: ''
     })
-    const [statusSocket, setStatusSocket] = useState('')
+    const [filteredData, setFilteredData] = useState([])
+    const [pagination, setPagination] = useState(1)
+    const [totalList, setTotalList] = useState(10)
+    const [selectedData, setSelectedData] = useState([])
+    const [searchFilter, setSearchFilter] = useState('')
+    const [selectAll, setSelectAll] = useState(false)
 
-    const handleSorting = (key, otherKey) => {
-        if(sorting[key] === '') {  
-            return setSorting(state => ({...state, [key]: 'asc', [otherKey]: ''}))
+    const getData = async () => {
+        console.log('get data')
+        setLoadingFetch(state => ({...state, data: 'loading'}))
+        const response = await getAllAkun()
+        console.log(response)
+        setData(response)
+        setFilteredData(response)
+        setLoadingFetch(state => ({...state, data: 'fetched'}))
+    }
+
+    const getDataPegawai = async () => {
+        setLoadingFetch(state => ({...state, pegawai: 'loading'}))
+        const response = await getAllPegawai()
+        if(response.success) {
+            setDataPegawai(response.data)
+            setFilteredDataPegawai(response.data)
         }
-        if(sorting[key] === 'asc') {
-            return setSorting(state => ({...state, [key]: 'dsc', [otherKey]: ''}))
-        }
-        if(sorting[key] === 'dsc') {
-            return setSorting(state => ({...state, [key]: '', [otherKey]: ''}))
-        }
-    }
-
-    const addNewFormData = () => {
-        if(newFormData.length > 4) {
-            return toast.error('Tidak bisa membuat data lebih dari 5 akun!');
-        }
-        const newForm = {
-            id_akun: `${nanoid(8)}-${nanoid(4)}-${nanoid(4)}-${nanoid(12)}`,
-            email_akun: '',
-            password_akun: '',
-            nama_akun: '',
-            role_akun: ''
-        }
-        const updatedFormData = [...newFormData, newForm];
-        setNewFormData(updatedFormData);
-    }
-
-    const handleSelectAkun = (id) => {
-        // Check if there's an ID inside the selectedAkun
-        
-        if(selectedAkun.includes(id)) {
-            // Hapus
-            const updatedSelectedAkun = selectedAkun.filter(item_id => item_id !== id);
-            setSelectedAkun(updatedSelectedAkun)
-        }else{
-            // Buat
-            const newSelectedAkun = [...selectedAkun, id];
-            setSelectedAkun(newSelectedAkun)
-        }
-    }
-
-    const deleteFormData = (id) => {
-        const updatedFormData = newFormData.filter(formData => formData.id_akun !== id);
-        setNewFormData(updatedFormData);
-    }
-
-    const editFormData = (id, value) => {
-        const updatedFormData = newFormData.map(formData => formData.id_akun === id ? {...formData, ...value} : formData);
-        setNewFormData(updatedFormData);
-    }
-    
-
-    const handleDeleteSingleAkun = async (id) => {
-        return mySwal.fire({
-            title: 'Apakah anda yakin?',
-            text: 'Anda akan menghapus akun ini',
-            showCancelButton: true,
-            icon: 'question',
-            cancelButtonText: 'Tidak',
-            confirmButtonText: 'Ya'
-        }).then(async result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data..',
-                    allowOutsideClick: false,
-                    timer: 10000,
-                    showConfirmButton: false
-                })
-                
-                const resultDelete = await deleteSingleAkunById(id);
-                if(resultDelete) {
-                    mySwal.close();
-                    toast.success('Berhasil menghapus akun tersebut!');
-                    return await getAkun()
-                }else{
-                    mySwal.close();
-                    toast.error('Gagal menghapus akun tersebut!')
-                    return;
-                }
-            }
-        })
-    }
-
-    const submitFormData = async () => {
-        document.getElementById('tambah_akun_modal').close()
-        return mySwal.fire({
-            title: 'Apakah anda yakin?',
-            showCancelButton: true,
-            confirmButtonColor: '#09090b',
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak',
-            allowOutsideClick: false
-        }).then(async result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data..',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 10000
-                })
-                const createDone = await createAkun(newFormData);
-                if(createDone) {
-                    mySwal.close();
-
-                    toast.success('Berhasil menambahkan data!');
-                    setNewFormData([])
-                    if(statusSocket === 'offline') {
-                        getAkun()
-                    }
-                }else{
-                    mySwal.close();
-                    toast.error('Gagal menambahkan data!');
-                    setNewFormData([])
-                    getAkun()
-                }
-                
-            }
-        })
-    }
-
-    const getAkun = async () => {
-        setLoadingFetch('loading');
-        const result = await getAllAkun();
-        setLoadingFetch('fetched')
-        setAkunList(result);
-        setFilteredAkunList(result)
+        setLoadingFetch(state => ({...state, pegawai: 'fetched'}))
     }
 
     useEffect(() => {
-        getAkun()
+        getData()
+        getDataPegawai()
     }, [])
 
-
-    useEffect(() => {
-        const filterAkunList = () => {
-            let updatedData;
-            
-            // Check if searchValue is being inserted
-            updatedData = akunList.filter(akun => 
-                akun['email_akun'].toLowerCase().includes(searchValue.toLowerCase()) ||
-                akun['nama_akun'].toLowerCase().includes(searchValue.toLowerCase()) ||
-                akun['password_akun'].toLowerCase().includes(searchValue.toLowerCase())
-            )
-
-            // Check if filterRole is turned on
-            if(filterRole !== 'All') {
-                updatedData = updatedData.filter(akun => akun['role_akun'].includes(filterRole))
-            }
-
-            // Check if viewSelectedOnly is turned on
-            if(viewSelectedOnly) {
-                updatedData = updatedData.filter(akun => selectedAkun.includes(akun.id_akun))
-                const maxPagination = Math.ceil(updatedData.length / totalList)
-                setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
-            }
-            
-            let sortedData = []
-
-            // Check if data is being sorted
-            if(sorting.email_akun !== '') {
-                sortedData = updatedData.sort((a, b) => {
-                    if(sorting.email_akun === 'asc') {
-                        if (a.email_akun < b.email_akun) return -1;
-                        if (a.email_akun > b.email_akun) return 1;
-                        return 0;
-                    }
-                    
-                    if(sorting.email_akun === 'dsc') {
-                        if (a.email_akun < b.email_akun) return 1;
-                        if (a.email_akun > b.email_akun) return -1;
-                        return 0;
-                    }
-                })
-            }
-
-            if(sorting.nama_akun !== '') {
-                sortedData = updatedData.sort((a, b) => {
-                    if(sorting.nama_akun === 'asc') {
-                        if (a.nama_akun < b.nama_akun) return -1;
-                        if (a.nama_akun > b.nama_akun) return 1;
-                        return 0;
-                    }
-                    
-                    if(sorting.nama_akun === 'dsc') {
-                        if (a.nama_akun < b.nama_akun) return 1;
-                        if (a.nama_akun > b.nama_akun) return -1;
-                        return 0;
-                    }
-                })
-            }
-
-            updatedData = sortedData.length > 0 ? sortedData : updatedData
-
-            setFilteredAkunList(updatedData)
-        }
-        filterAkunList()
-    }, [searchValue, filterRole, viewSelectedOnly, sorting])
-
-    useEffect(() => {
-
-        if(ioServer.connected) {
-            setStatusSocket('online')
-        }else{
-            console.log('Socket Server is offline!')
-            setStatusSocket('offline')
-        }
-
-        ioServer.on('SIMAK_AKUN', (data) => {
-            setAkunList(data);
-            setFilteredAkunList(data)
-        })
-    }, [])
-
-    const submitEditAkun = async (e) => {
+    const submitFormTambah = async (e, modal) => {
         e.preventDefault()
-        document.getElementById(`edit_akun_${updateFormData.id_akun}`).close()
-        return mySwal.fire({
-            icon: 'question',
-            title: 'Apakah anda yakin?',
-            text: 'Anda akan menyimpan perubahan data tersebut',
-            showCancelButton: true,
-            allowOutsideClick: false
-        }).then(async result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data..',
-                    timer: 10000,
-                    allowOutsideClick: false,
-                    showConfirmButton: false
-                });
-                const resultUpdate = await updateSingleAkun(updateFormData);
-                if(resultUpdate) {
-                    mySwal.close();
-                    toast.success('Berhasil menyimpan data!');
-                    setUpdateFormData(formatUpdateFormData)
-                    return await getAkun();
-                }else{
-                    mySwal.close();
-                    toast.error('Gagal menyimpan data!');
-                }
-            }else{
-                document.getElementById(`edit_akun_${updateFormData.id_akun}`).showModal()
-            }
-        })        
-    }
 
-    const handleDeleteSelectedAkun = async () => {
-        return mySwal.fire({
-            icon: 'question',
-            title: 'Apakah anda yakin?',
-            text: 'Anda akan menghapus beberapa akun yang telah anda pilih',
-            showCancelButton: true
-        }).then(async result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data...',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 10000
+
+        if(formTambah['fk_akun_id_pegawai'] === '' || formTambah['nama_akun'] === '') {
+            return
+        }
+
+        document.getElementById(modal).close()
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: async () => {
+                const response = await createAkun({
+                    fk_akun_id_pegawai: formTambah['fk_akun_id_pegawai'],
+                    password_akun: formTambah['password_akun'],
+                    role_akun: formTambah['role_akun']
                 })
-                const resultDelete = await deleteMultipleAkunById(selectedAkun);
-                if(resultDelete) {
-                    mySwal.close()
-                    setSelectedAkun([]);
-                    setSelectAll(false);
-                    toast.success('Berhasil menghapus beberapa akun!');
-                    return await getAkun();
+
+                if(response) {
+                    setSearchDataPegawai('')
+                    setFormTambah(formatForm)
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        icon: 'success',
+                        text: response.message,
+                        timer: 3000,
+                        timerProgressBar: true
+                    })
                 }else{
-                    mySwal.close();
-                    toast.error('Gagal memproses data!')
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: response.message,
+                        icon: 'error'
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
                 }
             }
         })
     }
 
-    const toggleSelectAllAkun = () => {
-        if(!selectAll) {
-            setSelectAll(state => !state);
-            const newData = akunList.map(({id_akun}) => id_akun)
-            setSelectedAkun(newData)
-        }else{
-            setSelectAll(state => !state);
-            setSelectedAkun([]);
-        }
+    const submitDeleteAkun = async (id_akun) => {
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                let response
+
+                if(id_akun) {
+                    response = await deleteSingleAkunById(id_akun)
+                }else{
+                    response = await deleteMultipleAkunById(selectedData)
+                }
+                console.log(response)
+
+                if(response) {
+                    setSelectedData([])
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        icon: 'success',
+                        text: response.message
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        icon: 'error',
+                        text: response.message
+                    })
+                }
+            }
+        })
     }
 
-    const ExportCSV = () => {
-        downloadCSV(akunList);
+    useEffect(() => {
+        let updatedData = dataPegawai
+
+        if(searchDataPegawai !== '') {
+            updatedData = updatedData.filter(value => value['nama_pegawai'].toLowerCase().includes(searchDataPegawai.toLowerCase()))
+        }
+
+        setFilteredDataPegawai(updatedData)
+    }, [searchDataPegawai])
+
+    const handleSelectData = (id_akun) => {
+        setSelectedData(state => {
+            if(state.includes(id_akun)) {
+                return state.filter(value => value !== id_akun)
+            }else{
+                return [...state, id_akun]
+            }
+        })
     }
 
-    const handleTotalList = (value) => {
-        // Cek kalau totalList melebihi Math Ceil
-        const maxPagination = Math.ceil(akunList.length / value)
-        if(pagination > maxPagination) {
-            setPagination(state => state = maxPagination)
+    const submitEditAkun = (e, modal, id_akun) => {
+        e.preventDefault()
+
+        showModal(modal).show('close')
+
+        const payload = {
+            password_akun: e.target[0].value,
+            role_akun: e.target[1].value
         }
-        setTotalList(value)
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                const response = await updateSingleAkun({...payload, id_akun})
+
+                if(response) {
+                    setSelectedData([])
+                    setSelectAll(false)
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: response.message,
+                        icon: 'success'
+                    })
+                }else{
+                    showModal(modal).show('show')
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: response.message,
+                        icon: 'error'
+                    })
+                }
+            }
+        })
     }
-    
+
+    useEffect(() => {
+        let updatedData = data
+
+        if(searchFilter !== '') {
+            updatedData = updatedData.filter(value =>
+                value['nama_akun'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['email_akun'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['password_akun'].toLowerCase().includes(searchFilter.toLowerCase())
+            )
+        }
+
+        setFilteredData(updatedData)
+    }, [searchFilter])
+
     return (
         <MainLayoutPage>
-            <Toaster toastOptions={{style: {zIndex: 1000}}} />
-            <hr className="mt-2 md:mt-5 opacity-0" />
-            <div className="flex items-center md:gap-5 w-full justify-center md:justify-start gap-2">
-                <button type="button" onClick={() => document.getElementById('tambah_akun_modal').showModal()} className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
-                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-inherit" />
-                    Tambah Data
-                </button>
-                <dialog id="tambah_akun_modal" className="modal">
-                    <div className="modal-box bg-white w-full max-w-[75rem]">
-                        <form method="dialog">
-                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                        </form>
-                        <h3 className="font-bold text-lg">Tambah Akun Baru</h3>
-                        <hr className="w-full my-2" />
-                        <div className="space-y-2">
-                            {newFormData.map((formData, index) => (
-                                <div key={`${formData.id_akun} - ${index}`} className="collapse collapse-arrow border">
-                                    <input type="radio" name="accordionTambahAkun" /> 
-                                    <div className="collapse-title text-xl font-medium flex items-center gap-3">
-                                        <div className="text-zinc-300">
-                                            #{index + 1}
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md">
+                <div className="text-xs md:text-sm no-scrollbar">
+                    <div className="flex items-center gap-5 w-full md:w-fit text-xs md:text-sm">
+                        <button type="button" onClick={() => document.getElementById('tambah_akun').showModal()} className="w-full md:w-fit px-3 py-2 rounded border dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex justify-center items-center gap-3 font-medium ease-out duration-300">
+                            <FontAwesomeIcon icon={faPlus} className="w-3 h-3 text-inherit opacity-70" />
+                            Tambah
+                        </button>
+                        <dialog id="tambah_akun" className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                            <div className="modal-box bg-white dark:bg-zinc-900 rounded md:max-w-[900px] border dark:border-zinc-800">
+                                <form method="dialog">
+                                    <button onClick={() => setFormTambah(formatForm)} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                </form>
+                                <h3 className="font-bold text-lg">Tambah Akun</h3>
+                                <hr className="my-2 opacity-0" />
+                                <div className="flex flex-col md:flex-row gap-2">
+                                    <div className="w-full md:w-1/2 space-y-2">
+                                        <label className="input input-bordered input-sm flex items-center gap-2 bg-zinc-100 dark:bg-zinc-800">
+                                            <input type="text" value={searchDataPegawai} onChange={e => setSearchDataPegawai(e.target.value)} className="grow" placeholder="Cari pegawai disini" />
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clipRule="evenodd" /></svg>
+                                        </label>
+                                        <div className=" py-2 relative overflow-auto max-h-[300px] space-y-1">
+                                            {loadingFetch['pegawai'] !== 'fetched' && (
+                                                <div className="w-full flex justify-center items-center">
+                                                    <div className="loading loading-sm text-zinc-500 loading-spinner"></div>
+                                                </div>
+                                            )}
+                                            {loadingFetch['pegawai'] === 'fetched' && dataPegawai.length < 1 && (
+                                                <div className="w-full flex justify-center items-center text-zinc-500">
+                                                    Data Pegawai Kosong!
+                                                </div>
+                                            )}
+
+                                            {filteredDataPegawai.slice(0, 20).map((value, index) => (
+                                                <label key={index} htmlFor={index} className="flex items-center w-full justify-between p-3 border dark:border-zinc-800 hover:border-zinc-700 dark:hover:border-zinc-400 rounded-lg text-xs cursor-pointer ease-out duration-200 has-[:checked]:border-zinc-400">
+                                                    <p>
+                                                        {value['nama_pegawai']}
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="opacity-50">
+                                                            {value['jabatan']}
+                                                        </p>
+                                                        <input type="radio" id={index} value={value['id_pegawai']} checked={formTambah['fk_akun_id_pegawai'] == value['id_pegawai']} onChange={() => setFormTambah(state => ({...state, email_akun: value['email_pegawai'], nama_akun: value['nama_pegawai'], fk_akun_id_pegawai: Number(value['id_pegawai'])}))} name="radio" className="" />
+                                                    </div>
+                                                </label>
+                                            ))}
                                         </div>
-                                        <article className="text-xs md:text-sm text-zinc-600">
-                                            <p>
-                                                {formData.nama_akun ? formData.nama_akun : '-'}
-                                            </p>
-                                            <p>
-                                                {formData.email_akun ? formData.email_akun : '-'}
-                                            </p>
-                                        </article>
                                     </div>
-                                    <div className="collapse-content flex md:flex-row flex-col gap-3"> 
-                                        <div className="w-full md:w-1/4 space-y-1 text-sm">
-                                            <p>Nama</p>
-                                            <input type="text" value={formData.nama_akun} onChange={e => editFormData(formData.id_akun, {nama_akun: e.target.value})} placeholder="Masukkan Nama" className="w-full px-1 py-1 rounded bg-white outline-none border hover:outline-zinc-200" />
+                                    <form onSubmit={e => submitFormTambah(e, 'tambah_akun')} className="w-full md:w-1/2 divide-y h-fit dark:divide-zinc-800 ">
+                                        <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                            <p className="w-full md:w-1/3 opacity-50">
+                                                Nama Pegawai
+                                            </p>
+                                            <p className="w-full md:w-2/3">
+                                                {formTambah['nama_akun']}
+                                            </p>
                                         </div>
-                                        <div className="w-full md:w-1/4 space-y-1 text-sm">
-                                            <p>Email</p>
-                                            <input type="text" value={formData.email_akun} onChange={e => editFormData(formData.id_akun, {email_akun: e.target.value})}  placeholder="Masukkan Email" className="w-full px-1 py-1 rounded bg-white outline-none border hover:outline-zinc-200" />
+                                        <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                            <p className="w-full md:w-1/3 opacity-50">
+                                                ID Pegawai
+                                            </p>
+                                            <p className="w-full md:w-2/3">
+                                                {formTambah['fk_akun_id_pegawai']}
+                                            </p>
                                         </div>
-                                        <div className="w-full md:w-1/4 space-y-1 text-sm">
-                                            <p>Password</p>
-                                            <input type="text" value={formData.password_akun} onChange={e => editFormData(formData.id_akun, {password_akun: e.target.value})}  placeholder="Masukkan Password" className="w-full px-1 py-1 rounded bg-white outline-none border hover:outline-zinc-200" />
+                                        <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                            <p className="w-full md:w-1/3 opacity-50">
+                                                Email
+                                            </p>
+                                            <p className="w-full md:w-2/3">
+                                                <label className="input input-bordered flex items-center gap-2 input-sm dark:bg-zinc-800 bg-zinc-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" /><path d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" /></svg>
+                                                    <input type="text" required readOnly className="grow" value={formTambah['email_akun']} onChange={e => setFormTambah(state => ({...state, email_akun: e.target.value}))}  placeholder="Email" />
+                                                </label>
+                                            </p>
                                         </div>
-                                        <div className="w-full md:w-1/4 space-y-1 text-sm flex md:flex-row flex-col gap-5 md:items-end items-start h-full">
-                                            <div className="flex-grow w-full space-y-1">
-                                                <p>Role</p>
-                                                <select name="" id="" value={formData.role_akun} onChange={e => editFormData(formData.id_akun, {role_akun: e.target.value})} className="w-full px-1 py-1 rounded bg-white outline-none border hover:outline-zinc-200">
-                                                    <option value="" disabled>-- Pilih Role --</option>
-                                                    <option value="Admin">Admin</option>
+                                        <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                            <p className="w-full md:w-1/3 opacity-50">
+                                                Password
+                                            </p>
+                                            <p className="w-full md:w-2/3">
+                                                <label className="input input-bordered flex items-center gap-2 input-sm dark:bg-zinc-800 bg-zinc-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z" clipRule="evenodd" /></svg>
+                                                    <input type="text" required className="grow" value={formTambah['password_akun']} onChange={e => setFormTambah(state => ({...state, password_akun: e.target.value}))} placeholder="Password" />
+                                                </label>
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                            <p className="w-full md:w-1/3 opacity-50">
+                                                Role
+                                            </p>
+                                            <p className="w-full md:w-2/3">
+                                                <select value={formTambah['role_akun']} required onChange={e => setFormTambah(state => ({...state, role_akun: e.target.value}))} className="select select-bordered w-full select-sm dark:bg-zinc-800 bg-zinc-100">
+                                                    <option value={''} disabled >-- Pilih Role --</option>
                                                     <option value="Operator">Operator</option>
+                                                    <option value="Admin">Admin</option>
                                                 </select>
-                                            </div>
-                                            <button type="button" onClick={() => deleteFormData(formData.id_akun)} className="px-3 py-2 md:w-7 md:h-7 rounded-full bg-red-50 text-red-700 flex items-center justify-center w-fit gap-3 text-xs hover:bg-red-100">
-                                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
-                                                <span className="block md:hidden">Hapus</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <hr className="my-2 opacity-0" />
-                        <div className="flex items-center gap-2 justify-end">
-                            {newFormData.length < 5 && (
-                                <button type="button" onClick={() => addNewFormData()} className="px-3 py-2 rounded-full bg-blue-50 flex items-center justify-center gap-2 text-blue-700 hover:bg-blue-100">
-                                    <FontAwesomeIcon icon={faPlus} className="w-3 h-3 text-inherit" />
-                                    Tambah
-                                </button>
-                            )}
-                            {newFormData.length > 0 && (
-                                <button type="button" onClick={() => submitFormData()} className="px-3 py-2 rounded-full bg-green-50 flex items-center justify-center gap-2 text-green-700 hover:bg-green-100">
-                                    <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
-                                    Simpan
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </dialog>
-                <button type="button" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2`}>
-                    <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
-                    Import Data
-                </button>
-            </div>
-            <hr className="my-2 md:my-3 opacity-0" />
-            <div className="flex md:items-center md:justify-between gap-3 flex-col md:flex-row">
-                <div className="relative w-full md:w-1/5 border rounded-lg bg-white">
-                    <input type="text" onChange={e => setSearchValue(e.target.value)} className="px-2 h-8 outline-none bg-transparent w-full" placeholder="Cari di sini" />
-                </div>
-                <select value={filterRole} onChange={e => setFilterRole(e.target.value)} className="px-2 h-8 outline-none bg-white border rounded-lg">
-                    <option value="" disabled>-- Pilih Role --</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Operator">Operator</option>
-                    <option value="All">Semua</option>
-                </select>
-            </div>
-            <hr className="my-1 opacity-0" />
-            <div className="grid grid-cols-12 w-full  bg-blue-500 *:px-2 *:py-3 text-white text-sm shadow-xl">
-                <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
-                    <input type="checkbox" name="" id="" />
-                    Email
-                    <button type="button" onClick={() => handleSorting('email_akun', 'nama_akun')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={sorting.email_akun === '' ? faArrowsUpDown : (sorting.email_akun === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
-                    </button>
-                </div>
-                <div className="hidden md:flex items-center col-span-2">
-                    Password
-                </div>
-                <div className="hidden md:flex items-center col-span-2 gap-3">
-                    Nama
-                    <button type="button" onClick={() => handleSorting('nama_akun', 'email_akun')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={sorting.nama_akun === '' ? faArrowsUpDown : (sorting.nama_akun === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
-                    </button>
-                </div>
-                <div className="hidden md:flex items-center col-span-2">
-                    Role
-                </div>
-                <div className="flex justify-center items-center col-span-4 md:col-span-2">
-                    <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit" />
-                </div>
-            </div>
-            {loadingFetch !== 'fetched' && (
-                <div className="flex items-center justify-center w-full py-5 gap-5 text-blue-500">
-                    <div className="loading loading-spinner loading-md"></div>
-                    Sedang mendapatkan data
-                </div>
-            )}
-            <div className={`${mont.className} divide-y relative w-full h-fit max-h-[300px] overflow-auto`}>
-                {filteredAkunList.map((akun, index) => (
-                    <div key={`${akun.id_akun} - ${index}`} className="grid grid-cols-12 w-full group hover:bg-zinc-50 divide-x *:px-2 *:py-3 text-sm">
-                        <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
-                            <input type="checkbox" checked={selectedAkun.includes(akun.id_akun)} onChange={() => handleSelectAkun(akun.id_akun)} />
-                            {akun.email_akun}
-                        </div>
-                        <div className="hidden md:flex items-center col-span-2">
-                            {akun.password_akun}
-                        </div>
-                        <div className="hidden md:flex items-center col-span-2 gap-3">
-                            {akun.nama_akun}
-                        </div>
-                        <div className="hidden md:flex items-center col-span-2">
-                            {akun.role_akun === 'Admin' && (
-                                <p className="px-2 py-1 rounded-full bg-red-100 text-red-700 font-medium text-xs">
-                                    Admin
-                                </p>
-                            )}
-                            {akun.role_akun === 'Operator' && (
-                                <p className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium text-xs">
-                                    Operator
-                                </p>
-                            )}
-                        </div>
-                        <div className="flex justify-center items-center col-span-4 md:col-span-2 md:gap-3 gap-2">
-                            <button type="button" onClick={() => {document.getElementById(`informasi_akun_${akun.id_akun}`).showModal(); }} className="w-6 h-6 bg-blue-400 hover:bg-blue-500 text-white flex md:hidden items-center justify-center">
-                                <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <dialog id={`informasi_akun_${akun.id_akun}`} className="modal">
-                                <div className="modal-box">
-                                    <form method="dialog">
-                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                                    </form>
-                                    <h3 className="font-bold text-lg">Informasi Akun</h3>
-                                    <hr className="my-3 w-full" />
-                                    <div className="space-y-3">
-                                        <div className="">
-                                            <p className="text-xs text-zinc-400">Email</p>
-                                            <p>
-                                                {akun.email_akun}
                                             </p>
                                         </div>
-                                        <div className="">
-                                            <p className="text-xs text-zinc-400">Password</p>
-                                            <p>
-                                                {akun.password_akun}
-                                            </p>
-                                        </div>
-                                        <div className="">
-                                            <p className="text-xs text-zinc-400">Nama</p>
-                                            <p>
-                                                {akun.nama_akun}
-                                            </p>
-                                        </div>
-                                        <div className="">
-                                            <p className="text-xs text-zinc-400">Status</p>
-                                            {akun.role_akun === 'Admin' && (
-                                                <p className="px-2 py-1 rounded-full bg-red-100 text-red-700 font-medium text-xs w-fit">
-                                                    Admin
-                                                </p>
-                                            )}
-                                            {akun.role_akun === 'Operator' && (
-                                                <p className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium text-xs w-fit">
-                                                    Operator
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </dialog>
-                            <button type="button" onClick={() => handleDeleteSingleAkun(akun.id_akun)} className="w-6 h-6 bg-red-400 hover:bg-red-500 text-white flex items-center justify-center">
-                                <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <button type="button" onClick={() => {document.getElementById(`edit_akun_${akun.id_akun}`).showModal(); setUpdateFormData(akun)}} className="w-6 h-6 bg-amber-400 hover:bg-amber-500 text-white flex items-center justify-center">
-                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
-                            </button>
-                            <dialog id={`edit_akun_${akun.id_akun}`} className="modal">
-                                <div className="modal-box bg-white">
-                                    <form method="dialog">
-                                    {/* if there is a button in form, it will close the modal */}
-                                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                                    </form>
-                                    <h3 className="font-bold text-lg">Ubah Akun</h3>
-                                    <hr className="my-2 opacity-0" />
-                                    <form onSubmit={submitEditAkun} className="space-y-3">
-                                        <div className="space-y-1">
-                                            <p>Email</p>
-                                            <input required type="text" value={updateFormData.email_akun} onChange={e => setUpdateFormData(state => ({...state, ['email_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white" placeholder="Masukkan Email" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p>Password</p>
-                                            <input required type="text" value={updateFormData.password_akun} onChange={e => setUpdateFormData(state => ({...state, ['password_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white" placeholder="Masukkan Email" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p>Nama</p>
-                                            <input required type="text" value={updateFormData.nama_akun} onChange={e => setUpdateFormData(state => ({...state, ['nama_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white" placeholder="Masukkan Email" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p>Role</p>
-                                            <select value={updateFormData.role_akun} onChange={e => setUpdateFormData(state => ({...state, ['role_akun']: e.target.value}))} className="border rounded w-full px-2 py-1 bg-white">
-                                                <option value="" disabled>-- Pilih Role --</option>
-                                                <option value="Admin">Admin</option>
-                                                <option value="Operator">Operator</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button type="submit" className="px-3 py-2 rounded-full bg-green-50 text-green-700 flex items-center justify-center gap-2 hover:bg-green-100 focus:bg-green-100">
+                                        <div className="py-3 px-2">
+                                            <button type="submit" className="px-3 py-2 rounded bg-green-600 hover:bg-green-400 focus:bg-green-700 flex items-center justify-center w-fit gap-3 text-white">
                                                 <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
                                                 Simpan
                                             </button>
-                                            <button type="button" onClick={() => {document.getElementById(`edit_akun_${akun.id_akun}`).close(); setUpdateFormData(formatUpdateFormData)}} className="px-3 py-2 rounded-full bg-red-50 text-red-700 flex items-center justify-center gap-2 hover:bg-red-100 focus:bg-red-100">
-                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
-                                                Batal
-                                            </button>
                                         </div>
                                     </form>
                                 </div>
-                            </dialog>
-                        </div>
+                            </div>
+                        </dialog>
                     </div>
-                ))}
-            </div>
-
-            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300">
-                <div className="flex-grow flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium">
-                            {selectedAkun.length} Data terpilih
-                        </p>
-                        <button type="button" onClick={() => handleDeleteSelectedAkun()} className={`w-7 h-7 ${selectedAkun && selectedAkun.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700`}>
-                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
-                        </button>
-                        <button type="button" onClick={() => setViewSelectedOnly(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   text-zinc-500 bg-zinc-100 hover:bg-zinc-200 group transition-all duration-300`}>
-                            <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
-                        </button>
-                        <button type="button" onClick={() => setSelectedAkun([])} className={`w-7 h-7 ${selectedAkun && selectedAkun.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200`}>
-                            <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
-                        </button>
-                    </div>
-                    <div className=" dropdown dropdown-hover dropdown-bottom dropdown-end">
-                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2">
-                            <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
-                            Export
+                    <hr className="my-5 dark:opacity-10" />
+                    
+                    <div className="relative overflow-auto w-full max-h-[400px]">
+                        <div className="grid grid-cols-12 p-3 rounded-lg border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky top-0 mb-2">
+                            <div className="col-span-7 md:col-span-2 flex items-center gap-3">
+                                <input type="checkbox" className="cursor-pointer" />
+                                Nama Pegawai
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                ID Pegawai
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                Email
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                Password
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                Role
+                            </div>
+                            <div className="col-span-5 md:col-span-2 flex items-center gap-3">
+                                <input type="text" value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="w-full dark:bg-zinc-900 bg-white px-2 py-1 rounded border dark:border-zinc-700" placeholder="Cari disini" />
+                            </div>
                         </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit">
-                            <li>
-                                <button type="button" className="flex items-center justify-start gap-2">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-red-600" />
-                                    PDF
+                        {loadingFetch['data'] !== 'fetched' && (
+                            <div className="w-full flex items-center justify-center">
+                                <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                            </div>
+                        )}
+                        {loadingFetch['data'] === 'fetched' && data.length < 1 && (
+                            <div className="w-full flex items-center justify-center text-zinc-500">
+                                Data Akun tidak ada!
+                            </div>
+                        )}
+                        {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((value, index) => (
+                            <div key={index} className="grid grid-cols-12 p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 ease-out duration-300">
+                                <div className="col-span-7 md:col-span-2 flex items-center gap-3">
+                                    <input type="checkbox" checked={selectedData.includes(value['id_akun'])} onChange={() => handleSelectData(value['id_akun'])} className="cursor-pointer" />
+                                    {value['nama_akun']}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    <p className="px-2 py-0.5 rounded-full dark:bg-zinc-700 text-xs bg-zinc-100">
+                                        {value['id_pegawai']}
+                                    </p>
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    {value['email_akun']}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    {value['password_akun']}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    {value['role_akun'] === 'Admin' && (
+                                        <p className="px-2 py-0.5 rounded-full bg-red-500 text-white dark:bg-red-500/10 dark:text-red-500">
+                                            Admin
+                                        </p>
+                                    )}
+                                    {value['role_akun'] === 'Operator' && (
+                                        <p className="px-2 py-0.5 rounded-full bg-amber-500 text-white dark:bg-amber-500/10 dark:text-amber-500">
+                                            Operator
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="col-span-5 md:col-span-2 flex items-center justify-center md:gap-3 gap-1">
+                                    <button type="button" onClick={() => document.getElementById(`info_akun_${index}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 md:hidden flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    <dialog id={`info_akun_${index}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                        <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800">
+                                            <form method="dialog">
+                                                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                            </form>
+                                            <h3 className="font-bold text-lg">Informasi Akun</h3>
+                                            <hr className="my-2 opacity-0" />
+                                            <div className="flex flex-col md:flex-row gap-2">
+                                                <div className="w-full divide-y h-fit dark:divide-zinc-800 ">
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Pegawai
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_akun']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            ID Pegawai
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['id_pegawai']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Email
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['email_akun']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Password
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['password_akun']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Role
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['role_akun']}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </dialog>
+                                    <button type="button" onClick={() => document.getElementById(`edit_akun_${index}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    <dialog id={`edit_akun_${index}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                        <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800">
+                                            <form method="dialog">
+                                                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                            </form>
+                                            <h3 className="font-bold text-lg">Ubah Akun</h3>
+                                            <hr className="my-2 opacity-0" />
+                                            <form onSubmit={e => submitEditAkun(e, `edit_akun_${index}`, Number(value['id_akun']))} className="flex flex-col md:flex-row gap-2">
+                                                <div className="w-full divide-y h-fit dark:divide-zinc-800 ">
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Pegawai
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_akun']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            ID Pegawai
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['id_pegawai']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Email
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['email_akun']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Password
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            <label className="input input-bordered flex items-center gap-2 input-sm dark:bg-zinc-800 bg-zinc-100">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-4 h-4 opacity-70"><path fillRule="evenodd" d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z" clipRule="evenodd" /></svg>
+                                                                <input type="text" className="grow" defaultValue={value['password_akun']} placeholder="Password" />
+                                                            </label>
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Role
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            <select defaultValue={value['role_akun']} className="select select-bordered w-full select-sm dark:bg-zinc-800 bg-zinc-100">
+                                                                <option value={''} disabled >-- Pilih Role --</option>
+                                                                <option value="Operator">Operator</option>
+                                                                <option value="Admin">Admin</option>
+                                                            </select>
+                                                        </p>
+                                                    </div>
+                                                    <div className="py-3 px-2">
+                                                        <button type="submit" className="px-3 py-2 rounded bg-green-600 hover:bg-green-400 focus:bg-green-700 flex items-center justify-center w-fit gap-3 text-white">
+                                                            <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                                            Simpan
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </dialog>
+                                    <button type="button" onClick={() => submitDeleteAkun(value['id_akun'])} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <hr className="my-2 opacity-0" />
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                        <div className="flex p-3 rounded-md border dark:border-zinc-700 items-center w-full md:w-fit divide-x dark:divide-zinc-700 justify-between md:justify-start">
+                            {selectedData.length > 0 && (
+                                <div className="flex items-center gap-2 pr-3  w-full md:w-fit">
+                                    <FontAwesomeIcon icon={faCheckSquare} className="w-3 h-3 text-inherit" />
+                                    {selectedData.length} Data
+                                </div>
+                            )}
+                            {selectedData.length > 0 && (
+                                <div className="flex items-center justify-center w-full md:w-fit gap-3 px-3">
+                                    <button type="button" onClick={() => submitDeleteAkun()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                </div>
+                            )}
+                            <p className="pl-3  w-full md:w-fit">
+                                Total {data.length} Data
+                            </p>
+                        </div>
+                        <div className="flex p-3 rounded-md border dark:border-zinc-700 items-center w-full md:w-fit divide-x dark:divide-zinc-700 justify-between md:justify-start">
+                            <div className="flex items-center gap-2 pr-3  w-full md:w-fit">
+                                <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-5 h-5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center">
+                                    <FontAwesomeIcon icon={faAnglesLeft} className="w-3 h-3 text-inherit" />
                                 </button>
-                                <button type="button" className="flex items-center justify-start gap-2">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
-                                    XLSX
+                                {pagination}
+                                <button type="button" onClick={() => setPagination(state => state < Math.ceil(data.length / totalList) ? state + 1 : state)} className="w-5 h-5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center">
+                                    <FontAwesomeIcon icon={faAnglesRight} className="w-3 h-3 text-inherit" />
                                 </button>
-                                <button type="button" className="flex items-center justify-start gap-2">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
-                                    CSV
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
-                    <p className={`${mont.className} px-2 text-xs`}>
-                        {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > akunList.length ? akunList.length : totalList * pagination} dari {akunList.length} data
-                    </p>
-                    <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
-                            <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
-                        </button>
-                        <p className="font-medium text-zinc-600">
-                            {pagination}
-                        </p>
-                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(akunList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none">
-                            <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
-                        </button>
-                    </div>
-                    <div className={`${mont.className} px-2 text-xs`}>
-                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent">
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
+                            </div>
+                            <div className="flex items-center gap-2 pl-3  w-full md:w-fit">
+                                <select value={totalList} onChange={e => setTotalList(e.target.value)} className="select select-bordered w-full select-sm dark:bg-zinc-800 bg-zinc-100">
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <hr className="my-2 opacity-0" />
-            <div className="flex items-center gap-5">
-                <div className="flex items-center gap-3">
-                    <p className="text-xs opacity-70">
-                        Socket Server:
-                    </p>
-                    {statusSocket === '' && (
-                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
-                    )}
-                    {statusSocket === 'online' && (
-                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            Online
-                        </div>
-                    )}
-                    {statusSocket === 'offline' && (
-                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                            Offline
-                        </div>
-                    )}
-                </div>
-                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
-                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
-                </button>
-            </div>
-            <dialog id="info_socket" className="modal">
-                <div className="modal-box">
-                    <form method="dialog">
-                    {/* if there is a button in form, it will close the modal */}
-                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                    </form>
-                    <h3 className="font-bold text-lg">Hello!</h3>
-                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
-                </div>
-            </dialog>
         </MainLayoutPage>
     )
 }
