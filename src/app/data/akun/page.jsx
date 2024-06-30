@@ -49,6 +49,9 @@ export default function DataAkunPage() {
     const [selectedData, setSelectedData] = useState([])
     const [searchFilter, setSearchFilter] = useState('')
     const [selectAll, setSelectAll] = useState(false)
+    const [filterData, setFilterData] = useState({
+        role_akun: []
+    })
 
     const getData = async () => {
         console.log('get data')
@@ -232,12 +235,32 @@ export default function DataAkunPage() {
             )
         }
 
+        if(filterData['role_akun'].length > 0) {
+            updatedData = updatedData.filter(value => filterData['role_akun'].includes(value['role_akun']))
+        }
+
         setFilteredData(updatedData)
-    }, [searchFilter])
+    }, [searchFilter, filterData])
+
+    const handleFilterData = (kolom, value) => {
+        setFilterData(state => {
+            let updatedState
+            let updatedFilter
+
+            if(state[kolom].includes(value)) {
+                updatedFilter = state[kolom].filter(v => v !== value)
+                updatedState = {...state, [kolom]: updatedFilter}
+            }else{
+                updatedState = {...state, [kolom]: [...state[kolom], value]}
+            }
+
+            return updatedState
+        })
+    }
 
     return (
         <MainLayoutPage>
-            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md">
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
                 <div className="text-xs md:text-sm no-scrollbar">
                     <div className="flex items-center gap-5 w-full md:w-fit text-xs md:text-sm">
                         <button type="button" onClick={() => document.getElementById('tambah_akun').showModal()} className="w-full md:w-fit px-3 py-2 rounded border dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex justify-center items-center gap-3 font-medium ease-out duration-300">
@@ -346,6 +369,28 @@ export default function DataAkunPage() {
                             </div>
                         </dialog>
                     </div>
+                    <hr className="my-5 dark:opacity-10" />
+                    
+                    {loadingFetch['data'] !== 'fetched' && (
+                        <div className="loading loading-spinner loading-sm opacity-50"></div>
+                    )}
+                    {loadingFetch['data'] === 'fetched' && data.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="flex md:items-center flex-col md:flex-row gap-1">
+                                <p className="opacity-70 w-full md:w-1/6">
+                                    Role Akun
+                                </p>
+                                <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                    {Array.from(new Set(data.map(value => value['role_akun']))).map((value, index) => (
+                                        <button key={index} onClick={() => handleFilterData('role_akun', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['role_akun'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                            {value}
+                                        </button>
+                                    ))}      
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <hr className="my-5 dark:opacity-10" />
                     
                     <div className="relative overflow-auto w-full max-h-[400px]">
