@@ -1,5 +1,3 @@
-
-
 export const date_getDay = (date) => {
     let delimiter = null;
     let day;

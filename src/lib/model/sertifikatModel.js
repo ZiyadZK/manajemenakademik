@@ -1,6 +1,6 @@
 'use server'
 
-import { urlGet } from "../fetcher"
+import { urlDelete, urlGet, urlPost, urlPut } from "../fetcher"
 
 export const getDataSertifikat = async (id_pegawai) => {
 
@@ -12,25 +12,35 @@ export const getDataSertifikat = async (id_pegawai) => {
         message: responseData.result
     }
 
-    // try {
-    //     let data = await prisma.data_sertifikat.findMany({
-    //         where: {
-    //             sertifikat_id_pegawai: id_pegawai
-    //         }
-    //     })
+    
+}
 
-    //     // change Uint8Array
-    //     let updatedData = data.map(sertifikat => ({...sertifikat, fileData: sertifikat.fileData !== '' || typeof(sertifikat.fileData) !== 'undefined' ? 'valid' : 'tidak valid'}))
-        
-    //     return {
-    //         success: true,
-    //         data: updatedData
-    //     }
-    // } catch (error) {
-    //     console.log(error.message)
-    //     return {
-    //         success: false,
-    //         error: error.message
-    //     }
-    // }
+export const createSertifikat = async (payload) => {
+    const responseData = await urlPost('/v1/data/sertifikat', payload)
+
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
+    }
+}
+
+export const updateSertifikat = async (payload, arraySertifikat_id) => {
+    const responseData = await urlPut('/v1/data/sertifikat', {payload, arraySertifikat_id})
+
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
+    }
+}
+
+export const deleteSertifikat = async (arraySertifikat_id) => {
+    const responseData = await urlDelete('/v1/data/sertifikat', {arraySertifikat_id})
+
+    return {
+        success: responseData.success,
+        data: responseData.data,
+        message: responseData.result
+    }
 }
