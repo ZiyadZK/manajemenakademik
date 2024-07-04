@@ -3,10 +3,11 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
-import { date_getDay, date_getMonth, date_getYear } from "@/lib/dateConvertes"
-import { createSinglePegawai, deleteManyPegawai, deleteSinglePegawai, getAllPegawai, updateSinglePegawai } from "@/lib/model/pegawaiModel"
-import { createSertifikat, updateSertifikat } from "@/lib/model/sertifikatModel"
-import { exportToXLSX } from "@/lib/xlsxLibs"
+import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/lib/dateConvertes"
+import { createMultiPegawai, createSinglePegawai, deleteManyPegawai, deleteSinglePegawai, getAllPegawai, updateSinglePegawai } from "@/lib/model/pegawaiModel"
+import { createPendidikan, deletePendidikan, updatePendidikan } from "@/lib/model/pendidikanModel"
+import { createSertifikat, deleteSertifikat, updateSertifikat } from "@/lib/model/sertifikatModel"
+import { exportToXLSX, xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
 import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Link from "next/link"
@@ -37,6 +38,42 @@ const exportKolom = {
     pensiun: 'Pensiun'
   }
 
+const allowedMIMEType = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/csv'
+]
+
+const formatKolom = {
+    pegawai: {
+        nama_pegawai: 'Nama Pegawai',
+        email_pegawai: 'Email Pegawai',
+        jabatan: 'Jabatan',
+        status_kepegawaian: 'Status Kepegawaian',
+        nik: 'NIK',
+        nip: 'NIP',
+        nuptk: 'NUPTK',
+        tmpt_lahir: 'Tempat Lahir',
+        tanggal_lahir: 'Tanggal Lahir',
+        tmt: 'Tamat Kepegawaian',
+        pensiun: 'Pensiun',
+        keterangan: 'Keterangan'
+    },
+    sertifikat: {
+        fk_sertifikat_id_pegawai: 'ID Pegawai',
+        nama_sertifikat: 'Nama Sertifikat',
+        jenis_sertifikat: 'Jenis Sertifikat',
+        fileUrl: 'Link Sertifikat'
+    },
+    pendidikan: {
+        fk_pendidikan_id_pegawai: 'ID Pegawai',
+        tingkat_pendidikan: 'Tingkat Pendidikan',
+        sekolah: 'Sekolah Pendidikan',
+        universitas: 'Universitas',
+        fakultas: 'Fakultas',
+        program_studi: 'Program studi'
+    }
+}
+
 const mySwal = withReactContent(Swal)
 
 const formatForm = {
@@ -62,6 +99,12 @@ const showModal = (id) => {
 export default function DataPegawaiPage() {
 
     const [data, setData] = useState([])
+    const [importFile, setImportFile] = useState({
+        pegawai: null, sertifikat: null, pendidikan: null
+    })
+    const [sheetsFile, setSheetsFile] = useState({
+        pegawai: [], sertifikat: [], pendidikan: []
+    })
     const [dataPegawai, setDataPegawai] = useState([])
     const [formTambah, setFormTambah] = useState(formatForm)
     const [filteredDataPegawai, setFilteredDataPegawai] = useState([])
@@ -69,6 +112,7 @@ export default function DataPegawaiPage() {
     const [loadingFetch, setLoadingFetch] = useState({
         data: '', pegawai: ''
     })
+    const [importTab, setImportTab] = useState('pegawai')
     const [tabEdit, setTabEdit] = useState('pribadi')
     const [filteredData, setFilteredData] = useState([])
     const [pagination, setPagination] = useState(1)
@@ -252,9 +296,10 @@ export default function DataPegawaiPage() {
 
         if(searchFilter !== '') {
             updatedData = updatedData.filter(value =>
-                value['nama_akun'].toLowerCase().includes(searchFilter.toLowerCase()) ||
-                value['email_akun'].toLowerCase().includes(searchFilter.toLowerCase()) ||
-                value['password_akun'].toLowerCase().includes(searchFilter.toLowerCase())
+                value['nama_pegawai'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['nip'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['nik'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['nuptk'].toLowerCase().includes(searchFilter.toLowerCase())
             )
         }
 
@@ -313,7 +358,7 @@ export default function DataPegawaiPage() {
             allowEscapeKey: false,
             allowEnterKey: false,
             didOpen: async () => {
-                const response = await updateSertifikat(payload, no_sertifikat)
+                const response = await updateSertifikat(payload, Number(no_sertifikat))
 
                 if(response.success) {
                     await getData()
@@ -347,8 +392,100 @@ export default function DataPegawaiPage() {
         
     }
 
-    const submitEditPendidikan = (e, modalArr = [], no_pendidikan) => {
+    const submitDeleteSertifikat = (modal, no_sertifikat) => {
+        document.getElementById(modal).close()
 
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEnterKey: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                const response = await deleteSertifikat(Number(no_sertifikat))
+
+                if(response.success) {
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Berhasil menghapus sertifikat!',
+                        icon: 'success',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan saat memproses data, hubungi Administrator!',
+                        icon: 'error',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }
+            }
+        })
+    }
+
+    const submitEditPendidikanPegawai = (e, modalArr = [], no_pendidikan) => {
+        e.preventDefault()
+
+        const payload = {
+            tingkat_pendidikan: e.target[0].value,
+            sekolah: e.target[1].value,
+            universitas: e.target[2].value,
+            fakultas: e.target[3].value,
+            program_studi: e.target[4].value,
+        }
+
+        modalArr.forEach(value => {
+            document.getElementById(value).close()
+        })
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            didOpen: async () => {
+                const response = await updatePendidikan(payload, Number(no_pendidikan))
+
+                if(response.success) {
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Berhasil mengubah data pendidikan pegawai!',
+                        icon: 'success',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        modalArr.forEach(value => {
+                            document.getElementById(value).showModal()
+                        })
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan saat memproses data, hubungi Administrator!',
+                        icon: 'error',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        modalArr.forEach(value => {
+                            document.getElementById(value).showModal()
+                        })
+                    })
+                }
+            }
+        })
     }
 
     const submitTambahSertifikat = (e, modalArr = [], fk_sertifikat_id_pegawai) => {
@@ -409,13 +546,221 @@ export default function DataPegawaiPage() {
         })
     }
 
-    const submitTambahPendidikan = (e, modalArr = [], id_pegawai) => {
+    const submitTambahPendidikan = (e, modalArr = [], fk_pendidikan_id_pegawai) => {
+        e.preventDefault()
+
+        modalArr.forEach(value => {
+            document.getElementById(value).close()
+        })
+
+        const payload = {
+            fk_pendidikan_id_pegawai,
+            tingkat_pendidikan: e.target[0].value,
+            sekolah: e.target[1].value,
+            universitas: e.target[2].value,
+            fakultas: e.target[3].value,
+            program_studi: e.target[4].value,
+        }
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            didOpen: async () => {
+                const response = await createPendidikan(payload)
+
+                if(response.success) {
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Berhasil menambahkan pendidikan baru!',
+                        icon: 'success',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        for(let i = 0; i < 5; i++) {
+                            e.target[i].value = ''
+                        }
+                        modalArr.forEach(value => {
+                            document.getElementById(value).showModal()
+                        })
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan saat memproses data, hubungi Administrator!',
+                        icon: 'error',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        modalArr.forEach(value => {
+                            document.getElementById(value).showModal()
+                        })
+                    })
+                }
+            }
+        })
+    }
+
+    const submitDeletePendidikan = (modal, no_pendidikan) => {
+        document.getElementById(modal).close()
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEnterKey: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                const response = await deletePendidikan(Number(no_pendidikan))
+
+                if(response.success) {
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Berhasil menghapus data pendidikan pegawai!',
+                        icon: 'success',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan saat memproses data, hubungi Administrator!',
+                        icon: 'error',
+                        timer: 5000,
+                        timerProgressBar: true
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }
+            }
+        })
+    }
+
+    const submitImportFile = async (e, modal) => {
+        e.preventDefault()
+
+        document.getElementById(modal).close()
+
+        const namaSheet = e.target[1].value
+
+        const response = await xlsx_getData(importFile[importTab], namaSheet)
+        if(response.success) {
+            const headersImportFile = Object.keys(response.data[0])
+            const headersDatabase = Object.keys(formatKolom[importTab])
+
+            if(headersDatabase.length > headersImportFile.length) {
+                return Swal.fire({
+                    title: 'Gagal',
+                    text: 'Kolom data tidak sesuai dengan yang ada di database!',
+                    icon: 'error'
+                }).then(() => {
+                    document.getElementById(modal).showModal()
+                })
+            }
+
+            if(headersImportFile.map(value => headersDatabase.includes(value) ? true : false).includes(false)) {
+                return Swal.fire({
+                    title: 'Gagal',
+                    text: 'Terdapat kolom data yang tidak sesuai dengan yang ada di database, silahkan cek kembali!',
+                    icon: 'error'
+                }).then(() => {
+                    document.getElementById(modal).showModal()
+                })
+            }
+            let dataImport = response.data
+
+            if(importTab === 'pegawai') {
+                dataImport = dataImport.map(state => ({
+                    ...state,
+                    ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir']),
+                    ['tmt']: date_integerToDate(state['tmt'])
+                }))
+            }
+
+            Swal.fire({
+                title: 'Sedang memproses data',
+                timer: 60000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                didOpen: async () => {
+                    let response
+                    if(importTab === 'pegawai') {
+                        response = await createMultiPegawai(dataImport)
+                    }
+
+                    if(importTab === 'sertifikat') {
+                        response = await createSertifikat(dataImport)
+                    }
+
+                    if(importTab === 'pendidikan') {
+                        response = await createPendidikan(dataImport)
+                    }
+
+                    if(response.success) {
+                        await getData()
+                        Swal.fire({
+                            title: 'Sukses',
+                            text: `Berhasil mengimport data ${importTab}!`,
+                            icon: 'success'
+                        }).then(() => {
+                            e.target[0].value = ''
+                            e.target[1].value = ''
+                            setImportFile(state => ({...state, 
+                                [importTab]: null
+                            }))
+                            setSheetsFile(state => ({...state,
+                                [importTab]: []
+                            }))
+                            document.getElementById(modal).showModal()
+                        })
+                    }else{
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: `Gagal mengimport data ${importTab}!`,
+                            icon: 'error'
+                        }).then(() => {
+                            document.getElementById(modal).showModal()
+                        })
+                    }
+                }
+            })
+
+        }
 
     }
 
-    const submitImportFile = (e, modal, type) => {
-
+    const handleImportFile = async () => {
+        if(importFile[importTab] !== null) {
+            const file = importFile[importTab]
+            if(!allowedMIMEType.includes(file.type)) {
+                console.log('salah file')
+                return setImportFile(state => ({...state, [importTab]: null}))
+            }
+            
+            // Get sheets
+            if(file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                const sheets = await xlsx_getSheets(importFile[importTab])
+                setSheetsFile(state => ({...state, [importTab]: Object.keys(sheets)}))
+            }
+        }
     }
+
+    useEffect(() => {
+        handleImportFile()
+    }, [importFile])
 
     return (
         <MainLayoutPage>
@@ -545,6 +890,52 @@ export default function DataPegawaiPage() {
                                 </form>
                             </div>
                         </dialog>
+                        <button type="button" onClick={() => document.getElementById('import_pegawai').showModal()} className="w-full md:w-fit px-3 py-2 rounded border dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex justify-center items-center gap-3 font-medium ease-out duration-300">
+                            <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit opacity-70" />
+                            Import
+                        </button>
+                        <dialog id="import_pegawai" className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                            <div className="modal-box bg-white dark:bg-zinc-900 rounded border dark:border-zinc-800">
+                                <form method="dialog">
+                                    <button onClick={() => setFormTambah(formatForm)} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                </form>
+                                <h3 className="font-bold text-lg">Import Data</h3>
+                                <hr className="my-2 opacity-0" />
+                                <div className="flex items-center gap-2">
+                                    <button type="button" disabled={importTab === 'pegawai'} onClick={() => setImportTab('pegawai')} className={`w-1/3 md:w-fit px-3 py-2 ease-out duration-200 ${importTab === 'pegawai' ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} rounded-md`}>
+                                        Pegawai
+                                    </button>
+                                    <button type="button" disabled={importTab === 'sertifikat'} onClick={() => setImportTab('sertifikat')} className={`w-1/3 md:w-fit px-3 py-2 ease-out duration-200 ${importTab === 'sertifikat' ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} rounded-md`}>
+                                        Sertifikat
+                                    </button>
+                                    <button type="button" disabled={importTab === 'pendidikan'} onClick={() => setImportTab('pendidikan')} className={`w-1/3 md:w-fit px-3 py-2 ease-out duration-200 ${importTab === 'pendidikan' ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} rounded-md`}>
+                                        Pendidikan
+                                    </button>
+                                </div>
+                                <hr className="my-2 opacity-0" />
+                                <form onSubmit={e => submitImportFile(e, 'import_pegawai')} className="text-xs space-y-2">
+                                    <p className="opacity-60">
+                                        File harus berupa .xlsx atau .csv
+                                    </p>
+                                    <input type="file" id="input_import_file" onChange={e => setImportFile(state => ({...state, [importTab]: e.target.files[0]}))} className="text-sm cursor-pointer w-full" />
+                                    <p className="opacity-60">
+                                        Pilih Sheet jika anda menggunakan .xlsx
+                                    </p>
+                                    <select id="select_sheet" className="px-3 py-2 w-full rounded-md border dark:border-zinc-800 dark:bg-zinc-900">
+                                        <option value="" disabled>-- Pilih Sheet --</option>
+                                        {sheetsFile[importTab].map((value, index) => (
+                                            <option key={index} value={value}>
+                                                {value}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button type="submit" className="w-full md:w-fit px-3 py-2 text-sm rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3">
+                                        <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                        Simpan
+                                    </button>
+                                </form>
+                            </div>
+                        </dialog>
                     </div>
                     <hr className="my-5 dark:opacity-10" />
                     
@@ -627,7 +1018,7 @@ export default function DataPegawaiPage() {
                             </div>
                         )}
                         {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((value, index) => (
-                            <div key={index} className="grid grid-cols-12 p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 ease-out duration-300 text-xs">
+                            <div key={`${value['id_pegawai']}`} className="grid grid-cols-12 p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 ease-out duration-300 text-xs">
                                 <div className="col-span-7 md:col-span-2 flex items-center gap-3">
                                     <input type="checkbox" checked={selectedData.includes(Number(value['id_pegawai']))} onChange={() => handleSelectData(Number(value['id_pegawai']))} className="cursor-pointer" />
                                     {value['nama_pegawai']}
@@ -652,10 +1043,10 @@ export default function DataPegawaiPage() {
                                     </div>
                                 </div>
                                 <div className="col-span-5 md:col-span-2 flex items-center justify-center md:gap-3 gap-1">
-                                    <button type="button" onClick={() => document.getElementById(`info_pegawai_${index}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
+                                    <button type="button" onClick={() => document.getElementById(`info_pegawai_${value['id_pegawai']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <dialog id={`info_pegawai_${index}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                    <dialog id={`info_pegawai_${value['id_pegawai']}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
                                         <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800 max-w-[800px]">
                                             <form method="dialog">
                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -772,10 +1163,10 @@ export default function DataPegawaiPage() {
                                             </div>
                                         </div>
                                     </dialog>
-                                    <button type="button" onClick={() => document.getElementById(`edit_pegawai_${index}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
+                                    <button type="button" onClick={() => document.getElementById(`edit_pegawai_${value['id_pegawai']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <dialog id={`edit_pegawai_${index}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                    <dialog id={`edit_pegawai_${value['id_pegawai']}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
                                         <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800 max-w-[800px]">
                                             <form method="dialog">
                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -795,7 +1186,7 @@ export default function DataPegawaiPage() {
                                             </div>
                                             <hr className="my-2 opacity-0" />
                                             {tabEdit === 'pribadi' && (
-                                                <form onSubmit={(e) => submitEditData(e, `edit_pegawai_${index}`, Number(value['id_pegawai']))} className="space-y-6 md:space-y-3">
+                                                <form onSubmit={(e) => submitEditData(e, `edit_pegawai_${value['id_pegawai']}`, Number(value['id_pegawai']))} className="space-y-6 md:space-y-3">
                                                     <div className="flex flex-col md:flex-row md:items-center gap-2">
                                                         <p className="opacity-60 w-full md:w-1/3">
                                                             Nama Pegawai
@@ -921,18 +1312,18 @@ export default function DataPegawaiPage() {
                                             {tabEdit === 'sertifikat' && (
                                                 <div className="space-y-3">
                                                     <div className="flex items-center gap-3">
-                                                        <button type="button" onClick={() => document.getElementById(`tambah_sertifikat_${index}`).showModal()} className="w-full md:w-fit px-3 py-2 rounded-md border dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                        <button type="button" onClick={() => document.getElementById(`tambah_sertifikat_${value['id_pegawai']}`).showModal()} className="w-full md:w-fit px-3 py-2 rounded-md border dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
                                                             <FontAwesomeIcon icon={faPlus} className="w-3 h-3 text-inherit" />
                                                             Tambah
                                                         </button>
-                                                        <dialog id={`tambah_sertifikat_${index}`} className="modal backdrop-blur-sm">
+                                                        <dialog id={`tambah_sertifikat_${value['id_pegawai']}`} className="modal backdrop-blur-sm">
                                                             <div className="modal-box rounded dark:bg-zinc-900">
                                                                 <form method="dialog">
                                                                     <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                                                 </form>
                                                                 <h3 className="font-bold text-lg">Tambah Sertifikat</h3>
                                                                 <hr className="my-2 opacity-0" />
-                                                                <form onSubmit={(e) => submitTambahSertifikat(e, [`edit_pegawai_${index}`, `tambah_sertifikat_${index}`], Number(value['id_pegawai']))}>
+                                                                <form onSubmit={(e) => submitTambahSertifikat(e, [`edit_pegawai_${value['id_pegawai']}`, `tambah_sertifikat_${value['id_pegawai']}_${sertifikat['no']}`], Number(value['id_pegawai']))}>
                                                                     <div className="flex flex-col md:flex-row md:items-center py-3 gap-1">
                                                                         <p className="opacity-60 w-full md:w-1/3">
                                                                             Nama Sertifikat
@@ -991,7 +1382,7 @@ export default function DataPegawaiPage() {
                                                     </div>
                                                     <div className="relative overflow-auto w-full max-h-[400px] space-y-4">
                                                         {value['daftar_sertifikat'].map((sertifikat, index2) => (
-                                                            <div key={index2} className="grid grid-cols-12 p-3 rounded-md gap-5">
+                                                            <div key={`sertifikat_${sertifikat['no']}`} className="grid grid-cols-12 p-3 rounded-md gap-5">
                                                                 <div className="col-span-7 md:col-span-3 flex items-center">
                                                                     {sertifikat['nama_sertifikat']}
                                                                 </div>
@@ -1004,10 +1395,10 @@ export default function DataPegawaiPage() {
                                                                     </a>
                                                                 </div>
                                                                 <div className="col-span-5 md:col-span-3 flex items-center justify-center gap-1">
-                                                                    <button type="button" onClick={() => document.getElementById(`info_sertifikat_${index}_${index2}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 md:hidden flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
+                                                                    <button type="button" onClick={() => document.getElementById(`info_sertifikat_${value['id_pegawai']}_${sertifikat['no']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 md:hidden flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
                                                                         <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                                                                     </button>
-                                                                    <dialog id={`info_sertifikat_${index}_${index2}`} className="modal backdrop-blur-sm">
+                                                                    <dialog id={`info_sertifikat_${value['id_pegawai']}_${sertifikat['no']}`} className="modal backdrop-blur-sm">
                                                                         <div className="modal-box rounded dark:bg-zinc-900">
                                                                             <form method="dialog">
                                                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -1040,17 +1431,17 @@ export default function DataPegawaiPage() {
                                                                             </div>
                                                                         </div>
                                                                     </dialog>
-                                                                    <button type="button"  onClick={() => document.getElementById(`edit_sertifikat_${index}_${index2}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
+                                                                    <button type="button"  onClick={() => document.getElementById(`edit_sertifikat_${value['id_pegawai']}_${sertifikat['no']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
                                                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                                                     </button>
-                                                                    <dialog id={`edit_sertifikat_${index}_${index2}`} className="modal backdrop-blur-sm">
+                                                                    <dialog id={`edit_sertifikat_${value['id_pegawai']}_${sertifikat['no']}`} className="modal backdrop-blur-sm">
                                                                         <div className="modal-box rounded dark:bg-zinc-900">
                                                                             <form method="dialog">
                                                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                                                             </form>
                                                                             <h3 className="font-bold text-lg">Ubah Sertifikat</h3>
                                                                             <hr className="my-2 opacity-0" />
-                                                                            <form onSubmit={(e) => submitEditSertifikat(e, [`edit_pegawai_${index}`, `edit_sertifikat_${index}_${index2}`], Number(sertifikat['no']))}>
+                                                                            <form onSubmit={(e) => submitEditSertifikat(e, [`edit_pegawai_${index}`, `edit_sertifikat_${value['id_pegawai']}_${sertifikat['no']}`], Number(sertifikat['no']))}>
                                                                                 <div className="flex flex-col md:flex-row md:items-center py-3 gap-1">
                                                                                     <p className="opacity-60 w-full md:w-1/3">
                                                                                         Nama Sertifikat
@@ -1091,7 +1482,7 @@ export default function DataPegawaiPage() {
                                                                             </form>
                                                                         </div>
                                                                     </dialog>
-                                                                    <button type="button" className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
+                                                                    <button type="button" onClick={() => submitDeleteSertifikat(`edit_pegawai_${value['id_pegawai']}`, sertifikat['no'])} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
                                                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                                                     </button>
                                                                 </div>
@@ -1103,28 +1494,28 @@ export default function DataPegawaiPage() {
                                             {tabEdit === 'pendidikan' && (
                                                 <div className="space-y-3">
                                                     <div className="flex items-center gap-3">
-                                                        <button type="button" onClick={() => document.getElementById(`tambah_pendidikan_${index}`).showModal()} className="w-1/2 md:w-fit px-3 py-2 rounded-md border dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                        <button type="button" onClick={() => document.getElementById(`tambah_pendidikan_${value['id_pegawai']}`).showModal()} className="w-1/2 md:w-fit px-3 py-2 rounded-md border dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
                                                             <FontAwesomeIcon icon={faPlus} className="w-3 h-3 text-inherit" />
                                                             Tambah
                                                         </button>
-                                                        <dialog id={`tambah_pendidikan_${index}`} className="modal backdrop-blur-sm">
+                                                        <dialog id={`tambah_pendidikan_${value['id_pegawai']}`} className="modal backdrop-blur-sm">
                                                             <div className="modal-box rounded dark:bg-zinc-900">
                                                                 <form method="dialog">
                                                                     <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                                                 </form>
                                                                 <h3 className="font-bold text-lg">Tambah Pendidikan</h3>
                                                                 <hr className="my-2 opacity-0" />
-                                                                <form className="">
+                                                                <form onSubmit={e => submitTambahPendidikan(e, [`edit_pegawai_${value['id_pegawai']}`, `tambah_pendidikan_${value['id_pegawai']}`], Number(value['id_pegawai']))}>
                                                                     <div className="flex flex-col md:flex-row md:items-center py-3 gap-1">
                                                                         <p className="opacity-60 w-full md:w-1/3">
                                                                             Tingkat Pendidikan
                                                                         </p>
                                                                         <div className="w-full md:w-2/3">
-                                                                            <select className="w-full px-3 py-2 rounded-md bg-transparent border dark:border-zinc-800 dark:bg-zinc-900">
+                                                                            <select required className="w-full px-3 py-2 rounded-md bg-transparent border dark:border-zinc-800 dark:bg-zinc-900">
                                                                                 <option value="" disabled>-- Pilih Tingkat --</option>
                                                                                 <option value="SD">SD</option>
-                                                                                <option value="SMP/MTs">SMP/MTs</option>
-                                                                                <option value="SMA/SMK">SMA/SMK</option>
+                                                                                <option value="SMP/SLTA/MTS">SMP/SLTA/MTS</option>
+                                                                                <option value="SMA/MA/SMK/MK">SMA/MA/SMK/MK</option>
                                                                                 <option value="D1/D2/D3">D1/D2/D3</option>
                                                                                 <option value="D4/S1">D4/S1</option>
                                                                                 <option value="S2">S2</option>
@@ -1174,32 +1565,7 @@ export default function DataPegawaiPage() {
                                                                 </form>
                                                             </div>
                                                         </dialog>
-                                                        <button type="button" onClick={() => document.getElementById(`import_sertifikat_${index}`).showModal()} className="w-1/2 md:w-fit px-3 py-2 rounded-md border dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
-                                                            <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit" />
-                                                            Import
-                                                        </button>
-                                                        <dialog id={`import_sertifikat_${index}`} className="modal backdrop-blur-sm">
-                                                            <div className="modal-box rounded dark:bg-zinc-900">
-                                                                <form method="dialog">
-                                                                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                                                                </form>
-                                                                <h3 className="font-bold text-lg">Import Pendidikan</h3>
-                                                                <hr className="my-2 opacity-0" />
-                                                                <form className="">
-                                                                    <p className="opacity-60">
-                                                                        File harus berupa .csv atau .xlsx
-                                                                    </p>
-                                                                    <input type="file" className="file-input file-input-bordered w-full file-input-sm dark:bg-zinc-800" />
-                                                                    <hr className="my-3 opacity-0" />
-                                                                    <div className="flex md:justify-end w-full">
-                                                                        <button type="submit" className="w-full md:w-fit px-3 py-2 rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
-                                                                            <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
-                                                                            Simpan
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </dialog>
+                                                        
                                                     </div>
                                                     <div className="grid grid-cols-12 p-3 rounded-md border dark:border-zinc-800 gap-5">
                                                         <div className="col-span-7 md:col-span-2 flex items-center">
@@ -1223,7 +1589,7 @@ export default function DataPegawaiPage() {
                                                     </div>
                                                     <div className="relative overflow-auto w-full max-h-[400px] space-y-4">
                                                         {value['daftar_pendidikan'].map((pendidikan, index2) => (
-                                                            <div key={index2} className="grid grid-cols-12 p-3 rounded-md gap-5">
+                                                            <div key={pendidikan['no']} className="grid grid-cols-12 p-3 rounded-md gap-5">
                                                                 <div className="col-span-7 md:col-span-2 flex items-center">
                                                                     {pendidikan['tingkat_pendidikan']}
                                                                 </div>
@@ -1240,10 +1606,10 @@ export default function DataPegawaiPage() {
                                                                     {pendidikan['program_studi']}
                                                                 </div>
                                                                 <div className="col-span-5 md:col-span-2 flex items-center justify-center gap-1">
-                                                                    <button type="button" onClick={() => document.getElementById(`info_pendidikan_${index}_${index2}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 md:hidden flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
+                                                                    <button type="button" onClick={() => document.getElementById(`info_pendidikan_${value['id_pegawai']}_${pendidikan['no']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 md:hidden flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
                                                                         <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
                                                                     </button>
-                                                                    <dialog id={`info_pendidikan_${index}_${index2}`} className="modal backdrop-blur-sm">
+                                                                    <dialog id={`info_pendidikan_${value['id_pegawai']}_${pendidikan['no']}`} className="modal backdrop-blur-sm">
                                                                         <div className="modal-box rounded dark:bg-zinc-900">
                                                                             <form method="dialog">
                                                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
@@ -1294,27 +1660,28 @@ export default function DataPegawaiPage() {
                                                                             </div>
                                                                         </div>
                                                                     </dialog>
-                                                                    <button type="button"  onClick={() => document.getElementById(`edit_pendidikan_${index}_${index2}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
+                                                                    <button type="button"  onClick={() => document.getElementById(`edit_pendidikan_${value['id_pegawai']}_${pendidikan['no']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
                                                                         <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
                                                                     </button>
-                                                                    <dialog id={`edit_pendidikan_${index}_${index2}`} className="modal backdrop-blur-sm">
+                                                                    <dialog id={`edit_pendidikan_${value['id_pegawai']}_${pendidikan['no']}`} className="modal backdrop-blur-sm">
                                                                         <div className="modal-box rounded dark:bg-zinc-900">
                                                                             <form method="dialog">
                                                                                 <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                                                             </form>
                                                                             <h3 className="font-bold text-lg">Ubah Sertifikat</h3>
                                                                             <hr className="my-2 opacity-0" />
-                                                                            <form className="">
+
+                                                                            <form onSubmit={ev => submitEditPendidikanPegawai(ev, [`edit_pegawai_${index}`, `edit_pendidikan_${value['id_pegawai']}_${pendidikan['no']}`], Number(pendidikan['no']))}>
                                                                                 <div className="flex flex-col md:flex-row md:items-center py-3 gap-1">
                                                                                     <p className="opacity-60 w-full md:w-1/3">
                                                                                         Tingkat Pendidikan
                                                                                     </p>
                                                                                     <div className="w-full md:w-2/3">
-                                                                                        <select defaultValue={pendidikan['tingkat_pendidikan']} className="w-full px-3 py-2 rounded-md bg-transparent border dark:border-zinc-800 dark:bg-zinc-900">
+                                                                                        <select required defaultValue={pendidikan['tingkat_pendidikan']} className="w-full px-3 py-2 rounded-md bg-transparent border dark:border-zinc-800 dark:bg-zinc-900">
                                                                                             <option value="" disabled>-- Pilih Tingkat --</option>
                                                                                             <option value="SD">SD</option>
-                                                                                            <option value="SMP/MTs">SMP/MTs</option>
-                                                                                            <option value="SMA/SMK">SMA/SMK</option>
+                                                                                            <option value="SMP/SLTA/MTS">SMP/MTs</option>
+                                                                                            <option value="SMA/MA/SMK/MK">SMA/MA/SMK/MK</option>
                                                                                             <option value="D1/D2/D3">D1/D2/D3</option>
                                                                                             <option value="D4/S1">D4/S1</option>
                                                                                             <option value="S2">S2</option>
@@ -1364,7 +1731,7 @@ export default function DataPegawaiPage() {
                                                                             </form>
                                                                         </div>
                                                                     </dialog>
-                                                                    <button type="button" className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
+                                                                    <button type="button" onClick={() => submitDeletePendidikan(`edit_pegawai_${value['id_pegawai']}`, Number(pendidikan['no']))} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
                                                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                                                     </button>
                                                                 </div>
@@ -1395,7 +1762,7 @@ export default function DataPegawaiPage() {
                             )}
                             {selectedData.length > 0 && (
                                 <div className="flex items-center justify-center w-full md:w-fit gap-3 px-3">
-                                    <button type="button" onClick={() => submitDeleteAkun()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
+                                    <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
                                 </div>

@@ -138,3 +138,13 @@ export const date_toInputHtml = (date) => {
 
     return `${year}-${day}-${month}`
 }
+
+export const date_integerToDate = (dateInteger) => {
+    const datevalue = new Date((dateInteger - 25569) * 86400 * 1000)
+
+    const day = String(datevalue.getDate()).padStart(2, '0');
+    const month = String(datevalue.getMonth() + 1).padStart(2, '0'); // Month is zero-based
+    const year = datevalue.getFullYear();
+
+    return `${year}-${month}-${day}`
+}

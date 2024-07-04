@@ -63,8 +63,8 @@ export const deleteManyPegawai = async (arrayOfID_Pegawai) => {
     await logRiwayat({
         aksi: 'Hapus',
         kategori: 'Data Pegawai',
-        keterangan: `Menghapus ${Array.isArray(id_pegawai) ? id_pegawai.length : '1'} Data dari Data Pegawai`,
-        records: `${JSON.stringify({arrayId_pegawai: id_pegawai})}`
+        keterangan: `Menghapus ${Array.isArray(arrayOfID_Pegawai) ? arrayOfID_Pegawai.length : '1'} Data dari Data Pegawai`,
+        records: `${JSON.stringify({arrayOfID_Pegawai})}`
     })
 
     return {
