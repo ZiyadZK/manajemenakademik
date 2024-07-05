@@ -4,13 +4,14 @@ import MainLayoutPage from "@/components/mainLayout"
 import { jakarta, mont, rale } from "@/config/fonts"
 import { exportToCSV } from "@/lib/csvLibs"
 import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/lib/dateConvertes"
+import { model_createAlumni } from "@/lib/model/alumniModel"
 import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
 import { createMultiPegawai, createSinglePegawai, deleteManyPegawai, deleteSinglePegawai, getAllPegawai, updateSinglePegawai } from "@/lib/model/pegawaiModel"
 import { createPendidikan, deletePendidikan, updatePendidikan } from "@/lib/model/pendidikanModel"
 import { createSertifikat, deleteSertifikat, updateSertifikat } from "@/lib/model/sertifikatModel"
-import { createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, updateSiswaByNIS } from "@/lib/model/siswaModel"
+import { createMultiSiswa, createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, updateSiswaByNIS } from "@/lib/model/siswaModel"
 import { exportToXLSX, xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
-import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPowerOff, faPrint, faSave, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheck, faCheckDouble, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPowerOff, faPrint, faSave, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -46,34 +47,31 @@ const allowedMIMEType = [
 ]
 
 const formatKolom = {
-    pegawai: {
-        nama_pegawai: 'Nama Pegawai',
-        email_pegawai: 'Email Pegawai',
-        jabatan: 'Jabatan',
-        status_kepegawaian: 'Status Kepegawaian',
-        nik: 'NIK',
-        nip: 'NIP',
-        nuptk: 'NUPTK',
-        tmpt_lahir: 'Tempat Lahir',
-        tanggal_lahir: 'Tanggal Lahir',
-        tmt: 'Tamat Kepegawaian',
-        pensiun: 'Pensiun',
-        keterangan: 'Keterangan'
-    },
-    sertifikat: {
-        fk_sertifikat_id_pegawai: 'ID Pegawai',
-        nama_sertifikat: 'Nama Sertifikat',
-        jenis_sertifikat: 'Jenis Sertifikat',
-        fileUrl: 'Link Sertifikat'
-    },
-    pendidikan: {
-        fk_pendidikan_id_pegawai: 'ID Pegawai',
-        tingkat_pendidikan: 'Tingkat Pendidikan',
-        sekolah: 'Sekolah Pendidikan',
-        universitas: 'Universitas',
-        fakultas: 'Fakultas',
-        program_studi: 'Program studi'
-    }
+    nama_siswa: 'Nama Siswa',
+    nis: 'NIS',
+    nisn: 'NISN',
+    kelas: 'Kelas',
+    jurusan: 'e.target[3].value',
+    rombel: 'e.target[4].value',
+    nik: 'e.target[6].value',
+    no_kk: 'e.target[7].value',
+    tempat_lahir: 'e.target[8].value',
+    tanggal_lahir: 'e.target[9].value',
+    jenis_kelamin: 'e.target[10].value',
+    agama: 'e.target[11].value',
+    jumlah_saudara: 'e.target[12].value',
+    anak_ke: 'e.target[13].value',
+    alamat: 'e.target[14].value',
+    no_hp_siswa: 'e.target[15].value',
+    asal_sekolah: 'e.target[16].value',
+    kategori: 'e.target[17].value',
+    tahun_masuk: 'e.target[18].value',
+    nama_ayah: 'e.target[19].value',
+    nama_ibu: 'e.target[20].value',
+    telp_ayah: 'e.target[21].value',
+    telp_ibu: 'e.target[22].value',
+    pekerjaan_ayah: 'e.target[23].value',
+    pekerjaan_ibu: 'e.target[24].value',
 }
 
 const mySwal = withReactContent(Swal)
@@ -98,20 +96,18 @@ const showModal = (id) => {
     }
 }
 
+const formatSort = {
+    nama_siswa: '', nis: '', nisn: '', tahun_masuk: ''
+}
+
 export default function DataSiswaPage() {
 
     const [data, setData] = useState([])
     const [importFile, setImportFile] = useState(null)
     const [sheetsFile, setSheetsFile] = useState([])
-    const [dataPegawai, setDataPegawai] = useState([])
-    const [formTambah, setFormTambah] = useState(formatForm)
-    const [filteredDataPegawai, setFilteredDataPegawai] = useState([])
-    const [searchDataPegawai, setSearchDataPegawai] = useState('')
     const [loadingFetch, setLoadingFetch] = useState({
         data: '', pegawai: ''
     })
-    const [importTab, setImportTab] = useState('pegawai')
-    const [tabEdit, setTabEdit] = useState('pribadi')
     const [filteredData, setFilteredData] = useState([])
     const [pagination, setPagination] = useState(1)
     const [totalList, setTotalList] = useState(10)
@@ -122,9 +118,7 @@ export default function DataSiswaPage() {
         kelas: [], jurusan: [], rombel: []
     })
 
-    const [sortData, setSortData] = useState({
-        nama_siswa: '', nis: '', nisn: '', tahun_masuk: ''
-    })
+    const [sortData, setSortData] = useState(formatSort)
 
     const getData = async () => {
         setLoadingFetch(state => ({...state, data: 'loading'}))
@@ -182,7 +176,6 @@ export default function DataSiswaPage() {
                 const response = await createSingleSiswa(payload)
 
                 if(response) {
-                    setSearchDataPegawai('')
                     for(let i = 0; i < 25; i++) {
                         e.target[i].value = ''
                     }
@@ -343,8 +336,28 @@ export default function DataSiswaPage() {
             updatedData = updatedData.filter(value => filterData['rombel'].includes(value['rombel']))
         }
 
-        setFilteredData(updatedData)
-    }, [searchFilter, filterData])
+        let sortedData = []
+
+        Object.keys(sortData).forEach(kolom => {
+            if(sortData[kolom] !== '') {
+                sortedData = updatedData.sort((a, b) => {
+                    if(sortData[kolom] === 'asc') {
+                        if(a[kolom] < b[kolom]) return -1;
+                        if(a[kolom] > b[kolom]) return 1;
+                        return 0
+                    }
+
+                    if(sortData[kolom] === 'dsc') {
+                        if(a[kolom] < b[kolom]) return 1;
+                        if(a[kolom] > b[kolom]) return -1;
+                        return 0
+                    }
+                })
+            }
+        })
+
+        setFilteredData(sortedData.length < 1 ? updatedData : sortedData)
+    }, [searchFilter, filterData, sortData])
 
     const handleFilterData = (kolom, value) => {
         setFilterData(state => {
@@ -369,10 +382,10 @@ export default function DataSiswaPage() {
 
         const namaSheet = e.target[1].value
 
-        const response = await xlsx_getData(importFile[importTab], namaSheet)
+        const response = await xlsx_getData(importFile, namaSheet)
         if(response.success) {
             const headersImportFile = Object.keys(response.data[0])
-            const headersDatabase = Object.keys(formatKolom[importTab])
+            const headersDatabase = Object.keys(formatKolom)
 
             if(headersDatabase.length > headersImportFile.length) {
                 return Swal.fire({
@@ -393,15 +406,11 @@ export default function DataSiswaPage() {
                     document.getElementById(modal).showModal()
                 })
             }
-            let dataImport = response.data
 
-            if(importTab === 'pegawai') {
-                dataImport = dataImport.map(state => ({
-                    ...state,
-                    ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir']),
-                    ['tmt']: date_integerToDate(state['tmt'])
-                }))
-            }
+            const dataImport = response.data.map(state => ({
+                ...state,
+                ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir'])
+            }))
 
             Swal.fire({
                 title: 'Sedang memproses data',
@@ -412,40 +421,25 @@ export default function DataSiswaPage() {
                 allowEscapeKey: false,
                 allowEnterKey: false,
                 didOpen: async () => {
-                    let response
-                    if(importTab === 'pegawai') {
-                        response = await createMultiPegawai(dataImport)
-                    }
-
-                    if(importTab === 'sertifikat') {
-                        response = await createSertifikat(dataImport)
-                    }
-
-                    if(importTab === 'pendidikan') {
-                        response = await createPendidikan(dataImport)
-                    }
+                    const response = await createMultiSiswa(dataImport)
 
                     if(response.success) {
                         await getData()
                         Swal.fire({
                             title: 'Sukses',
-                            text: `Berhasil mengimport data ${importTab}!`,
+                            text: `Berhasil mengimport data Siswa!`,
                             icon: 'success'
                         }).then(() => {
                             e.target[0].value = ''
                             e.target[1].value = ''
-                            setImportFile(state => ({...state, 
-                                [importTab]: null
-                            }))
-                            setSheetsFile(state => ({...state,
-                                [importTab]: []
-                            }))
+                            setImportFile(null)
+                            setSheetsFile([])
                             document.getElementById(modal).showModal()
                         })
                     }else{
                         Swal.fire({
                             title: 'Gagal',
-                            text: `Gagal mengimport data ${importTab}!`,
+                            text: `Gagal mengimport data Siswa!`,
                             icon: 'error'
                         }).then(() => {
                             document.getElementById(modal).showModal()
@@ -482,53 +476,145 @@ export default function DataSiswaPage() {
         e.preventDefault()
 
         document.getElementById(modal).close()
-        // First get the data
-        const dataSiswa = data.find(value => value['nis'] === nis)
+
+        const payload = {
+            tanggal_keluar: e.target[3].value ? e.target[3].value : `${date_getYear()}-${date_getMonth()}-${date_getDay()}`,
+            tahun_keluar: e.target[3].value ? `${date_getYear(e.target[3].value)}` : date_getYear(),
+            keterangan: e.target[4].value
+        }
+
+        Swal.fire({
+            title: 'Apakah anda sudah yakin?',
+            text: 'Anda akan mutasikan siswa tersebut',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(async answer => {
+            if(answer.isConfirmed) {
+                // First get the data
+                const dataSiswa = data.find(value => value['nis'] === nis)
+        
+                Swal.fire({
+                    title: 'Sedang memproses data',
+                    timer: 60000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    allowOutsideClick: false,
+                    allowEnterKey: false,
+                    allowEscapeKey: false,
+                    didOpen: async () => {
+                        // Delete the data
+                        await deleteSingleSiswaByNis(nis).then(async responseDelete => {
+                            if(responseDelete.success) {
+                                // Insert the data into mutasi
+                                const response = await createMutasiSiswa({...dataSiswa, ...payload})
+                                if(response.success) {
+                                    setSelectAll(false)
+                                    setSelectedData([])
+                                    await getData()
+                                    Swal.fire({
+                                        title: 'Sukses',
+                                        text: 'Berhasil mutasikan data siswa!',
+                                        icon: 'success'
+                                    })
+                                }else{
+                                    Swal.fire({
+                                        title: 'Gagal',
+                                        text: 'Terdapat error disaat memproses data, hubungi Administrator!',
+                                        icon: 'error'
+                                    }).then(() => {
+                                        document.getElementById(modal).showModal()
+                                    })
+                                }
+                            }else{
+                                Swal.fire({
+                                    title: 'Gagal',
+                                    text: 'Terdapat error disaat memproses data, hubungi Administrator!',
+                                    icon: 'error'
+                                }).then(() => {
+                                    document.getElementById(modal).showModal()
+                                })
+                            }
+                        })
+                    }
+                })
+            }else{
+                document.getElementById(modal).showModal()
+            }
+
+        })
+
+    }
+
+    const handleSortData = (key) => {
+        setSortData(state => {
+            if(state[key] === '') {
+                return {...formatSort, [key]: 'dsc'}
+            }else if(state[key] === 'asc') {
+                return {...formatSort, [key]: ''}
+            }else if(state[key] === 'dsc') {
+                return {...formatSort, [key]: 'asc'}
+            }
+        })
+    }
+
+    const submitUbahKelasSiswa = async (nis, kelas, kriteria = 'naik', onlyNis = true, modal) => {
+        document.getElementById(modal).close()
 
         Swal.fire({
             title: 'Sedang memproses data',
             timer: 60000,
-            timerProgressBar: true,
             showConfirmButton: false,
+            timerProgressBar: false,
             allowOutsideClick: false,
-            allowEnterKey: false,
             allowEscapeKey: false,
+            allowEnterKey: false,
             didOpen: async () => {
-                // Delete the data
-                await deleteSingleSiswaByNis(nis).then(async responseDelete => {
-                    if(responseDelete.success) {
-                        // Insert the data into mutasi
-                        const response = await createMutasiSiswa(dataSiswa)
-                        if(response.success) {
-                            setSelectAll(false)
-                            setSelectedData([])
-                            await getData()
-                            Swal.fire({
-                                title: 'Sukses',
-                                text: 'Berhasil mutasikan data siswa!',
-                                icon: 'success'
-                            })
-                        }else{
-                            Swal.fire({
-                                title: 'Gagal',
-                                text: 'Terdapat error disaat memproses data, hubungi Administrator!',
-                                icon: 'error'
-                            }).then(() => {
-                                document.getElementById(modal).showModal()
-                            })
-                        }
-                    }else{
-                        Swal.fire({
-                            title: 'Gagal',
-                            text: 'Terdapat error disaat memproses data, hubungi Administrator!',
-                            icon: 'error'
-                        }).then(() => {
-                            document.getElementById(modal).showModal()
-                        })
+                let response
+
+                if(kelas === 'X') {
+                    if(kriteria === 'naik') {
+                        response = await updateSiswaByNIS(nis, { kelas: 'XI' })
                     }
-                })
+                }else if(kelas === 'XI') {
+                    if(kriteria === 'naik') {
+                        response = await updateSiswaByNIS(nis, { kelas: 'XII' })
+                    }else{
+                        response = await updateSiswaByNIS(nis, { kelas: 'X' })
+                    }
+                }else if(kelas === 'XII') {
+                    if(kriteria === 'naik') {
+                        const dataSiswaLulus = data.find(value => value['nis'] === nis)
+                        response = await model_createAlumni({...dataSiswaLulus, tanggal_keluar: `${date_getYear()}-${date_getMonth()}-${date_getDay()}`, tahun_keluar: date_getYear() })
+                        await deleteSingleSiswaByNis(nis)
+                    }else{
+                        response = await updateSiswaByNIS(nis, { kelas: 'XI' })
+                    }
+                }
+
+                if(response.success) {
+                    setSelectAll(false)
+                    setSelectedData([])
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: `Berhasil ${kelas !== 'XII' ? 'menaikkan kelas' : 'meluluskan'} siswa tersebut`,
+                        icon: 'success'
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: `Terdapat kesalahan saat ${kelas !== 'XII' ? 'menaikkan kelas' : 'meluluskan'} siswa tersebut`,
+                        icon: 'error'
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }
             }
         })
+        
+
     }
 
     return (
@@ -794,7 +880,7 @@ export default function DataSiswaPage() {
                                 <hr className="my-2 opacity-0" />
                                 
                                 <hr className="my-2 opacity-0" />
-                                <form onSubmit={e => submitImportFile(e, 'import_pegawai')} className="text-xs space-y-2">
+                                <form onSubmit={e => submitImportFile(e, 'import_siswa')} className="text-xs space-y-2">
                                     <p className="opacity-60">
                                         File harus berupa .xlsx atau .csv
                                     </p>
@@ -871,8 +957,8 @@ export default function DataSiswaPage() {
                             <div className="col-span-7 md:col-span-2 flex items-center gap-3">
                                 <input type="checkbox" className="cursor-pointer" />
                                 Nama Siswa
-                                <button type="button" className="opacity-50 hover:opacity-100">
-                                    <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                                <button type="button" onClick={() => handleSortData('nama_siswa')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['nama_siswa'] === '' ? faArrowsUpDown : (sortData['nama_siswa'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
                                 </button>
                             </div>
                             <div className="col-span-2 hidden md:flex items-center gap-3">
@@ -880,20 +966,20 @@ export default function DataSiswaPage() {
                             </div>
                             <div className="col-span-2 hidden md:flex items-center gap-3">
                                 NIS
-                                <button type="button" className="opacity-50 hover:opacity-100">
-                                    <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                                <button type="button" onClick={() => handleSortData('nis')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['nis'] === '' ? faArrowsUpDown : (sortData['nis'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
                                 </button> 
                             </div>
                             <div className="col-span-2 hidden md:flex items-center gap-3">
                                 NISN
-                                <button type="button" className="opacity-50 hover:opacity-100">
-                                    <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                                <button type="button" onClick={() => handleSortData('nisn')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['nisn'] === '' ? faArrowsUpDown : (sortData['nisn'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
                                 </button>
                             </div>
                             <div className="col-span-2 hidden md:flex items-center gap-3">
                                 Tahun Masuk
-                                <button type="button" className="opacity-50 hover:opacity-100">
-                                    <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                                <button type="button" onClick={() => handleSortData('tahun_masuk')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['tahun_masuk'] === '' ? faArrowsUpDown : (sortData['tahun_masuk'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
                                 </button>
                             </div>
                             <div className="col-span-5 md:col-span-2 flex items-center gap-3">
@@ -928,7 +1014,7 @@ export default function DataSiswaPage() {
                                 <div className="col-span-2 hidden md:flex items-center gap-3">
                                     <div className="space-y-2">
                                         <p>
-                                            {value['nik']}
+                                            {value['tahun_masuk']}
                                         </p>
                                     </div>
                                 </div>
@@ -945,12 +1031,12 @@ export default function DataSiswaPage() {
                                             <hr className="my-2 opacity-0" />
                                             <div className="flex flex-col md:flex-row md:items-center gap-3">
                                                 <div className="flex items-center w-full gap-3">
-                                                    <button type="button" className="w-1/2 md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                    <button type="button" onClick={() => submitUbahKelasSiswa(value['nis'], value['kelas'], 'naik', true, `info_siswa_${value['nis']}`)} className="w-1/2 md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
                                                         <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3 text-inherit opacity-60" />
                                                         {value['kelas'] !== 'XII' ? 'Naik Kelas' : 'Luluskan'}
                                                     </button>
                                                     {value['kelas'] !== 'X' && (
-                                                        <button type="button" className="w-1/2 md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                        <button type="button"  onClick={() => submitUbahKelasSiswa(value['nis'], value['kelas'], 'turun', true, `info_siswa_${value['nis']}`)} className="w-1/2 md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
                                                             <FontAwesomeIcon icon={faArrowDown} className="w-3 h-3 text-inherit opacity-60" />
                                                             Turun Kelas
                                                         </button>
@@ -1459,7 +1545,7 @@ export default function DataSiswaPage() {
                                                         Keterangan
                                                     </p>
                                                     <div className="w-full md:w-2/3">
-                                                        <input required type="text" className="px-3 py-2 disabled:bg-zinc-800 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Ibu" />
+                                                        <input required type="text" className="px-3 py-2 disabled:bg-zinc-800 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Keterangan Mutasi" />
                                                     </div>
                                                 </div>
                                                 <div className="flex md:justify-end">
@@ -1490,15 +1576,51 @@ export default function DataSiswaPage() {
                                 <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
                                     <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
                                 </button>
-                                <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-cyan-500 dark:hover:border-cyan-500/50 hover:bg-cyan-100 dark:hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-500 ease-out duration-200">
-                                    <FontAwesomeIcon icon={faArrowsUpDown} className="w-3 h-3 text-inherit" />
+                                <button type="button" onClick={() => document.getElementById(`naikkelas`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-cyan-500 dark:hover:border-cyan-500/50 hover:bg-cyan-100 dark:hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-500 ease-out duration-200">
+                                    <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3 text-inherit" />
                                 </button>
+                                <dialog id={`naikkelas`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                    <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800">
+                                        <form method="dialog">
+                                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                        </form>
+                                        <h3 className="font-bold text-lg">Naikkan Kelas</h3>
+                                        <hr className="my-2 opacity-0" />
+                                        <p>
+                                            Apakah anda sudah yakin?
+                                        </p>
+                                        {selectedData.length < 1 && (
+                                            <p>
+                                                Anda akan menaikkan seluruh kelas yang ada di data tabel.
+                                            </p>
+                                        )}
+                                        <hr className="my-2 opacity-0" />
+                                        <div className="space-y-2">
+                                            <button type="button" className="px-3 py-2 rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
+                                                <FontAwesomeIcon icon={faCheckDouble} className="w-3 h-3 text-inherit opacity-70" />
+                                                Naikkan semua Kelas
+                                            </button>
+                                            {selectedData.length > 0 && (
+                                                <>
+                                                    <button type="button" className="px-3 py-2 rounded-md bg-teal-500 hover:bg-teal-400 focus:bg-teal-600 flex items-center justify-center gap-3 text-white">
+                                                        <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-inherit opacity-70" />
+                                                        Naikkan semua Kelas kecuali Siswa yang dipilih
+                                                    </button>
+                                                    <button type="button" className="px-3 py-2 rounded-md bg-red-500 hover:bg-red-400 focus:bg-red-600 flex items-center justify-center gap-3 text-white">
+                                                        <FontAwesomeIcon icon={faCheckSquare} className="w-3 h-3 text-inherit opacity-70" />
+                                                        Naikkan Kelas hanya Siswa yang dipilih
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                        
+                                    </div>
+                                </dialog>
                                 {selectedData.length > 0 && (
                                     <>
                                     <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    
                                     </>
                                 )}
                             </div>
