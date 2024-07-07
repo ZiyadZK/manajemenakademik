@@ -2,6 +2,8 @@
 
 import * as XLSX from 'xlsx'
 
+import Papa from 'papaparse'
+
 export const exportToXLSX = async (dataArr, fileName = 'Data', {header, sheetName = 'Data'}) => {
     const worksheet = XLSX.utils.json_to_sheet(dataArr)
     const workbook = XLSX.utils.book_new()
@@ -78,6 +80,7 @@ export const xlsx_getSheets = async (file) => {
 export const xlsx_export = async (type, dataArrs, fileName = 'Data', headers, sheetNames) => {
     if (type === 'xlsx') {
         const workbook = XLSX.utils.book_new();
+        console.log(dataArrs)
         
         dataArrs.forEach((dataArr, index) => {
             const worksheet = XLSX.utils.json_to_sheet(dataArr);

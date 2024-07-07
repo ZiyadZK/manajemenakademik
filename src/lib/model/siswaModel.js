@@ -162,3 +162,19 @@ export const updateBulkSiswa = async (nisArray, data) => {
         message: responseData.result
     }
 }
+
+export const naikkanKelasSiswa_selected = async (nisSelectedNaikKelasArr) => {
+    const responseData = await urlPost('/v1/data/siswa/naikkelas', {nisSelectedNaikKelasArr})
+
+    await logRiwayat({
+        aksi: 'Naik Kelas',
+        kategori: 'Data Siswa',
+        keterangan: nisSelectedNaikKelasArr.length > 0 ? `Menaikkan Data Kelas dari Data Siswa, hanya beberapa siswa` : 'Menaikkan semua Data Kelas dari Data Siswa',
+        records: `${JSON.stringify({nisSelectedNaikKelasArr})}`
+    })
+
+    return {
+        success: responseData.success,
+        message: responseData.result
+    }
+}

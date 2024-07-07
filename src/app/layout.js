@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { jakarta } from "@/config/fonts";
 
 export const metadata = {
   title: "Simak",
@@ -9,7 +10,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={jakarta.className}>{children}</body>
     </html>
   );
 }

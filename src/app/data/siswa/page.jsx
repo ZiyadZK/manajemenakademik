@@ -1,45 +1,22 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { jakarta, mont, rale } from "@/config/fonts"
-import { exportToCSV } from "@/lib/csvLibs"
+import { jakarta, mont, quicksand, rale } from "@/config/fonts"
 import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/lib/dateConvertes"
 import { model_createAlumni } from "@/lib/model/alumniModel"
 import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
-import { createMultiPegawai, createSinglePegawai, deleteManyPegawai, deleteSinglePegawai, getAllPegawai, updateSinglePegawai } from "@/lib/model/pegawaiModel"
-import { createPendidikan, deletePendidikan, updatePendidikan } from "@/lib/model/pendidikanModel"
-import { createSertifikat, deleteSertifikat, updateSertifikat } from "@/lib/model/sertifikatModel"
-import { createMultiSiswa, createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, updateSiswaByNIS } from "@/lib/model/siswaModel"
-import { exportToXLSX, xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
-import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheck, faCheckDouble, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPowerOff, faPrint, faSave, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
+import { createMultiSiswa, createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, naikkanKelasSiswa_selected, updateSiswaByNIS } from "@/lib/model/siswaModel"
+import { exportToXLSX, xlsx_export, xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
+import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheck, faCheckDouble, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPowerOff, faPrint, faSave, faSearch, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import toast, { Toaster } from "react-hot-toast"
+import html2canvas from "html2canvas-pro"
+import jsPDF from "jspdf"
+import Image from "next/image"
+import { createRef, useEffect, useRef, useState } from "react"
 import Swal from "sweetalert2"
 import withReactContent from "sweetalert2-react-content"
 
-const exportKolom = {
-    nama_pegawai: 'Nama Pegawai',
-    jabatan: 'Jabatan',
-    status_kepegawaian: 'Status Kepegawaian',
-    nik: 'NIK',
-    nip: 'NIP',
-    nuptk: 'NUPTK',
-    tmpt_lahir: 'Tempat Lahir',
-    tgl_lahir: 'Tanggal Lahir',
-    tmt: 'Tamat Pendidikan',
-    pendidikan_terakhir: 'Pendidikan Terakhir',
-    sekolah_pendidikan: 'Sekolah Pendidikan',
-    sarjana_universitas: 'Sarjana Universitas',
-    sarjana_fakultas: 'Sarjana Fakultas',
-    sarjana_prodi: 'Sarjana Program Studi',
-    magister_universitas: 'Magister Universitas',
-    magister_fakultas: 'Magister Fakultas',
-    magister_prodi: 'Magister Program Studi',
-    pensiun: 'Pensiun'
-  }
+const mmToPx = mm => mm * (96 / 25.4)
 
 const allowedMIMEType = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -51,27 +28,30 @@ const formatKolom = {
     nis: 'NIS',
     nisn: 'NISN',
     kelas: 'Kelas',
-    jurusan: 'e.target[3].value',
-    rombel: 'e.target[4].value',
-    nik: 'e.target[6].value',
-    no_kk: 'e.target[7].value',
-    tempat_lahir: 'e.target[8].value',
-    tanggal_lahir: 'e.target[9].value',
-    jenis_kelamin: 'e.target[10].value',
-    agama: 'e.target[11].value',
-    jumlah_saudara: 'e.target[12].value',
-    anak_ke: 'e.target[13].value',
-    alamat: 'e.target[14].value',
-    no_hp_siswa: 'e.target[15].value',
-    asal_sekolah: 'e.target[16].value',
-    kategori: 'e.target[17].value',
-    tahun_masuk: 'e.target[18].value',
-    nama_ayah: 'e.target[19].value',
-    nama_ibu: 'e.target[20].value',
-    telp_ayah: 'e.target[21].value',
-    telp_ibu: 'e.target[22].value',
-    pekerjaan_ayah: 'e.target[23].value',
-    pekerjaan_ibu: 'e.target[24].value',
+    jurusan: 'Jurusan',
+    rombel: 'Rombel',
+    nik: 'NIK',
+    no_kk: 'No Kartu Keluarga',
+    tempat_lahir: 'Tempat Lahir',
+    tanggal_lahir: 'Tanggal Lahir',
+    jenis_kelamin: 'Jenis Kelamin',
+    agama: 'Agama',
+    jumlah_saudara: 'Jumlah Saudara',
+    anak_ke: 'Anak ke',
+    alamat: 'Alamat',
+    no_hp_siswa: 'No Telepon Siswa',
+    asal_sekolah: 'Asal Sekolah',
+    kategori: 'Kategori',
+    tahun_masuk: 'Tahun Masuk',
+    nama_ayah: 'Nama Ayah',
+    nama_ibu: 'Nama Ibu',
+    nama_wali: 'Nama Wali',
+    telp_ayah: 'No Telepon Ayah',
+    telp_ibu: 'No Telepon Ibu',
+    telp_wali: 'No Telepon Wali',
+    pekerjaan_ayah: 'Pekerjaan Ayah',
+    pekerjaan_ibu: 'Pekerjaan Ibu',
+    pekerjaan_wali: 'Pekerjaan Wali'
 }
 
 const mySwal = withReactContent(Swal)
@@ -120,6 +100,9 @@ export default function DataSiswaPage() {
 
     const [sortData, setSortData] = useState(formatSort)
 
+    const componentPDF = useRef([])
+    const [printedData, setPrintedData] = useState([])
+
     const getData = async () => {
         setLoadingFetch(state => ({...state, data: 'loading'}))
         const response = await getAllSiswa()
@@ -159,10 +142,13 @@ export default function DataSiswaPage() {
             tahun_masuk: e.target[18].value,
             nama_ayah: e.target[19].value,
             nama_ibu: e.target[20].value,
-            telp_ayah: e.target[21].value,
-            telp_ibu: e.target[22].value,
-            pekerjaan_ayah: e.target[23].value,
-            pekerjaan_ibu: e.target[24].value,
+            nama_wali: e.target[21].value,
+            telp_ayah: e.target[22].value,
+            telp_ibu: e.target[23].value,
+            telp_wali: e.target[24].value,
+            pekerjaan_ayah: e.target[25].value,
+            pekerjaan_ibu: e.target[26].value,
+            pekerjaan_wali: e.target[27].value
         }
 
         Swal.fire({
@@ -274,10 +260,13 @@ export default function DataSiswaPage() {
             tahun_masuk: e.target[18].value,
             nama_ayah: e.target[19].value,
             nama_ibu: e.target[20].value,
-            telp_ayah: e.target[21].value,
-            telp_ibu: e.target[22].value,
-            pekerjaan_ayah: e.target[23].value,
-            pekerjaan_ibu: e.target[24].value,
+            nama_wali: e.target[21].value,
+            telp_ayah: e.target[22].value,
+            telp_ibu: e.target[23].value,
+            telp_wali: e.target[24].value,
+            pekerjaan_ayah: e.target[25].value,
+            pekerjaan_ibu: e.target[26].value,
+            pekerjaan_wali: e.target[27].value
         }
 
         Swal.fire({
@@ -357,7 +346,7 @@ export default function DataSiswaPage() {
         })
 
         setFilteredData(sortedData.length < 1 ? updatedData : sortedData)
-    }, [searchFilter, filterData, sortData])
+    }, [searchFilter, filterData, sortData, data])
 
     const handleFilterData = (kolom, value) => {
         setFilterData(state => {
@@ -617,6 +606,266 @@ export default function DataSiswaPage() {
 
     }
 
+    const submitNaikKelasSelected = async (modal, type) => {
+
+        document.getElementById(modal).close()
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            didOpen: async () => {
+                let response
+
+                if(type === 'semua kelas') {
+                    response = await naikkanKelasSiswa([])
+                }else if(type === 'kecuali') {
+                    response = await naikkanKelasSiswa(selectedData)
+                }else if(type === 'hanya') {
+                    response = await naikkanKelasSiswa_selected(selectedData)
+                }
+
+                if(response.success) {
+                    setSelectAll(false)
+                    setSelectedData([])
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: type === 'semua kelas' ? 'Berhasil menaikkan semua kelas' : (type === 'kecuali' ? 'Berhasil menaikkan semua kelas kecuali siswa yang dipilih' : 'Berhasil menaikkan kelas siswa yang dipilih'),
+                        icon: 'success'
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan disaat memproses data, hubungi Administrator!',
+                        icon: 'error'
+                    })
+                }
+            }
+        })
+        
+    }
+
+    const handlePrintData = async (modal, nis) => {
+        document.getElementById(modal).close()
+
+        const dataSiswa = data.filter(value => value['nis'] === nis)
+
+        if(componentPDF.current.length !== dataSiswa.length) {
+            componentPDF.current = dataSiswa.map((_, i) => componentPDF.current[i] || createRef())
+        }
+        setPrintedData(dataSiswa)
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEnterKey: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                setTimeout(async () => {
+
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: [330, 210],
+                        precision: 2,
+                        compress: true
+                    })
+
+                    pdf.addFont('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap')
+                    pdf.setFont('Jakarta')
+
+                    for (let i = 0; i < componentPDF.current.length; i++) {
+                        const content = componentPDF.current[i].current;
+                        if (!content) continue;
+        
+                        const canvas = await html2canvas(content, { scale: 3 });
+                        const imgData = canvas.toDataURL('image/jpeg', 0.1);
+        
+                        const pdfW = pdf.internal.pageSize.getWidth();
+                        const pdfH = pdf.internal.pageSize.getHeight();
+        
+                        const imgW = canvas.width;
+                        const imgH = canvas.height;
+        
+                        // Calculate scaling factor to fit the image into the PDF page
+                        const ratio = Math.min(pdfW / imgW, pdfH / imgH);
+        
+                        // Calculate the dimensions and position of the image to be centered on the PDF page
+                        const imgWidth = imgW * ratio;
+                        const imgHeight = imgH * ratio;
+                        const imgX = (pdfW - imgWidth) / 2;
+                        const imgY = (pdfH - imgHeight) / 2;
+        
+                        // Add the image to the PDF
+                        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth, imgHeight);
+                        if (i < componentPDF.current.length - 1) {
+                            pdf.addPage();
+                        }
+                    }
+
+                    pdf.save(`LEMBAR BUKU INDUK SMK - ${dataSiswa[0]['nama_siswa']} - ${Number(dataSiswa[0]['tahun_masuk'])}/${Number(dataSiswa[0]['tahun_masuk']) + 1}`)
+                    const pdfDataUri = pdf.output('datauristring');
+                    setPrintedData([])
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: "Berhasil print data siswa tersebut!",
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: async () => {
+                            setPrintedData([])
+                            const newTab = window.open();
+                            newTab.document.write(`<iframe src="${pdfDataUri}" width="100%" height="100%"></iframe>`);
+                        }
+                    });
+                }, 1000)
+            }
+        })
+    }
+
+    const handleSelectedPrintData = async () => {
+
+        const dataSiswa = data.filter(value => selectedData.includes(value['nis']))
+
+
+        if(componentPDF.current.length !== dataSiswa.length) {
+            componentPDF.current = dataSiswa.map((_, i) => componentPDF.current[i] || createRef())
+        }
+
+        setPrintedData(dataSiswa)
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEnterKey: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                setTimeout(async () => {
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: [330, 210],
+                        precision: 2
+                    })
+
+                    for (let i = 0; i < componentPDF.current.length; i++) {
+                        const content = componentPDF.current[i].current;
+                        if (!content) continue;
+        
+                        const canvas = await html2canvas(content, { scale: 3 });
+                        const imgData = canvas.toDataURL('image/jpeg', 0.1);
+        
+                        const pdfW = pdf.internal.pageSize.getWidth();
+                        const pdfH = pdf.internal.pageSize.getHeight();
+        
+                        const imgW = canvas.width;
+                        const imgH = canvas.height;
+        
+                        // Calculate scaling factor to fit the image into the PDF page
+                        const ratio = Math.min(pdfW / imgW, pdfH / imgH);
+        
+                        // Calculate the dimensions and position of the image to be centered on the PDF page
+                        const imgWidth = imgW * ratio;
+                        const imgHeight = imgH * ratio;
+                        const imgX = (pdfW - imgWidth) / 2;
+                        const imgY = (pdfH - imgHeight) / 2;
+        
+                        // Add the image to the PDF
+                        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth, imgHeight);
+                        if (i < componentPDF.current.length - 1) {
+                            pdf.addPage();
+                        }
+                    }
+
+                    pdf.save(`LEMBAR BUKU INDUK SMK - ${dataSiswa.length} Siswa`)
+                    const pdfDataUri = pdf.output('datauristring');
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: "Berhasil print data siswa tersebut!",
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: async () => {
+                            setPrintedData([])
+                            const newTab = window.open();
+                            newTab.document.write(`<iframe src="${pdfDataUri}" width="100%" height="100%"></iframe>`);
+                        }
+                    });
+                }, 1000)
+            }
+        })
+    }
+
+    const submitExportData = async (e, modal) => {
+        e.preventDefault()
+
+        const exportAll = e.target[0].checked
+
+        const exportKolomChecked = Object.keys(data[0]).filter((value, index) => e.target[index + 1].checked).map((value, index) => value)
+
+        if(!exportAll && exportKolomChecked.length < 1) {
+            return
+        }
+
+        if(exportAll) {
+            if(selectedData.length < 1) {
+                return await exportToXLSX(data, 'SIMAK - Data SIswa', {
+                    header: Object.keys(data[0]),
+                    sheetName: 'DATA SISWA'
+                })
+            }else{
+                const dataImport = data.filter(value => selectedData.includes(value['nis']))
+
+                return await exportToXLSX(dataImport, 'SIMAK - Data SIswa', {
+                    header: Object.keys(dataImport[0]),
+                    sheetName: 'DATA SISWA'
+                })
+            }
+        }else{
+            let dataImport = data.map(value => {
+                let obj = {}
+                Object.keys(value).map(kolom => {
+                    if(exportKolomChecked.includes(kolom)) {
+                        obj[kolom] = value[kolom]
+                    }
+                })
+                return obj
+            })
+            if(selectedData.length < 1) {
+                return await exportToXLSX(dataImport, 'SIMAK - Data SIswa', {
+                    header: Object.keys(dataImport[0]),
+                    sheetName: 'DATA SISWA'
+                })
+            }else{
+                let dataImport = data.filter(value => selectedData.includes(value['nis'])).map(value => {
+                    let obj = {}
+                    Object.keys(value).map(kolom => {
+                        if(exportKolomChecked.includes(kolom)) {
+                            obj[kolom] = value[kolom]
+                        }
+                    })
+                    return obj
+                })
+
+                return await exportToXLSX(dataImport, 'SIMAK - Data SIswa', {
+                    header: Object.keys(dataImport[0]),
+                    sheetName: 'DATA SISWA'
+                })
+            }
+        }
+
+        
+    }
+
     return (
         <MainLayoutPage>
             <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
@@ -828,6 +1077,14 @@ export default function DataSiswaPage() {
                                     </div>
                                     <div className="flex flex-col md:flex-row md:items-center gap-2">
                                         <p className="opacity-60 w-full md:w-1/3">
+                                            Nama Wali
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Wali" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
                                             No Telepon Ayah
                                         </p>
                                         <div className="w-full md:w-2/3">
@@ -844,6 +1101,14 @@ export default function DataSiswaPage() {
                                     </div>
                                     <div className="flex flex-col md:flex-row md:items-center gap-2">
                                         <p className="opacity-60 w-full md:w-1/3">
+                                            No Telepon Wali
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Wali" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
                                             Pekerjaan Ayah
                                         </p>
                                         <div className="w-full md:w-2/3">
@@ -856,6 +1121,14 @@ export default function DataSiswaPage() {
                                         </p>
                                         <div className="w-full md:w-2/3">
                                             <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ibu" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Pekerjaan Wali
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Wali" />
                                         </div>
                                     </div>
                                     <div className="flex md:justify-end">
@@ -999,7 +1272,7 @@ export default function DataSiswaPage() {
                         {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((value, index) => (
                             <div key={`${value['nis']}`} className="grid grid-cols-12 p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 ease-out duration-300 text-xs">
                                 <div className="col-span-7 md:col-span-2 flex items-center gap-3">
-                                    <input type="checkbox" checked={selectedData.includes(Number(value['nis']))} onChange={() => handleSelectData(Number(value['nis']))} className="cursor-pointer" />
+                                    <input type="checkbox" checked={selectedData.includes(value['nis'])} onChange={() => handleSelectData(value['nis'])} className="cursor-pointer" />
                                     {value['nama_siswa']}
                                 </div>
                                 <div className="col-span-2 hidden md:flex items-center gap-3">
@@ -1042,7 +1315,7 @@ export default function DataSiswaPage() {
                                                         </button>
                                                     )}
                                                 </div>
-                                                <button type="button" className="w-full md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                <button type="button" onClick={() => handlePrintData(`info_siswa_${value['nis']}`, value['nis'])} className="w-full md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
                                                     <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit opacity-60" />
                                                     Print
                                                 </button>
@@ -1187,7 +1460,7 @@ export default function DataSiswaPage() {
                                                 <div className="w-full divide-y h-fit dark:divide-zinc-800 ">
                                                     <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3 border-b dark:border-white">
                                                         <p className="w-full md:w-1/3 text-sm font-bold">
-                                                            Data Orang Tua
+                                                            Data Orang Tua / Wali
                                                         </p>
                                                     </div>
                                                     <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
@@ -1236,6 +1509,30 @@ export default function DataSiswaPage() {
                                                         </p>
                                                         <p className="w-full md:w-2/3">
                                                             {value['telp_ibu']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Wali
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_wali']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Pekerjaan Wali
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['pekerjaan_wali']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Telepon Wali
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['telp_wali']}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1447,6 +1744,14 @@ export default function DataSiswaPage() {
                                                 </div>
                                                 <div className="flex flex-col md:flex-row md:items-center gap-2">
                                                     <p className="opacity-60 w-full md:w-1/3">
+                                                        Nama Wali
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nama_wali']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Wali" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
                                                         No Telepon Ayah
                                                     </p>
                                                     <div className="w-full md:w-2/3">
@@ -1463,6 +1768,14 @@ export default function DataSiswaPage() {
                                                 </div>
                                                 <div className="flex flex-col md:flex-row md:items-center gap-2">
                                                     <p className="opacity-60 w-full md:w-1/3">
+                                                        No Telepon Wali
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['telp_wali']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Wali" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
                                                         Pekerjaan Ayah
                                                     </p>
                                                     <div className="w-full md:w-2/3">
@@ -1471,10 +1784,10 @@ export default function DataSiswaPage() {
                                                 </div>
                                                 <div className="flex flex-col md:flex-row md:items-center gap-2">
                                                     <p className="opacity-60 w-full md:w-1/3">
-                                                        Pekerjaan Ibu
+                                                        Pekerjaan Wali
                                                     </p>
                                                     <div className="w-full md:w-2/3">
-                                                        <input required defaultValue={value['pekerjaan_ibu']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ibu" />
+                                                        <input required defaultValue={value['pekerjaan_wali']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Wali" />
                                                     </div>
                                                 </div>
                                                 <div className="flex md:justify-end">
@@ -1573,9 +1886,57 @@ export default function DataSiswaPage() {
                                 </div>
                             )}
                             <div className="flex items-center justify-center w-full md:w-fit gap-1 md:gap-3 px-3">
-                                <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
-                                    <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
-                                </button>
+                                {loadingFetch['data'] !== 'fetched' && (
+                                    <div className="w-6 h-6 flex items-center justify-center">
+                                        <div className="loading loading-xs loading-spinner opacity-50"></div>
+                                    </div>
+                                )}
+                                {loadingFetch['data'] === 'fetched' && data.length > 0 && (
+                                    <button type="button" onClick={() => document.getElementById(`export`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                )}
+                                <dialog id={`export`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                    <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800 md:max-w-[800px]">
+                                        <form method="dialog">
+                                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                        </form>
+                                        <h3 className="font-bold text-lg">Export Data Siswa</h3>
+                                        <hr className="my-2 opacity-0" />
+                                        <form onSubmit={e => submitExportData(e, 'export')}>
+
+                                            <label  htmlFor={`cb_export_allData`} className="px-3 py-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 ease-out duration-200 flex items-center gap-3 cursor-pointer w-fit">
+                                                <input type="checkbox" defaultChecked id={`cb_export_allData`} />
+                                                Export semua kolom
+                                            </label>
+                                            <hr className="my-2 opacity-0" />
+                                            <p>
+                                                Silahkan pilih kolom di bawah ini jika ingin export kolom tertentu
+                                            </p>
+                                            <hr className="my-2 opacity-0" />
+                                            {loadingFetch['data'] !== 'fetched' && (
+                                                <div className="loading loading-sm loading-spinner opacity-50"></div>
+                                            )}
+                                            {loadingFetch['data'] === 'fetched' && data.length > 0 && (
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs w-full overflow-auto max-h-[200px]">
+                                                    {Object.keys(data[0]).map((kolom, index) => (
+                                                        <label key={index} htmlFor={`cb_export_${index}`} className="px-3 py-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 ease-out duration-200 flex items-center gap-3 cursor-pointer">
+                                                            <input type="checkbox" value={kolom} id={`cb_export_${index}`} />
+                                                            {formatKolom[kolom]}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <hr className="my-2 dark:opacity-10" />
+                                            <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                <button type="submit" className="px-3 py-2 rounded-md w-full md:w-fit flex items-center justify-center gap-3 bg-green-500 hover:bg-green-400 focus:bg-green-600 text-white">
+                                                    <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                                    Export
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </dialog>
                                 <button type="button" onClick={() => document.getElementById(`naikkelas`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-cyan-500 dark:hover:border-cyan-500/50 hover:bg-cyan-100 dark:hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-500 ease-out duration-200">
                                     <FontAwesomeIcon icon={faArrowUp} className="w-3 h-3 text-inherit" />
                                 </button>
@@ -1596,17 +1957,17 @@ export default function DataSiswaPage() {
                                         )}
                                         <hr className="my-2 opacity-0" />
                                         <div className="space-y-2">
-                                            <button type="button" className="px-3 py-2 rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
+                                            <button type="button" onClick={() => submitNaikKelasSelected(`naikkelas`, 'semua kelas')} className="px-3 py-2 rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
                                                 <FontAwesomeIcon icon={faCheckDouble} className="w-3 h-3 text-inherit opacity-70" />
                                                 Naikkan semua Kelas
                                             </button>
                                             {selectedData.length > 0 && (
                                                 <>
-                                                    <button type="button" className="px-3 py-2 rounded-md bg-teal-500 hover:bg-teal-400 focus:bg-teal-600 flex items-center justify-center gap-3 text-white">
+                                                    <button type="button"  onClick={() => submitNaikKelasSelected(`naikkelas`, 'kecuali')} className="px-3 py-2 rounded-md bg-teal-500 hover:bg-teal-400 focus:bg-teal-600 flex items-center justify-center gap-3 text-white">
                                                         <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-inherit opacity-70" />
                                                         Naikkan semua Kelas kecuali Siswa yang dipilih
                                                     </button>
-                                                    <button type="button" className="px-3 py-2 rounded-md bg-red-500 hover:bg-red-400 focus:bg-red-600 flex items-center justify-center gap-3 text-white">
+                                                    <button type="button"  onClick={() => submitNaikKelasSelected(`naikkelas`, 'hanya')} className="px-3 py-2 rounded-md bg-red-500 hover:bg-red-400 focus:bg-red-600 flex items-center justify-center gap-3 text-white">
                                                         <FontAwesomeIcon icon={faCheckSquare} className="w-3 h-3 text-inherit opacity-70" />
                                                         Naikkan Kelas hanya Siswa yang dipilih
                                                     </button>
@@ -1618,6 +1979,9 @@ export default function DataSiswaPage() {
                                 </dialog>
                                 {selectedData.length > 0 && (
                                     <>
+                                    <button type="button" onClick={() => handleSelectedPrintData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
+                                    </button>
                                     <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
@@ -1650,6 +2014,363 @@ export default function DataSiswaPage() {
                     </div>
                 </div>
             </div>
+            <hr className="my-3 opacity-0" />
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
+                <div className={` text-zinc-700`} id="content-print">
+                    {printedData.map((value, index) => (
+                        <div key={index} ref={componentPDF.current[index]} style={{ 
+                            width: `${mmToPx(210) * 1.5}px`, 
+                            height: `${mmToPx(330) * 1.5}px`,
+                            fontFamily: jakarta.style.fontFamily
+                        }} className={`bg-white flex-shrink-0 text-zinc-700 text-lg px-3`}
+                        >
+                            <div className="flex items-center w-full px-20 pt-12">
+                                <div className="w-fit flex items-center justify-start">
+                                    <Image src={'/jabar.gif'} width={160} height={160} alt="Logo Jabar" />
+                                </div>
+                                <div className={`w-full font-bold tracking-tighter text-center space-y-1`}>
+                                    <h1 className=" tracking-tighter text-center text-2xl">
+                                        PEMERINTAH DAERAH PROVINSI JAWA BARAT
+                                    </h1>
+                                    <h2 className=" tracking-tighter text-center text-2xl">
+                                        DINAS PENDIDIKAN
+                                    </h2>
+                                    <h3 className=" tracking-tighter text-center text-2xl">
+                                        CABANG DINAS PENDIDIKAN WILAYAH VII
+                                    </h3>
+                                    <p className=" tracking-tighter text-center text-2xl">
+                                        SMK PEKERJAAN UMUM NEGERI BANDUNG
+                                    </p>
+                                    <p className="text-xl tracking-tight">
+                                        Jl. Garut No. 10 Telp./Fax (022) 7208317 BANDUNG 40271
+                                    </p>
+                                    <p className="text-xl tracking-tight">
+                                        Website : <span className="italic text-blue-600 underline decoration-blue-600">http://www.smkpunegerijabar.sch.id</span>
+                                    </p>
+                                    <p className="text-xl tracking-tight">
+                                        Email : <span className="italic text-blue-600 underline decoration-blue-600">info@smkpunegerijabar.sch.id</span>
+                                    </p>
+                                </div>
+                                <div className="w-fit flex items-center justify-end">
+                                    <Image src={'/logo-sekolah-2.png'} width={120} height={120} alt="logo sekolah" />
+                                </div>
+                            </div>
+                            <div className="px-10 pt-5 mb-10">
+                                <div className="w-full border-4 border-zinc-700"></div>
+                            </div>
+                            <h1 className="text-center font-extrabold text-2xl">LEMBAR BUKU INDUK SMK</h1>
+                            <h2 className="text-center font-extrabold text-2xl">TAHUN PELAJARAN {value['tahun_masuk']}/{Number(value['tahun_masuk']) + 1}</h2>
+                            <hr className="my-5 opacity-0" />
+                            <div className="px-20 text-2xl font-normal">
+                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                    <p className="w-2/3">Kompetensi Keahlian</p>
+                                    <p className="w-1/3 font-medium">
+                                        : {value['kelas']} {value['jurusan']} {value['rombel']}
+                                    </p>
+                                </div>
+                                <hr className="my-1 opacity-0" />
+                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                    <p className="w-2/3">No Induk Sekolah</p>
+                                    <p className="w-1/3 font-medium">: {value.nis || '-'}</p>
+                                </div>
+                                <hr className="my-1 opacity-0" />
+                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                    <p className="w-2/3">No Induk Siswa Nasional</p>
+                                    <p className="w-1/3 font-medium">: {value.nisn || '-'}</p>
+                                </div>
+                                <hr className="my-5 opacity-0" />
+                                <div className="px-10 text-2xl">
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>A.</p>
+                                        <p>KETERANGAN PRIBADI SISWA</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>1.</p>
+                                                <p>Nama</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.nama_siswa || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>2.</p>
+                                                <p>NIK</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.nik || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>3.</p>
+                                                <p>Jenis Kelamin</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.jenis_kelamin || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>4.</p>
+                                                <p>Tempat dan Tanggal Lahir</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.tempat_lahir || '-'}, {date_getDay(value['tanggal_lahir'])} {date_getMonth('string', value['tanggal_lahir'])} {date_getYear(value['tanggal_lahir'])}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>5.</p>
+                                                <p>Agama</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.agama || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>6.</p>
+                                                <p>Jumlah Saudara</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.jumlah_saudara || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>7.</p>
+                                                <p>Anak ke</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.anak_ke || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>8.</p>
+                                                <p className="">No Telp</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.no_hp_siswa || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>B.</p>
+                                        <p>KETERANGAN TEMPAT TINGGAL</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex  gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex  gap-5 w-full">
+                                            <div className="flex gap-5 w-1/3">
+                                                <p>9.</p>
+                                                <p>Alamat</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.alamat || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-3 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>C.</p>
+                                        <p>KETERANGAN SEKOLAH SEBELUMNYA</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>10.</p>
+                                                <p>Asal Sekolah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.asal_sekolah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>11.</p>
+                                                <p>Tahun Masuk</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.tahun_masuk || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>12.</p>
+                                                <p>Jalur Masuk</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.kategori || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>D.</p>
+                                        <p>KETERANGAN ORANG TUA KANDUNG</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>13.</p>
+                                                <p>Nama Ayah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.nama_ayah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>14.</p>
+                                                <p>Pekerjaan Ayah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_ayah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>15.</p>
+                                                <p>No Telp Ayah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.telp_ayah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>16.</p>
+                                                <p>Nama Ibu</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.nama_ibu || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>17.</p>
+                                                <p>Pekerjaan Ibu</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_ibu || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>18.</p>
+                                                <p>No Telp Ibu</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.telp_ibu || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>19.</p>
+                                                <p>No Kartu Keluarga</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.no_kk || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>D.</p>
+                                        <p>KETERANGAN WALI</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>20.</p>
+                                                <p>Nama Wali</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.nama_wali || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>21.</p>
+                                                <p>Pekerjaan Wali</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_wali || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>22.</p>
+                                                <p>No Telp Wali</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.telp_wali || '-'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="flex items-center w-full gap-5 h-full">
+                                        <div className="w-1/2 h-full"></div>
+                                        <div className="w-1/2 flex items-center justify-center gap-5 h-full">
+                                            <div className="w-[113.39px] h-[151.18px] border-2 border-zinc-700 flex items-center justify-center  font-bold flex-shrink-0">
+                                                <p className="text-zinc-500/0 text-3xl">3x4</p>
+                                            </div>
+                                            <div className="w-full flex flex-col justify-between h-60 ">
+                                                <p className="text-center">
+                                                    Bandung, ...................................
+                                                </p>
+                                                <p className="text-center font-bold">
+                                                    {value['nama_siswa']}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                </div>
+            </div>  
         </MainLayoutPage>
     )
 }
