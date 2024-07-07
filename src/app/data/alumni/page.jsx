@@ -1,979 +1,2176 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { jakarta, mont, open, rale } from "@/config/fonts"
-import { exportToCSV } from "@/lib/csvLibs"
-import { ioServer } from "@/lib/io"
-import { model_deleteAlumni, model_getAllAlumni, model_updateAlumni } from "@/lib/model/alumniModel"
-import { exportToXLSX } from "@/lib/xlsxLibs"
-import { faAngleDoubleUp, faAngleLeft, faAngleRight, faAngleUp, faAnglesUp, faArrowDown, faArrowUp, faArrowsUpDown, faCircle, faCircleArrowDown, faCircleArrowUp, faCircleCheck, faCircleXmark, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faMale, faPlus, faPlusSquare, faPrint, faSave, faSearch, faSpinner, faTrash, faUpload, faWandMagicSparkles, faXmark, faXmarkCircle } from "@fortawesome/free-solid-svg-icons"
+import { jakarta } from "@/config/fonts"
+import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/lib/dateConvertes"
+import { model_createAlumni, model_deleteAlumni, model_getAllAlumni, model_updateAlumni } from "@/lib/model/alumniModel"
+import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
+import { createMultiSiswa, createSingleSiswa } from "@/lib/model/siswaModel"
+import { exportToXLSX,  xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
+import {  faAnglesLeft, faAnglesRight, faArrowDown,  faArrowUp, faArrowsUpDown, faCheckDouble, faCheckSquare,  faDownload, faEdit, faFile, faPlus, faPowerOff, faPrint, faSave, faTrash, faUpload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import toast, { Toaster } from "react-hot-toast"
+import html2canvas from "html2canvas-pro"
+import jsPDF from "jspdf"
+import Image from "next/image"
+import { createRef, useEffect, useRef, useState } from "react"
 import Swal from "sweetalert2"
-import withReactContent from "sweetalert2-react-content"
 
-let listNoRombel = [];
-let listKelas = []
-let listRombel = []
+const mmToPx = mm => mm * (96 / 25.4)
 
-const exportKolom = {
-    kelas: 'Kelas',
-    rombel: 'Jurusan',
-    no_rombel: 'Rombel',
+const allowedMIMEType = [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/csv'
+]
+
+const formatKolom = {
     nama_siswa: 'Nama Siswa',
     nis: 'NIS',
     nisn: 'NISN',
+    kelas: 'Kelas',
+    jurusan: 'Jurusan',
+    rombel: 'Rombel',
     nik: 'NIK',
-    no_kk: 'No KK',
+    no_kk: 'No Kartu Keluarga',
     tempat_lahir: 'Tempat Lahir',
     tanggal_lahir: 'Tanggal Lahir',
     jenis_kelamin: 'Jenis Kelamin',
     agama: 'Agama',
-    status_dalam_keluarga: 'Status Dalam Keluarga',
-    anak_ke: 'Anak Ke',
+    jumlah_saudara: 'Jumlah Saudara',
+    anak_ke: 'Anak ke',
     alamat: 'Alamat',
-    no_hp_siswa: 'No HP Siswa',
+    no_hp_siswa: 'No Telepon Siswa',
     asal_sekolah: 'Asal Sekolah',
     kategori: 'Kategori',
     tahun_masuk: 'Tahun Masuk',
-    tahun_keluar: 'Tahun Keluar',
-    tanggal_keluar: 'Tanggal Keluar',
     nama_ayah: 'Nama Ayah',
     nama_ibu: 'Nama Ibu',
-    telp_ortu: 'Telp Ortu',
+    nama_wali: 'Nama Wali',
+    telp_ayah: 'No Telepon Ayah',
+    telp_ibu: 'No Telepon Ibu',
+    telp_wali: 'No Telepon Wali',
     pekerjaan_ayah: 'Pekerjaan Ayah',
     pekerjaan_ibu: 'Pekerjaan Ibu',
-    keterangan: 'Keterangan'
-  }
+    pekerjaan_wali: 'Pekerjaan Wali',
+    tanggal_keluar: 'Tanggal Keluar',
+    tahun_keluar: 'Tahun Keluar',
+}
 
-const mySwal = withReactContent(Swal)
-export default function DataAlumniMainPage() {
-    const router = useRouter();
-    const [siswaList, setSiswaList] = useState([])
-    const [filteredSiswaList, setFilteredSiswaList] = useState([])
-    const [loadingFetch, setLoadingFetch] = useState('')
-    const [kelas, setKelas] = useState('')
-    const [rombel, setRombel] = useState('')
-    const [noRombel, setNoRombel] = useState('')
-    const [searchValue, setSearchValue] = useState('')
-    const [searchCriteria, setSearchCriteria] = useState('nama_siswa')
-    const [selectedSiswa, setSelectedSiswa] = useState([])
-    const [selectAll, setSelectAll] = useState(false)
+const showModal = (id) => {
+    return {
+        show: (type) => {
+            if(type === 'show') {
+                document.getElementById(id).showModal()
+            }else{
+                document.getElementById(id).close()
+            }
+        }
+    }
+}
+
+const formatSort = {
+    nama_siswa: '', nis: '', nisn: '', tahun_masuk: ''
+}
+
+export default function DataAlumniPage() {
+
+    const [data, setData] = useState([])
+    const [importFile, setImportFile] = useState(null)
+    const [sheetsFile, setSheetsFile] = useState([])
+    const [loadingFetch, setLoadingFetch] = useState({
+        data: '', pegawai: ''
+    })
+    const [filteredData, setFilteredData] = useState([])
     const [pagination, setPagination] = useState(1)
     const [totalList, setTotalList] = useState(10)
-    const [showSelected, setShowSelected] = useState(false)
-    const [sorting, setSorting] = useState({nama_siswa: '', tahun_masuk: ''})
-
-    const [exportExcel, setExportExcel] = useState({
-        allKolom: true, kolomDataArr: []
+    const [selectedData, setSelectedData] = useState([])
+    const [searchFilter, setSearchFilter] = useState('')
+    const [selectAll, setSelectAll] = useState(false)
+    const [filterData, setFilterData] = useState({
+        kelas: [], jurusan: [], rombel: []
     })
 
-    const [statusSocket, setStatusSocket] = useState('')
+    const [sortData, setSortData] = useState(formatSort)
 
-    useEffect(() => {
+    const componentPDF = useRef([])
+    const [printedData, setPrintedData] = useState([])
 
-        if(ioServer.connected) {
-            setStatusSocket('online')
-        }else{
-            console.log('Socket Server is offline!')
-            setStatusSocket('offline')
-        }
-
-        ioServer.on('SIMAK_SISWA', (data) => {
-            console.log(data)
-            setSiswaList(data);
-            // Get all No Rombel
-            data.filter(({no_rombel}) => {
-                if(!listNoRombel.includes(no_rombel)) {
-                    listNoRombel.push(no_rombel)
-                }
-            })
-
-            // Get all Kelas
-            data.filter(({kelas}) => {
-                if(!listKelas.includes(kelas)) {
-                    listKelas.push(kelas)
-                }
-            })
-
-            // Get all rombel
-            data.filter(({rombel}) => {
-                if(!listRombel.includes(rombel)) {
-                    listRombel.push(rombel)
-                }
-            })
-
-            handleSubmitFilter(data)
-        })
-    }, [])
-
-    const getSiswa = async () => {
-        setLoadingFetch('loading');
+    const getData = async () => {
+        setLoadingFetch(state => ({...state, data: 'loading'}))
         const response = await model_getAllAlumni()
         if(response.success) {
-
-            setSiswaList(response.data)
-            setFilteredSiswaList(response.data)
-            
-            // Get all No Rombel
-            response.data.filter(({no_rombel}) => {
-                if(!listNoRombel.includes(no_rombel)) {
-                    listNoRombel.push(no_rombel)
-                }
-            })
-    
-            // Get all Kelas
-            response.data.filter(({kelas}) => {
-                if(!listKelas.includes(kelas)) {
-                    listKelas.push(kelas)
-                }
-            })
-    
-            // Get all rombel
-            response.data.filter(({rombel}) => {
-                if(!listRombel.includes(rombel)) {
-                    listRombel.push(rombel)
-                }
-            })
+            setData(response.data)
+            setFilteredData(response.data)
         }
-
-        setLoadingFetch('fetched')
+        setLoadingFetch(state => ({...state, data: 'fetched'}))
     }
 
     useEffect(() => {
-        getSiswa()
+        getData()
     }, [])
 
-    const handleSelectedSiswa = (nis) => {
-        if(!selectedSiswa.includes(nis)){
-            const newData = [...selectedSiswa, nis]
-            setSelectedSiswa(newData)
-        }else{
-            const newData = selectedSiswa.filter(item => item !== nis);
-            setSelectedSiswa(newData)
-        }
-    }
-
-    const handleSubmitFilter = (data) => {
-        let updatedFilter
-        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
-            updatedFilter = siswaList
-        }else{
-            updatedFilter = data
-        }
-        
-        // Search Kelas
-        if(kelas !== '') {
-            updatedFilter = updatedFilter.filter(siswa => siswa.kelas == kelas)
-        }
-
-        // Search Rombel
-        updatedFilter = updatedFilter.filter(siswa => siswa.rombel.toLowerCase().includes(rombel.toLowerCase()))
-
-        // Search NO Rombel
-        updatedFilter = updatedFilter.filter(siswa => siswa.no_rombel.toLowerCase().includes(noRombel.toLowerCase()))
-        
-        
-        // Search Value and Kriteria
-        updatedFilter = updatedFilter.filter(siswa => siswa[searchCriteria].toLowerCase().includes(searchValue.toLowerCase()))
-
-        // Search Only Selected
-        if(showSelected) {
-            updatedFilter = updatedFilter.filter(siswa => selectedSiswa.includes(siswa.nis))
-            const maxPagination = Math.ceil(updatedFilter.length / totalList)
-            setPagination(maxPagination > 0 ? maxPagination - maxPagination + 1 : 1)
-        }
-        
-        let sortedFilter = [];
-        // Sorting
-        if(sorting.nama_siswa !== '') {
-            sortedFilter = updatedFilter.sort((a, b) => {
-                if(sorting.nama_siswa === 'asc') {
-                    if (a.nama_siswa < b.nama_siswa) return -1;
-                    if (a.nama_siswa > b.nama_siswa) return 1;
-                    return 0;
-                }
-                
-                if(sorting.nama_siswa === 'dsc') {
-                    if (a.nama_siswa < b.nama_siswa) return 1;
-                    if (a.nama_siswa > b.nama_siswa) return -1;
-                    return 0;
-                }
-            })
-        }
-
-        if(sorting.tahun_masuk !== '') {
-            sortedFilter = updatedFilter.sort((a, b) => {
-                if(sorting.tahun_masuk === 'asc') {
-                    if (a.tahun_masuk < b.tahun_masuk) return -1;
-                    if (a.tahun_masuk > b.tahun_masuk) return 1;
-                    return 0;
-                }
-                
-                if(sorting.tahun_masuk === 'dsc') {
-                    if (a.tahun_masuk < b.tahun_masuk) return 1;
-                    if (a.tahun_masuk > b.tahun_masuk) return -1;
-                    return 0;
-                }
-            })
-        }
-
-        updatedFilter = sortedFilter.length > 0 ? sortedFilter : updatedFilter
-
-        setFilteredSiswaList(updatedFilter)
-    }
-
-    const handleSelectAll = () => {
-        if(selectAll) {
-            setSelectAll(false)
-            return setSelectedSiswa([])
-        }else{
-            setSelectAll(true)
-            const filteredSiswa = filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map(({nis}) => nis)
-            return setSelectedSiswa(filteredSiswa)
-        }
-    }
-
-    
-
-    useEffect(() => {
-        handleSubmitFilter()
-    }, [kelas, rombel, noRombel, searchValue, searchCriteria, showSelected, sorting])
-
-    const deleteSingle = async (nis) => {
-        mySwal.fire({
-            title: 'Apakah anda yakin?',
-            text: 'Anda akan menghapus data tersebut!',
-            showCancelButton: true,
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak'
-        }).then(async result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data..',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 10000,
-                    didOpen: async () => {
-                        const response = await model_deleteAlumni([nis])
-                        if(response.success) {
-                            await getSiswa()
-                            mySwal.fire({
-                                icon: 'success',
-                                title: 'Berhasil memproses data!',
-                                text: 'Anda berhasil menghapus data tersebut',
-                                timer: 2000
-                            })
-                        }else{
-                            mySwal.fire({
-                                icon: 'error',
-                                title: 'Gagal memproses data!',
-                                text: 'Tampaknya terdapat error, silahkan coba beberapa saat lagi!',
-                                timer: 2000
-                            })
-                        }
-                    }
-                })
-            }
-        })
-    }
-
-    const deleteSelectedSiswa = () => {
-        mySwal.fire({
-            title: 'Apakah anda yakin?',
-            icon: 'question',
-            text: 'Anda akan menghapus beberapa siswa yang sudah di seleksi',
-            showCancelButton: true,
-            cancelButtonText: 'Tidak',
-            confirmButtonText: 'Ya',
-            allowOutsideClick: false
-        }).then(async result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data..',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 10000,
-                    didOpen: async () => {
-                        const response = await model_deleteAlumni(selectedSiswa)
-                        if(response.success) {
-                            setSelectedSiswa(state => ([]))
-                            mySwal.fire({
-                                icon: 'success',
-                                title: 'Berhasil memproses data!',
-                                timer: 2000,
-                            }).finally(async () => {
-                                await getSiswa()
-                            })
-                        }else{
-                            mySwal.fire({
-                                icon: 'error',
-                                title: 'Gagal memproses data!',
-                                timer: 2000
-                            })
-                        }
-                    }
-                })
-            }
-        })
-    }
-
-    const handleTotalList = (value) => {
-        // Cek kalau totalList melebihi Math Ceil
-        const maxPagination = Math.ceil(siswaList.length / value)
-        if(pagination > maxPagination) {
-            setPagination(state => state = maxPagination)
-        }
-        setTotalList(value)
-    }
-
-    const submitUpdateBersama = (e) => {
+    const submitFormTambah = async (e, modal) => {
         e.preventDefault()
 
-        const data = {
-            kelas: e.target[0].value,
-            no_rombel: e.target[1].value,
-            tahun_masuk: e.target[2].value,
-            rombel: e.target[3].value,
-            status: e.target[4].value
+        document.getElementById(modal).close()
+
+        const payload = {
+            nama_siswa: e.target[0].value,
+            nis: e.target[1].value,
+            nisn: e.target[5].value,
+            kelas: e.target[2].value,
+            jurusan: e.target[3].value,
+            rombel: e.target[4].value,
+            nik: e.target[6].value,
+            no_kk: e.target[7].value,
+            tempat_lahir: e.target[8].value,
+            tanggal_lahir: e.target[9].value,
+            jenis_kelamin: e.target[10].value,
+            agama: e.target[11].value,
+            jumlah_saudara: e.target[12].value,
+            anak_ke: e.target[13].value,
+            alamat: e.target[14].value,
+            no_hp_siswa: e.target[15].value,
+            asal_sekolah: e.target[16].value,
+            kategori: e.target[17].value,
+            tahun_masuk: e.target[18].value,
+            nama_ayah: e.target[19].value,
+            nama_ibu: e.target[20].value,
+            nama_wali: e.target[21].value,
+            telp_ayah: e.target[22].value,
+            telp_ibu: e.target[23].value,
+            telp_wali: e.target[24].value,
+            pekerjaan_ayah: e.target[25].value,
+            pekerjaan_ibu: e.target[26].value,
+            pekerjaan_wali: e.target[27].value,
+            tanggal_keluar: e.target[28].value,
+            tahun_keluar: date_getYear(e.target[28].value)
         }
-        
-        const dataKeys = Object.keys(data)
-        const newData = {}
-        dataKeys.map(key => {
-            if(data[key] !== '') {
-                newData[key] = data[key]
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: async () => {
+                const response = await model_createAlumni(payload)
+
+                if(response) {
+                    for(let i = 0; i < 25; i++) {
+                        e.target[i].value = ''
+                    }
+
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        icon: 'success',
+                        text: 'Berhasil menambahkan data alumni ',
+                        timer: 3000,
+                        timerProgressBar: true
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan saat memproses data, hubungi Administrator!',
+                        icon: 'error'
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }
             }
         })
-        console.log(newData)
+    }
 
-        mySwal.fire({
-            title: 'Apakah anda yakin?',
-            text: `Anda akan mengubah data sebanyak ${selectedSiswa.length} dengan data yang sama`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak'
-        }).then(result => {
-            if(result.isConfirmed) {
-                mySwal.fire({
-                    title: 'Sedang memproses data..',
-                    text: 'Mohon tunggu sebentar lagi',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 15000,
-                    didOpen: async () => {
-                        const response = await model_updateAlumni(selectedSiswa, newData)
-                        if(response.success) {
-                            mySwal.fire({
-                                icon: 'success',
-                                text: 'Berhasil mengubah data tersebut!',
-                                title: 'Sukses'
-                            }).then(() => {
-                                setSelectedSiswa([])
-                                getSiswa()
-                            })
-                        }else{
-                            mySwal.fire({
-                                icon: 'error',
-                                text: 'Gagal mengubah data tersebut, terdapat error!',
-                                title: 'Error'
-                            })
-                        }
+    const submitDeleteData = async (nis) => {
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                let response
+
+                if(nis) {
+                    response = await model_deleteAlumni([nis])
+                }else{
+                    response = await model_deleteAlumni(selectedData)
+                }
+
+                if(response.success) {
+                    setSelectedData([])
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        icon: 'success',
+                        text: 'Berhasil menghapus data alumni'
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        icon: 'error',
+                        text: 'Terjadi kesalahan saat memproses data, hubungi administrator!'
+                    })
+                }
+            }
+        })
+    }
+
+    const handleSelectData = (nis) => {
+        setSelectedData(state => {
+            if(state.includes(nis)) {
+                return state.filter(value => value !== nis)
+            }else{
+                return [...state, nis]
+            }
+        })
+    }
+
+    const submitEditData = (e, modal, nis) => {
+        e.preventDefault()
+
+        showModal(modal).show('close')
+
+        const payload = {
+            nama_siswa: e.target[0].value,
+            nis: e.target[1].value,
+            nisn: e.target[5].value,
+            kelas: e.target[2].value,
+            jurusan: e.target[3].value,
+            rombel: e.target[4].value,
+            nik: e.target[6].value,
+            no_kk: e.target[7].value,
+            tempat_lahir: e.target[8].value,
+            tanggal_lahir: e.target[9].value,
+            jenis_kelamin: e.target[10].value,
+            agama: e.target[11].value,
+            jumlah_saudara: e.target[12].value,
+            anak_ke: e.target[13].value,
+            alamat: e.target[14].value,
+            no_hp_siswa: e.target[15].value,
+            asal_sekolah: e.target[16].value,
+            kategori: e.target[17].value,
+            tahun_masuk: e.target[18].value,
+            nama_ayah: e.target[19].value,
+            nama_ibu: e.target[20].value,
+            nama_wali: e.target[21].value,
+            telp_ayah: e.target[22].value,
+            telp_ibu: e.target[23].value,
+            telp_wali: e.target[24].value,
+            pekerjaan_ayah: e.target[25].value,
+            pekerjaan_ibu: e.target[26].value,
+            pekerjaan_wali: e.target[27].value,
+            tanggal_keluar: e.target[28].value,
+            tahun_keluar: date_getYear(e.target[28].value)
+        }
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                const response = await model_updateAlumni([nis], payload)
+
+                if(response.success) {
+                    setSelectedData([])
+                    setSelectAll(false)
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Berhasil mengubah data alumni tersebut',
+                        icon: 'success'
+                    })
+                }else{
+                    showModal(modal).show('show')
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat error disaat memproses data, hubungi Administrator!',
+                        icon: 'error'
+                    })
+                }
+            }
+        })
+    }
+
+    useEffect(() => {
+        let updatedData = data
+
+        if(searchFilter !== '') {
+            updatedData = updatedData.filter(value =>
+                value['nama_siswa'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['nis'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['nisn'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['no_kk'].toLowerCase().includes(searchFilter.toLowerCase()) ||
+                value['nik'].toLowerCase().includes(searchFilter.toLowerCase())
+            )
+        }
+
+        if(filterData['kelas'].length > 0) {
+            updatedData = updatedData.filter(value => filterData['kelas'].includes(value['kelas']))
+        }
+
+        if(filterData['jurusan'].length > 0) {
+            updatedData = updatedData.filter(value => filterData['jurusan'].includes(value['jurusan']))
+        }
+
+        if(filterData['rombel'].length > 0) {
+            updatedData = updatedData.filter(value => filterData['rombel'].includes(value['rombel']))
+        }
+
+        let sortedData = []
+
+        Object.keys(sortData).forEach(kolom => {
+            if(sortData[kolom] !== '') {
+                sortedData = updatedData.sort((a, b) => {
+                    if(sortData[kolom] === 'asc') {
+                        if(a[kolom] < b[kolom]) return -1;
+                        if(a[kolom] > b[kolom]) return 1;
+                        return 0
+                    }
+
+                    if(sortData[kolom] === 'dsc') {
+                        if(a[kolom] < b[kolom]) return 1;
+                        if(a[kolom] > b[kolom]) return -1;
+                        return 0
                     }
                 })
             }
         })
-        
-    }
 
-    const handleSorting = (key, otherKey) => {
-        if(sorting[key] === '') {  
-            return setSorting(state => ({...state, [key]: 'asc', [otherKey]: ''}))
-        }
-        if(sorting[key] === 'asc') {
-            return setSorting(state => ({...state, [key]: 'dsc', [otherKey]: ''}))
-        }
-        if(sorting[key] === 'dsc') {
-            return setSorting(state => ({...state, [key]: '', [otherKey]: ''}))
-        }
-    }
+        setFilteredData(sortedData.length < 1 ? updatedData : sortedData)
+    }, [searchFilter, filterData, sortData, data])
 
-    const handleChangeExportExcel = (field, value) => {
-        setExportExcel(prevState => {
-            let updatedData = { ...prevState };
+    const handleFilterData = (kolom, value) => {
+        setFilterData(state => {
+            let updatedState
+            let updatedFilter
 
-            if (Array.isArray(prevState[field])) {
-                if (updatedData[field].some(kolom => kolom.key === value)) {
-                    updatedData[field] = updatedData[field].filter(kolom => kolom.key !== value);
-                } else {
-                    updatedData[field] = [...updatedData[field], { key: value, keyName: exportKolom[value] }];
-                }
-            } else {
-                updatedData[field] = value;
+            if(state[kolom].includes(value)) {
+                updatedFilter = state[kolom].filter(v => v !== value)
+                updatedState = {...state, [kolom]: updatedFilter}
+            }else{
+                updatedState = {...state, [kolom]: [...state[kolom], value]}
             }
 
-            return updatedData;
-        });
+            return updatedState
+        })
     }
 
-    const submitExportExcel = async (type, modal) => {
-        console.log(selectedSiswa)
-        if(!exportExcel['allKolom'] && exportExcel['kolomDataArr'].length < 1 === true) {
-            return toast.error('Anda harus memilih kolom data terlebih dahulu!')
-        }
-        
-        document.getElementById(modal).close()
-        
-        let updatedData
-        if(exportExcel['allKolom']) {
-            if(type === 'xlsx') {
-                if(selectedSiswa.length < 1) {
-                    return await exportToXLSX(siswaList, 'Data Alumni', {
-                        header: Object.keys(siswaList[0]),
-                        sheetName: 'Sheet 1'
-                    })
-                }
+    const submitImportFile = async (e, modal) => {
+        e.preventDefault()
 
-                updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
-                return await exportToXLSX(updatedData, 'Data Alumni', {
-                    header: Object.keys(updatedData[0]),
-                    sheetName: 'Sheet 1'
+        document.getElementById(modal).close()
+
+        const namaSheet = e.target[1].value
+
+        const response = await xlsx_getData(importFile, namaSheet)
+        if(response.success) {
+            const headersImportFile = Object.keys(response.data[0])
+            const headersDatabase = Object.keys(formatKolom)
+
+            if(headersDatabase.length > headersImportFile.length) {
+                return Swal.fire({
+                    title: 'Gagal',
+                    text: 'Kolom data tidak sesuai dengan yang ada di database!',
+                    icon: 'error'
+                }).then(() => {
+                    document.getElementById(modal).showModal()
+                })
+            }
+
+            if(headersImportFile.map(value => headersDatabase.includes(value) ? true : false).includes(false)) {
+                return Swal.fire({
+                    title: 'Gagal',
+                    text: 'Terdapat kolom data yang tidak sesuai dengan yang ada di database, silahkan cek kembali!',
+                    icon: 'error'
+                }).then(() => {
+                    document.getElementById(modal).showModal()
+                })
+            }
+
+            const dataImport = response.data.map(state => ({
+                ...state,
+                ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir'])
+            }))
+
+            Swal.fire({
+                title: 'Sedang memproses data',
+                timer: 60000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                didOpen: async () => {
+                    const response = await createMutasiSiswa(dataImport)
+
+                    if(response.success) {
+                        await getData()
+                        Swal.fire({
+                            title: 'Sukses',
+                            text: `Berhasil mengimport data Alumni!`,
+                            icon: 'success'
+                        }).then(() => {
+                            e.target[0].value = ''
+                            e.target[1].value = ''
+                            setImportFile(null)
+                            setSheetsFile([])
+                            document.getElementById(modal).showModal()
+                        })
+                    }else{
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: `Gagal mengimport data Alumni!`,
+                            icon: 'error'
+                        }).then(() => {
+                            document.getElementById(modal).showModal()
+                        })
+                    }
+                }
+            })
+
+        }
+
+    }
+
+    const handleImportFile = async () => {
+        if(importFile !== null) {
+            const file = importFile
+            if(!allowedMIMEType.includes(file.type)) {
+                console.log('salah file')
+                return setImportFile(null)
+            }
+            
+            // Get sheets
+            if(file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+                const sheets = await xlsx_getSheets(importFile)
+                setSheetsFile(Object.keys(sheets))
+            }
+        }
+    }
+
+    useEffect(() => {
+        handleImportFile()
+    }, [importFile])
+
+
+    const handleSortData = (key) => {
+        setSortData(state => {
+            if(state[key] === '') {
+                return {...formatSort, [key]: 'dsc'}
+            }else if(state[key] === 'asc') {
+                return {...formatSort, [key]: ''}
+            }else if(state[key] === 'dsc') {
+                return {...formatSort, [key]: 'asc'}
+            }
+        })
+    }
+
+
+
+    const handlePrintData = async (modal, nis) => {
+        document.getElementById(modal).close()
+
+        const dataSiswa = data.filter(value => value['nis'] === nis)
+
+        if(componentPDF.current.length !== dataSiswa.length) {
+            componentPDF.current = dataSiswa.map((_, i) => componentPDF.current[i] || createRef())
+        }
+        setPrintedData(dataSiswa)
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 3000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEnterKey: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                setTimeout(async () => {
+
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: [330, 210],
+                        precision: 2,
+                        compress: true
+                    })
+
+                    pdf.addFont('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap')
+                    pdf.setFont('Jakarta')
+
+                    for (let i = 0; i < componentPDF.current.length; i++) {
+                        const content = componentPDF.current[i].current;
+                        if (!content) continue;
+        
+                        const canvas = await html2canvas(content, { scale: 3 });
+                        const imgData = canvas.toDataURL('image/jpeg', 0.1);
+        
+                        const pdfW = pdf.internal.pageSize.getWidth();
+                        const pdfH = pdf.internal.pageSize.getHeight();
+        
+                        const imgW = canvas.width;
+                        const imgH = canvas.height;
+        
+                        // Calculate scaling factor to fit the image into the PDF page
+                        const ratio = Math.min(pdfW / imgW, pdfH / imgH);
+        
+                        // Calculate the dimensions and position of the image to be centered on the PDF page
+                        const imgWidth = imgW * ratio;
+                        const imgHeight = imgH * ratio;
+                        const imgX = (pdfW - imgWidth) / 2;
+                        const imgY = (pdfH - imgHeight) / 2;
+        
+                        // Add the image to the PDF
+                        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth, imgHeight);
+                        if (i < componentPDF.current.length - 1) {
+                            pdf.addPage();
+                        }
+                    }
+
+                    pdf.save(`LEMBAR BUKU INDUK SMK - ${dataSiswa[0]['nama_siswa']} - ${Number(dataSiswa[0]['tahun_masuk'])}/${Number(dataSiswa[0]['tahun_masuk']) + 1}`)
+                    const pdfDataUri = pdf.output('datauristring');
+                    setPrintedData([])
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: "Berhasil print data siswa tersebut!",
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: async () => {
+                            setPrintedData([])
+                            const newTab = window.open();
+                            newTab.document.write(`<iframe src="${pdfDataUri}" width="100%" height="100%"></iframe>`);
+                        }
+                    });
+                }, 1000)
+            }
+        })
+    }
+
+    const handleSelectedPrintData = async () => {
+
+        const dataSiswa = data.filter(value => selectedData.includes(value['nis']))
+
+
+        if(componentPDF.current.length !== dataSiswa.length) {
+            componentPDF.current = dataSiswa.map((_, i) => componentPDF.current[i] || createRef())
+        }
+
+        setPrintedData(dataSiswa)
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEnterKey: false,
+            allowEscapeKey: false,
+            didOpen: async () => {
+                setTimeout(async () => {
+                    const pdf = new jsPDF({
+                        orientation: 'p',
+                        unit: 'mm',
+                        format: [330, 210],
+                        precision: 2
+                    })
+
+                    for (let i = 0; i < componentPDF.current.length; i++) {
+                        const content = componentPDF.current[i].current;
+                        if (!content) continue;
+        
+                        const canvas = await html2canvas(content, { scale: 3 });
+                        const imgData = canvas.toDataURL('image/jpeg', 0.1);
+        
+                        const pdfW = pdf.internal.pageSize.getWidth();
+                        const pdfH = pdf.internal.pageSize.getHeight();
+        
+                        const imgW = canvas.width;
+                        const imgH = canvas.height;
+        
+                        // Calculate scaling factor to fit the image into the PDF page
+                        const ratio = Math.min(pdfW / imgW, pdfH / imgH);
+        
+                        // Calculate the dimensions and position of the image to be centered on the PDF page
+                        const imgWidth = imgW * ratio;
+                        const imgHeight = imgH * ratio;
+                        const imgX = (pdfW - imgWidth) / 2;
+                        const imgY = (pdfH - imgHeight) / 2;
+        
+                        // Add the image to the PDF
+                        pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth, imgHeight);
+                        if (i < componentPDF.current.length - 1) {
+                            pdf.addPage();
+                        }
+                    }
+
+                    pdf.save(`LEMBAR BUKU INDUK SMK - ${dataSiswa.length} Siswa`)
+                    const pdfDataUri = pdf.output('datauristring');
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: "Berhasil print data siswa tersebut!",
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: async () => {
+                            setPrintedData([])
+                            const newTab = window.open();
+                            newTab.document.write(`<iframe src="${pdfDataUri}" width="100%" height="100%"></iframe>`);
+                        }
+                    });
+                }, 1000)
+            }
+        })
+    }
+
+    const submitExportData = async (e, modal) => {
+        e.preventDefault()
+
+        const exportAll = e.target[0].checked
+
+        const exportKolomChecked = Object.keys(data[0]).filter((value, index) => e.target[index + 1].checked).map((value, index) => value)
+
+        if(!exportAll && exportKolomChecked.length < 1) {
+            return
+        }
+
+        if(exportAll) {
+            if(selectedData.length < 1) {
+                return await exportToXLSX(data, 'SIMAK - Data Alumni', {
+                    header: Object.keys(data[0]),
+                    sheetName: 'DATA ALUMNI'
                 })
             }else{
-                if(selectedSiswa.length < 1) {
-                    return await exportToCSV(siswaList, 'Data Alumni', {
-                        header: Object.keys(siswaList[0]),
-                        sheetName: 'Sheet 1'
-                    })
-                }
+                const dataImport = data.filter(value => selectedData.includes(value['nis']))
 
-                updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
-                return await exportToCSV(updatedData, 'Data Alumni', {
-                    header: Object.keys(updatedData[0]),
-                    sheetName: 'Sheet 1'
+                return await exportToXLSX(dataImport, 'SIMAK - Data Alumni', {
+                    header: Object.keys(dataImport[0]),
+                    sheetName: 'DATA ALUMNI'
                 })
             }
         }else{
-            if(type === 'xlsx') {
-                console.log(selectedSiswa.length)
-                if(selectedSiswa.length < 1) {
-                    updatedData = siswaList.map(obj => {
-                        let newObj = {}
-                        exportExcel['kolomDataArr'].forEach(({key}) => {
-                            if(obj.hasOwnProperty(key)) {
-                                newObj[key] = obj[key]
-                            }
-                        })
-                        return newObj
-                    })
-
-                    return await exportToXLSX(updatedData, 'Data Alumni', {
-                        header: Object.keys(updatedData[0]),
-                        sheetName: 'Sheet 1'
-                    })
-                }else{
-                    updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
-    
-                    updatedData = updatedData.map(obj => {
-                        let newObj = {}
-                        exportExcel['kolomDataArr'].forEach(({key}) => {
-                            if(obj.hasOwnProperty(key)) {
-                                newObj[key] = obj[key]
-                            }
-                        })
-                        return newObj
-                    }) 
-    
-                    return await exportToXLSX(updatedData, 'Data Alumni', {
-                        header: Object.keys(updatedData[0]),
-                        sheetName: 'Sheet 1'
-                    })
-                }
-
+            let dataImport = data.map(value => {
+                let obj = {}
+                Object.keys(value).map(kolom => {
+                    if(exportKolomChecked.includes(kolom)) {
+                        obj[kolom] = value[kolom]
+                    }
+                })
+                return obj
+            })
+            if(selectedData.length < 1) {
+                return await exportToXLSX(dataImport, 'SIMAK - Data Alumni', {
+                    header: Object.keys(dataImport[0]),
+                    sheetName: 'DATA ALUMNI'
+                })
             }else{
-                if(selectedSiswa.length < 1) {
-                    updatedData = siswaList.map(obj => {
-                        let newObj = {}
-                        exportExcel['kolomDataArr'].forEach(({key}) => {
-                            if(obj.hasOwnProperty(key)) {
-                                newObj[key] = obj[key]
-                            }
-                        })
-                        return newObj
-                    })
-
-                    return await exportToCSV(updatedData, 'Data Alumni', {
-                        header: Object.keys(updatedData[0]),
-                        sheetName: 'Sheet 1'
-                    })
-                }
-
-                updatedData = siswaList.filter(siswa => selectedSiswa.includes(siswa.nis))
-                console.log(updatedData)
-
-                updatedData = updatedData.map(obj => {
-                    let newObj = {}
-                    exportExcel['kolomDataArr'].forEach(({key}) => {
-                        if(obj.hasOwnProperty(key)) {
-                            newObj[key] = obj[key]
+                let dataImport = data.filter(value => selectedData.includes(value['nis'])).map(value => {
+                    let obj = {}
+                    Object.keys(value).map(kolom => {
+                        if(exportKolomChecked.includes(kolom)) {
+                            obj[kolom] = value[kolom]
                         }
                     })
-                    return newObj
-                }) 
+                    return obj
+                })
 
-                return await exportToCSV(updatedData, 'Data Alumni', {
-                    header: Object.keys(updatedData[0]),
-                    sheetName: 'Sheet 1'
+                return await exportToXLSX(dataImport, 'SIMAK - Data Alumni', {
+                    header: Object.keys(dataImport[0]),
+                    sheetName: 'DATA ALUMNI'
                 })
             }
         }
+    }
+
+    const submitAktifkanSiswa = (nis, modal) => {
+
+        if(modal) {
+            document.getElementById(modal).close()
+        }
+
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 50000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            didOpen: async () => {
+                let dataSiswa
+                let responseSiswa
+                let responseMutasiSiswa
+                if(nis) {
+                    const {tahun_keluar, tanggal_keluar,  ...updatedDataSiswa} = data.find(value => value['nis'] === nis)
+                    dataSiswa = updatedDataSiswa
+                    responseSiswa = await createSingleSiswa(dataSiswa)
+                    responseMutasiSiswa = await model_deleteAlumni([dataSiswa['nis']])
+                }else{
+                    const updatedDataSiswa = data.filter(value => selectedData.includes(value['nis'])).map(value => {
+                        const {tahun_keluar, tanggal_keluar,  ...obj} = value
+                        return obj
+                    })
+                    dataSiswa = updatedDataSiswa
+                    responseSiswa = await createMultiSiswa(dataSiswa)
+                    responseMutasiSiswa = await model_deleteAlumni(dataSiswa.map(value => value['nis']))
+                }
+
+                if(responseMutasiSiswa.success && responseSiswa.success) {
+                    setSelectAll(false)
+                    setSelectedData([])
+                    await getData()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Data Alumni tersebut berhasil di aktifkan kembali!',
+                        icon: 'success'
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan disaat memproses data, hubungi administrator!',
+                        icon: 'error',
+                    })
+                }
+            }
+        })
     }
 
     return (
         <MainLayoutPage>
-            <Toaster />
-            <hr className="my-1 md:my-2 opacity-0" />
-            <div className="flex items-center md:gap-5 w-full justify-center md:justify-start gap-2">
-                <a href="/data/alumni/new" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300`}>
-                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-inherit" />
-                    Tambah Data
-                </a>
-                <a href="/data/alumni/new/import" className={`${rale.className} rounded-full px-4 py-2 bg-zinc-100 text-zinc-700 font-medium hover:bg-zinc-200 md:text-xl flex items-center justify-center gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300`}>
-                    <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-inherit" />
-                    Import Data
-                </a>
-            </div>
-            <hr className="my-1 md:my-2 opacity-0" />
-            <div className="p-5 rounded-2xl bg-zinc-50 md:bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">
-                <div className="flex items-center gap-2 md:gap-5">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center text-orange-600">
-                        <FontAwesomeIcon icon={faFilter} className="w-4 h-4 text-inherit" />
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
+                <div className="text-xs md:text-sm no-scrollbar">
+                    <div className="flex items-center gap-5 w-full md:w-fit text-xs md:text-sm">
+                        <button type="button" onClick={() => document.getElementById('tambah_siswa').showModal()} className="w-full md:w-fit px-3 py-2 rounded border dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex justify-center items-center gap-3 font-medium ease-out duration-300">
+                            <FontAwesomeIcon icon={faPlus} className="w-3 h-3 text-inherit opacity-70" />
+                            Tambah
+                        </button>
+                        <dialog id="tambah_siswa" className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                            <div className="modal-box bg-white dark:bg-zinc-900 rounded md:max-w-[900px] border dark:border-zinc-800">
+                                <form method="dialog">
+                                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                </form>
+                                <h3 className="font-bold text-lg">Tambah Siswa</h3>
+                                <hr className="my-2 opacity-0" />
+                                <form onSubmit={e => submitFormTambah(e, 'tambah_siswa')} className="space-y-5 md:space-y-3">
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Nama Siswa
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            NIS
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="NIS" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Kelas
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <select required className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                <option value="" disabled>-- Pilih Kelas --</option>
+                                                <option value="X">X</option>
+                                                <option value="XI">XI</option>
+                                                <option value="XII">XII</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Jurusan
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <select required className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                <option value="" disabled>-- Pilih Jurusan --</option>
+                                                <option value="TKJ">TKJ</option>
+                                                <option value="TPM">TPM</option>
+                                                <option value="TKR">TKR</option>
+                                                <option value="GEO">GEO</option>
+                                                <option value="TITL">TITL</option>
+                                                <option value="DPIB">DPIB</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Rombel
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Rombel" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Induk Siswa Nasional
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Induk Siswa Nasional" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Induk Kependudukan
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Induk Kependudukan" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Kartu Keluarga
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Kartu Keluarga" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Tempat Lahir
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Tempat Lahir" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Tanggal Lahir
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="date" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Jenis Kelamin
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <select required className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                <option value="" disabled>-- Pilih Jenis Kelamin --</option>
+                                                <option value="Laki-laki">Laki-laki</option>
+                                                <option value="Perempuan">Perempuan</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Agama
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <select required className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                <option value="" disabled>-- Pilih Agama --</option>
+                                                <option value="Islam">Islam</option>
+                                                <option value="Protestan">Protestan</option>
+                                                <option value="Katolik">Katolik</option>
+                                                <option value="Hindu">Hindu</option>
+                                                <option value="Buddha">Buddha</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Jumlah Saudara
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Jumlah Saudara" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Anak ke Berapa
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Anak ke Berapa" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Alamat
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Alamat" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Telepon Siswa
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Siswa" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Asal Sekolah
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Asal Sekolah" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Kategori
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Kategori" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Tahun Masuk
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Tahun Masuk" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Nama Ayah
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Ayah" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Nama Ibu
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Ibu" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Nama Wali
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Wali" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Telepon Ayah
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Ayah" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Telepon Ibu
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Ibu" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            No Telepon Wali
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Wali" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Pekerjaan Ayah
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ayah" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Pekerjaan Ibu
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ibu" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Pekerjaan Wali
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Wali" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                        <p className="opacity-60 w-full md:w-1/3">
+                                            Tanggal Keluar
+                                        </p>
+                                        <div className="w-full md:w-2/3">
+                                            <input required type="date" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Wali" />
+                                        </div>
+                                    </div>
+                                    <div className="flex md:justify-end">
+                                        <button type="submit" className="w-full md:w-fit px-3 py-2 rounded-md flex items-center justify-center gap-3 bg-green-500 hover:bg-green-400 focus:bg-green-600 text-white">
+                                            <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                            Simpan
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </dialog>
+                        <button type="button" onClick={() => document.getElementById('import_siswa').showModal()} className="w-full md:w-fit px-3 py-2 rounded border dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex justify-center items-center gap-3 font-medium ease-out duration-300">
+                            <FontAwesomeIcon icon={faDownload} className="w-3 h-3 text-inherit opacity-70" />
+                            Import
+                        </button>
+                        <dialog id="import_siswa" className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                            <div className="modal-box bg-white dark:bg-zinc-900 rounded border dark:border-zinc-800">
+                                <form method="dialog">
+                                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                </form>
+                                <h3 className="font-bold text-lg">Import Data</h3>
+                                <hr className="my-2 opacity-0" />
+                                
+                                <hr className="my-2 opacity-0" />
+                                <form onSubmit={e => submitImportFile(e, 'import_siswa')} className="text-xs space-y-2">
+                                    <p className="opacity-60">
+                                        File harus berupa .xlsx atau .csv
+                                    </p>
+                                    <input type="file" id="input_import_file" onChange={e => setImportFile(e.target.files[0])} className="text-sm cursor-pointer w-full" />
+                                    <p className="opacity-60">
+                                        Pilih Sheet jika anda menggunakan .xlsx
+                                    </p>
+                                    <select id="select_sheet" className="px-3 py-2 w-full rounded-md border dark:border-zinc-800 dark:bg-zinc-900">
+                                        <option value="" disabled>-- Pilih Sheet --</option>
+                                        {sheetsFile.map((value, index) => (
+                                            <option key={index} value={value}>
+                                                {value}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <button type="submit" className="w-full md:w-fit px-3 py-2 text-sm rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3">
+                                        <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                        Simpan
+                                    </button>
+                                </form>
+                            </div>
+                        </dialog>
                     </div>
-                    <h1 className="font-medium text-xl text-transparent bg-clip-text bg-gradient-to-r from-orange-900 to-zinc-800 dark:from-orange-500 dark:to-white">Filterisasi Data</h1>
-                </div>
-                <hr className="my-1 opacity-0" />
-                <div className="flex md:flex-row flex-col gap-5">
-                    <div className="w-full md:w-1/2 flex gap-2">
-                        <select value={kelas} onChange={e => setKelas(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
-                            {listKelas.map((kelasItem, index) => (
-                                <option key={index} value={kelasItem}>{kelasItem}</option>
-                            ))}
-                            <option value="">Semua Kelas</option>
-                        </select>
-                        <select value={rombel} onChange={e => setRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
-                            {listRombel.map((namaRombel, index) => (
-                                <option key={index} value={namaRombel}>{namaRombel}</option>
-                            ))}
-                            <option value="">Semua Rombel</option>
-                        </select>
-                    </div>
-                    <div className="w-full md:w-1/2 flex gap-2">
-                        <select value={noRombel} onChange={e => setNoRombel(e.target.value)} className="w-1/2 px-2 py-1 rounded-xl border bg-white text-xs md:text-sm cursor-pointer dark:bg-zinc-700 dark:border-zinc-700">
-                            {listNoRombel.map((no_rombel, index) => (
-                                <option key={index} value={no_rombel}>{no_rombel}</option>
-                            ))}
-                            <option value="">Semua No Rombel</option>
-                        </select>
-                        
-                    </div>
-                </div>
-            </div>
-            <hr className="my-2 opacity-0" />
-            <div className="flex items-center gap-5 w-full">
-                <input type="text" onChange={e => setSearchValue(e.target.value)} className=" bg-zinc-100 flex-grow md:flex-grow-0 md:w-80 px-3 py-2 text-xs md:text-lg rounded-xl border bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-white" placeholder="Cari data anda disini" />
-                <select value={searchCriteria} onChange={e => setSearchCriteria(e.target.value)}  className=" px-3 py-2 rounded-xl border text-xs md:text-lg bg-white  cursor-pointer dark:bg-zinc-800 dark:border-zinc-800 dark:text-white">
-                    <option disabled>-- Kriteria --</option>
-                    <option value="nama_siswa">Nama</option>
-                    <option value="nisn">NISN</option>
-                    <option value="nis">NIS</option>
-                </select>
-            </div>
-            <hr className="my-2 opacity-0" />
+                    <hr className="my-5 dark:opacity-10" />
+                    
+                    {loadingFetch['data'] !== 'fetched' && (
+                        <div className="loading loading-spinner loading-sm opacity-50"></div>
+                    )}
+                    {loadingFetch['data'] === 'fetched' && data.length > 0 && (
+                        <div className="space-y-2">
+                            <div className="flex md:items-center flex-col md:flex-row gap-1">
+                                <p className="opacity-70 w-full md:w-1/6">
+                                    Kelas
+                                </p>
+                                <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                    {Array.from(new Set(data.map(value => value['kelas']))).map((value, index) => (
+                                        <button key={index} onClick={() => handleFilterData('kelas', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['kelas'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                            {value}
+                                        </button>
+                                    ))}      
+                                </div>
+                            </div>
+                            <div className="flex md:items-center flex-col md:flex-row gap-1">
+                                <p className="opacity-70 w-full md:w-1/6">
+                                    Jurusan
+                                </p>
+                                <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                    {Array.from(new Set(data.map(value => value['jurusan']))).map((value, index) => (
+                                        <button key={index} onClick={() => handleFilterData('jurusan', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['jurusan'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                            {value}
+                                        </button>
+                                    ))}      
+                                </div>
+                            </div>
+                            <div className="flex md:items-center flex-col md:flex-row gap-1">
+                                <p className="opacity-70 w-full md:w-1/6">
+                                    Rombel
+                                </p>
+                                <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                    {Array.from(new Set(data.map(value => value['rombel']))).map((value, index) => (
+                                        <button key={index} onClick={() => handleFilterData('rombel', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['rombel'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                            {value}
+                                        </button>
+                                    ))}      
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
-            <div className="grid grid-cols-12 w-full  bg-blue-500 *:px-2 *:py-3 text-white text-sm shadow-xl">
-                <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
-                    <input type="checkbox" name="" id="" />
-                    Nama
-                    <button type="button" onClick={() => handleSorting('nama_siswa', 'tahun_masuk')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={sorting.nama_siswa === '' ? faArrowsUpDown : (sorting.nama_siswa === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
-                    </button>
-                </div>
-                <div className="hidden md:flex items-center col-span-2">
-                    Kelas
-                </div>
-                <div className="hidden md:flex items-center col-span-2 gap-3">
-                    Tahun Masuk
-                    <button type="button" onClick={() => handleSorting('tahun_masuk', 'nama_siswa')} className="text-blue-400 w-5 h-5 flex items-center justify-center rounded hover:bg-white/10 hover:text-white">
-                        <FontAwesomeIcon icon={sorting.tahun_masuk === '' ? faArrowsUpDown : (sorting.tahun_masuk === 'asc' ? faArrowUp : faArrowDown )} className="w-3 h-3 text-inherit" />
-                    </button>
-                </div>
-                <div className="hidden md:flex items-center col-span-2">
-                    NIS/NISN
-                </div>
-                <div className="flex justify-center items-center col-span-4 md:col-span-2">
-                    <FontAwesomeIcon icon={faEllipsisH} className="w-3 h-3 text-inherit" />
-                </div>
-            </div>
-            
-            {loadingFetch === '' && <LoadingFetchSkeleton />}
-            {loadingFetch === 'loading' && (
-                <div className="flex w-full justify-center items-center gap-2 my-3">
-                    <FontAwesomeIcon icon={faSpinner} className="w-4 h-4 text-zinc-400 animate-spin" />
-                    <h1 className="text-zinc-400">Sedang mendapatkan data..</h1>
-                </div>
-            )}
-
-            {loadingFetch === 'fetched' && (siswaList.length > 0 ? (
-                <div className="relative w-full h-fit max-h-[300px] overflow-auto">
-                    <div className="divide-y dark:divide-zinc-800">
-                        {filteredSiswaList.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((siswa) => (
-                            <div key={siswa.nis} className="grid grid-cols-12 w-full dark:divide-zinc-800 hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x dark:text-zinc-200 dark:hover:bg-zinc-800">
-                                <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center">
-                                    <div className="flex-grow flex items-center gap-2">
-                                        <input type="checkbox" checked={selectedSiswa.includes(siswa.nis) ? true : false} onChange={() => handleSelectedSiswa(siswa.nis)} />
-                                        {siswa.nama_siswa}
+                    <hr className="my-5 dark:opacity-10" />
+                    
+                    <div className="relative overflow-auto w-full max-h-[400px]">
+                        <div className="grid grid-cols-12 p-3 rounded-lg border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky top-0 mb-2">
+                            <div className="col-span-7 md:col-span-2 flex items-center gap-3">
+                                <input type="checkbox" className="cursor-pointer" />
+                                Nama Siswa
+                                <button type="button" onClick={() => handleSortData('nama_siswa')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['nama_siswa'] === '' ? faArrowsUpDown : (sortData['nama_siswa'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
+                                </button>
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                Kelas
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                NIS
+                                <button type="button" onClick={() => handleSortData('nis')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['nis'] === '' ? faArrowsUpDown : (sortData['nis'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
+                                </button> 
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                Tanggal Keluar
+                            </div>
+                            <div className="col-span-2 hidden md:flex items-center gap-3">
+                                Tahun Masuk
+                                <button type="button" onClick={() => handleSortData('tahun_masuk')} className="opacity-50 hover:opacity-100">
+                                    <FontAwesomeIcon icon={sortData['tahun_masuk'] === '' ? faArrowsUpDown : (sortData['tahun_masuk'] === 'asc' ? faArrowUp : faArrowDown)} className="w-3 h-3 text-inherit" />
+                                </button>
+                            </div>
+                            <div className="col-span-5 md:col-span-2 flex items-center gap-3">
+                                <input type="text" value={searchFilter} onChange={e => setSearchFilter(e.target.value)} className="w-full dark:bg-zinc-900 bg-white px-2 py-1 rounded border dark:border-zinc-700" placeholder="Cari disini" />
+                            </div>
+                        </div>
+                        {loadingFetch['data'] !== 'fetched' && (
+                            <div className="w-full flex items-center justify-center">
+                                <div className="loading loading-spinner loading-sm text-zinc-500"></div>
+                            </div>
+                        )}
+                        {loadingFetch['data'] === 'fetched' && data.length < 1 && (
+                            <div className="w-full flex items-center justify-center text-zinc-500">
+                                Data Siswa tidak ada!
+                            </div>
+                        )}
+                        {filteredData.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((value, index) => (
+                            <div key={`${value['nis']}`} className="grid grid-cols-12 p-3 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 ease-out duration-300 text-xs">
+                                <div className="col-span-7 md:col-span-2 flex items-center gap-3">
+                                    <input type="checkbox" checked={selectedData.includes(value['nis'])} onChange={() => handleSelectData(value['nis'])} className="cursor-pointer" />
+                                    {value['nama_siswa']}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    {value['kelas']} {value['jurusan']} {value['rombel']}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    {value['nis']}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    {date_getDay(value['tanggal_keluar'])} {date_getMonth('string', value['tanggal_keluar'])} {date_getYear(value['tanggal_keluar'])}
+                                </div>
+                                <div className="col-span-2 hidden md:flex items-center gap-3">
+                                    <div className="space-y-2">
+                                        <p>
+                                            {value['tahun_masuk']}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="hidden md:flex items-center col-span-2">
-                                    {siswa.kelas} {siswa.rombel} {siswa.no_rombel}
-                                </div>
-                                <div className="hidden md:flex items-center col-span-2 gap-3">
-                                    {siswa.tahun_masuk}
-                                </div>
-                                <div className={`${mont.className} hidden md:flex items-center col-span-2 gap-1`}>
-                                    <p className="px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-100/10">
-                                        {siswa.nis}
-                                    </p>
-                                    <p className="px-2 py-1 rounded-full bg-zinc-100 dark:bg-zinc-100/10">
-                                        {siswa.nisn}
-                                    </p>
-                                </div>
-                                <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2">
-                                    <a href={`/data/alumni/nis/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-blue-600 hover:bg-blue-800" title="Informasi lebih lanjut">
+                                <div className="col-span-5 md:col-span-2 flex items-center justify-center md:gap-3 gap-1">
+                                    <button type="button" onClick={() => document.getElementById(`info_alumni_${value['nis']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
-                                    </a>
-                                    <button type="button" onClick={() => deleteSingle(siswa.nis)} className="w-6 h-6 flex items-center justify-center  text-white bg-red-600 hover:bg-red-800" title="Hapus data siswa ini?">
+                                    </button>
+                                    <dialog id={`info_alumni_${value['nis']}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                        <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800 max-w-[800px]">
+                                            <form method="dialog">
+                                                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                            </form>
+                                            <h3 className="font-bold text-lg">Informasi Alumni</h3>
+                                            <hr className="my-2 opacity-0" />
+                                            <div className="flex flex-col md:flex-row md:items-center gap-3">
+                                                
+                                                <button type="button" onClick={() => handlePrintData(`info_alumni_${value['nis']}`, value['nis'])} className="w-full md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                    <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit opacity-60" />
+                                                    Print
+                                                </button>
+                                                <button type="button" onClick={() => submitAktifkanSiswa(value['nis'], `info_alumni_${value['nis']}`)} className="w-full md:w-fit px-3 py-2 border rounded-md dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3">
+                                                    <FontAwesomeIcon icon={faCheckDouble} className="w-3 h-3 text-green-500 opacity-60" />
+                                                    Aktifkan 
+                                                </button>
+                                            </div>
+                                            <hr className="my-2 opacity-0" />
+                                            <div className="flex flex-col md:flex-row gap-5">
+                                                <div className="w-full divide-y h-fit dark:divide-zinc-800 ">
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3 border-b dark:border-white">
+                                                        <p className="w-full md:w-1/3 text-sm font-bold">
+                                                            Data Pribadi
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Lengkap
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_siswa']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Kelas
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['kelas']} {value['jurusan']} {value['rombel']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nomor Induk Siswa
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nis']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Induk Siswa Nasional
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nisn']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Induk Kependudukan
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nik']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Kartu Keluarga
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['no_kk']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Tempat, Tanggal Lahir
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['tempat_lahir']}, {date_getDay(value['tanggal_lahir'])} {date_getMonth('string', value['tanggal_lahir'])} {date_getYear(value['tanggal_lahir'])}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Jenis Kelamin
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['jenis_kelamin']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Agama
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['agama']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Jumlah Saudara
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['jumlah_saudara']} Saudara
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Anak ke Berapa
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            Anak ke {value['anak_ke']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Alamat
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['alamat']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Telepon Siswa
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['no_hp_siswa']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Asal Sekolah
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['asal_sekolah']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Kategori
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['kategori']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Tahun Masuk
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['tahun_masuk']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Tanggal Keluar
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {date_getDay(value['tanggal_keluar'])} {date_getMonth('string', value['tanggal_keluar'])} {date_getYear(value['tanggal_keluar'])}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Tahun Keluar
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['tahun_keluar']}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-full divide-y h-fit dark:divide-zinc-800 ">
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3 border-b dark:border-white">
+                                                        <p className="w-full md:w-1/3 text-sm font-bold">
+                                                            Data Orang Tua / Wali
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Ayah
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_ayah']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Pekerjaan Ayah
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['pekerjaan_ayah']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Telepon Ayah
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['telp_ayah']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Ibu
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_ibu']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Pekerjaan Ibu
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['pekerjaan_ibu']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Telepon Ibu
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['telp_ibu']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Nama Wali
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['nama_wali']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            Pekerjaan Wali
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['pekerjaan_wali']}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-col md:flex-row px-2 py-3">
+                                                        <p className="w-full md:w-1/3 opacity-50">
+                                                            No Telepon Wali
+                                                        </p>
+                                                        <p className="w-full md:w-2/3">
+                                                            {value['telp_wali']}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </dialog>
+                                    <button type="button" onClick={() => document.getElementById(`edit_alumni_${value['nis']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-amber-500 dark:hover:border-amber-500/50 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-600 dark:hover:text-amber-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    <dialog id={`edit_alumni_${value['nis']}`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                        <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800 max-w-[800px]">
+                                            <form method="dialog">
+                                                <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                            </form>
+                                            <h3 className="font-bold text-lg">Ubah Data Alumni</h3>
+                                            <hr className="my-2 opacity-0" />
+                                            <form onSubmit={(e) => submitEditData(e, `edit_alumni_${value['nis']}`, value['nis'])} className="space-y-6 md:space-y-3">
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Nama Siswa
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nama_siswa']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        NIS
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nis']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="NIS" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Kelas
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <select required defaultValue={value['kelas']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                            <option value="" disabled>-- Pilih Kelas --</option>
+                                                            <option value="X">X</option>
+                                                            <option value="XI">XI</option>
+                                                            <option value="XII">XII</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Jurusan
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <select required defaultValue={value['jurusan']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                            <option value="" disabled>-- Pilih Jurusan --</option>
+                                                            <option value="TKJ">TKJ</option>
+                                                            <option value="TPM">TPM</option>
+                                                            <option value="TKR">TKR</option>
+                                                            <option value="GEO">GEO</option>
+                                                            <option value="TITL">TITL</option>
+                                                            <option value="DPIB">DPIB</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Rombel
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['rombel']} type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Rombel" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Induk Siswa Nasional
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nisn']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Induk Siswa Nasional" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Induk Kependudukan
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input defaultValue={value['nik']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Induk Kependudukan" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Kartu Keluarga
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input defaultValue={value['no_kk']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Kartu Keluarga" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Tempat Lahir
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['tempat_lahir']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Tempat Lahir" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Tanggal Lahir
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['tanggal_lahir']} type="date" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Jenis Kelamin
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <select required defaultValue={value['jurusan']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                            <option value="" disabled>-- Pilih Jenis Kelamin --</option>
+                                                            <option value="Laki-laki">Laki-laki</option>
+                                                            <option value="Perempuan">Perempuan</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Agama
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <select required defaultValue={value['jurusan']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                            <option value="" disabled>-- Pilih Agama --</option>
+                                                            <option value="Islam">Islam</option>
+                                                            <option value="Protestan">Protestan</option>
+                                                            <option value="Katolik">Katolik</option>
+                                                            <option value="Hindu">Hindu</option>
+                                                            <option value="Buddha">Buddha</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Jumlah Saudara
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['jumlah_saudara']} type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Jumlah Saudara" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Anak ke Berapa
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['anak_ke']} type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Anak ke Berapa" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Alamat
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['alamat']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Alamat" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Telepon Siswa
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['no_hp_siswa']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Siswa" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Asal Sekolah
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['asal_sekolah']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Asal Sekolah" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Kategori
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['kategori']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Kategori" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Tahun Masuk
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['tahun_masuk']} type="number" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Tahun Masuk" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Nama Ayah
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nama_ayah']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Ayah" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Nama Ibu
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nama_ibu']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Ibu" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Nama Wali
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['nama_wali']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Nama Wali" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Telepon Ayah
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['telp_ayah']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Ayah" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Telepon Ibu
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['telp_ibu']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Ibu" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        No Telepon Wali
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['telp_wali']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="No Telepon Wali" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Pekerjaan Ayah
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['pekerjaan_ayah']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ayah" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Pekerjaan Ibu
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['pekerjaan_ibu']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ibu" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Pekerjaan Wali
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['pekerjaan_wali']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Wali" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Tanggal Keluar
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['tanggal_keluar']} type="date" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Tanggal Keluar" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex md:justify-end">
+                                                    <button type="submit" className="w-full md:w-fit px-3 py-2 rounded-md flex items-center justify-center gap-3 bg-green-500 hover:bg-green-400 focus:bg-green-600 text-white">
+                                                        <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                                        Simpan
+                                                    </button>
+                                                </div>
+                                            </form>
+                                            <hr className="my-2 opacity-0" />
+                                            
+                                        </div>
+                                    </dialog>
+                                    <button type="button" onClick={() => submitDeleteData(value['nis'])} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
                                         <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
                                     </button>
-                                    <a href={`/data/alumni/update/${siswa.nis}`} className="w-6 h-6 flex items-center justify-center  text-white bg-amber-600 hover:bg-amber-800" title="Ubah data siswa ini">
-                                        <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
-                                    </a>
+                                    <button type="button" onClick={() => submitAktifkanSiswa(value['nis'])} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faCheckDouble} className="w-3 h-3 text-inherit" />
+                                    </button>
                                 </div>
                             </div>
                         ))}
                     </div>
-                </div>
-            ) : (
-                <div className="w-full flex justify-center items-center gap-2 my-3">
-                    <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-400" />
-                    <h1 className="text-zinc-400">Data kosong</h1>
-                </div>
-            ))}
+                    <hr className="my-2 opacity-0" />
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                        <div className="flex p-3 rounded-md border dark:border-zinc-700 items-center w-full md:w-fit divide-x dark:divide-zinc-700 justify-between md:justify-start">
+                            {selectedData.length > 0 && (
+                                <div className="flex items-center gap-2 pr-3  w-full md:w-fit">
+                                    <FontAwesomeIcon icon={faCheckSquare} className="w-3 h-3 text-inherit" />
+                                    {selectedData.length} Data
+                                </div>
+                            )}
+                            <div className="flex items-center justify-center w-full md:w-fit gap-1 md:gap-3 px-3">
+                                {loadingFetch['data'] !== 'fetched' && (
+                                    <div className="w-6 h-6 flex items-center justify-center">
+                                        <div className="loading loading-xs loading-spinner opacity-50"></div>
+                                    </div>
+                                )}
+                                {loadingFetch['data'] === 'fetched' && data.length > 0 && (
+                                    <button type="button" onClick={() => document.getElementById(`export`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                )}
+                                <dialog id={`export`} className="modal bg-gradient-to-t dark:from-zinc-950 from-zinc-50">
+                                    <div className="modal-box bg-white dark:bg-zinc-900 rounded  border dark:border-zinc-800 md:max-w-[800px]">
+                                        <form method="dialog">
+                                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                        </form>
+                                        <h3 className="font-bold text-lg">Export Data Siswa</h3>
+                                        <hr className="my-2 opacity-0" />
+                                        <form onSubmit={e => submitExportData(e, 'export')}>
 
-            <div className="w-full flex md:items-center md:justify-between px-2 py-1 flex-col md:flex-row border-y border-zinc-300 dark:border-zinc-700">
-                <div className="flex-grow flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <p className="text-xs font-medium dark:text-zinc-500">
-                            {selectedSiswa.length} Data terpilih
-                        </p>
-                        <button type="button" onClick={() => deleteSelectedSiswa()} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-500 focus:bg-red-200 focus:text-red-700 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
-                            <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
-                        </button>
-                        <button type="button" onClick={() => setShowSelected(state => !state)} className={`w-7 h-7 flex items-center justify-center rounded-lg   ${showSelected ? 'bg-blue-200 text-blue-700 hover:bg-blue-300' : 'text-zinc-500 bg-zinc-100 hover:bg-zinc-200'} group transition-all duration-300 dark:bg-zinc-700/50 dark:hover:bg-zinc-700`}>
-                            <FontAwesomeIcon icon={faEye} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
-                        </button>
-                        <button type="button" onClick={() => setSelectedSiswa([])} className={`w-7 h-7 ${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center justify-center rounded-lg  group transition-all duration-300 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500`}>
-                            <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit group-hover:scale-125 transition-all duration-300" />
-                        </button>
-                    </div>
-                    <div className=" dropdown dropdown-hover dropdown-bottom dropdown-end">
-                        <div tabIndex={0} role="button" className="px-3 py-1 rounded bg-zinc-200 hover:bg-zinc-300 flex items-center justify-center text-xs gap-2 dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200">
-                            <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
-                            Export
+                                            <label  htmlFor={`cb_export_allData`} className="px-3 py-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 ease-out duration-200 flex items-center gap-3 cursor-pointer w-fit">
+                                                <input type="checkbox" defaultChecked id={`cb_export_allData`} />
+                                                Export semua kolom
+                                            </label>
+                                            <hr className="my-2 opacity-0" />
+                                            <p>
+                                                Silahkan pilih kolom di bawah ini jika ingin export kolom tertentu
+                                            </p>
+                                            <hr className="my-2 opacity-0" />
+                                            {loadingFetch['data'] !== 'fetched' && (
+                                                <div className="loading loading-sm loading-spinner opacity-50"></div>
+                                            )}
+                                            {loadingFetch['data'] === 'fetched' && data.length > 0 && (
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs w-full overflow-auto max-h-[200px]">
+                                                    {Object.keys(data[0]).map((kolom, index) => (
+                                                        <label key={index} htmlFor={`cb_export_${index}`} className="px-3 py-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 ease-out duration-200 flex items-center gap-3 cursor-pointer">
+                                                            <input type="checkbox" value={kolom} id={`cb_export_${index}`} />
+                                                            {formatKolom[kolom]}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <hr className="my-2 dark:opacity-10" />
+                                            <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                <button type="submit" className="px-3 py-2 rounded-md w-full md:w-fit flex items-center justify-center gap-3 bg-green-500 hover:bg-green-400 focus:bg-green-600 text-white">
+                                                    <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit" />
+                                                    Export
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </dialog>
+                                {selectedData.length > 0 && (
+                                    <>
+                                    <button type="button" onClick={() => submitAktifkanSiswa()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-cyan-500 dark:hover:border-cyan-500/50 hover:bg-cyan-100 dark:hover:bg-cyan-500/10 hover:text-cyan-600 dark:hover:text-cyan-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faPowerOff} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    <button type="button" onClick={() => handleSelectedPrintData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-green-500 dark:hover:border-green-500/50 hover:bg-green-100 dark:hover:bg-green-500/10 hover:text-green-600 dark:hover:text-green-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faPrint} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    <button type="button" onClick={() => submitDeleteData()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-red-500 dark:hover:border-red-500/50 hover:bg-red-100 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faTrash} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                    </>
+                                )}
+                            </div>
+                            <p className="pl-3  w-full md:w-fit">
+                                Total {data.length} Data
+                            </p>
                         </div>
-                        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-white rounded-box w-fit dark:bg-zinc-800 dark:text-zinc-200">
-                            <li>
-                                <button type="button" onClick={() => document.getElementById('export_xlsx').showModal()} className="flex items-center justify-start gap-2 dark:hover:bg-zinc-900">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
-                                    XLSX
+                        <div className="flex p-3 rounded-md border dark:border-zinc-700 items-center w-full md:w-fit divide-x dark:divide-zinc-700 justify-between md:justify-start">
+                            <div className="flex items-center gap-2 pr-3  w-full md:w-fit">
+                                <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-5 h-5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center">
+                                    <FontAwesomeIcon icon={faAnglesLeft} className="w-3 h-3 text-inherit" />
                                 </button>
-                                <button type="button" onClick={() => document.getElementById('export_csv').showModal()} className="flex items-center justify-start gap-2 dark:hover:bg-zinc-900">
-                                    <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-green-600" />
-                                    CSV
+                                {pagination}
+                                <button type="button" onClick={() => setPagination(state => state < Math.ceil(data.length / totalList) ? state + 1 : state)} className="w-5 h-5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center">
+                                    <FontAwesomeIcon icon={faAnglesRight} className="w-3 h-3 text-inherit" />
                                 </button>
-                            </li>
-                        </ul>
-                        <dialog id="export_csv" className="modal">
-                            <div className="modal-box dark:bg-zinc-800 dark:text-zinc-200">
-                                <form method="dialog">
-                                    <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                                </form>
-                                <h3 className="font-bold text-lg">Export Data Excel CSV</h3>
-                                <hr className="my-2 opacity-0" />
-                                <div className="flex flex-col md:flex-row md:items-center">
-                                    <p className="w-full text-sm opacity-70 md:w-2/5">
-                                        Semua Kolom Data?
-                                    </p>
-                                    <div className="flex w-full items-center gap-5 md:w-3/5">
-                                        <div className="flex items-center gap-2">
-                                            <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer " id="export_csv_semua_kolom" />
-                                             <label htmlFor="export_csv_semua_kolom" className="text-sm cursor-pointer">Ya</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                {exportExcel.allKolom === false && (
-                                    <div className="">
-                                        <hr className="my-1 opacity-0" />
-                                        <div className="flex flex-col md:flex-row md:items-center">
-                                            <p className="w-full text-sm opacity-70 md:w-2/5">
-                                                Kolom
-                                            </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px] dark:bg-zinc-700 dark:border-zinc-700">
-                                                {Object.keys(exportKolom).map((kolom, index) => (
-                                                    <option key={index} value={kolom}>{exportKolom[kolom]}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <hr className="my-1 opacity-0" />
-                                        <p className="text-sm opacity-70">
-                                            Daftar Kolom Data
-                                        </p>
-                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1 dark:border-zinc-600">
-                                            {exportExcel.kolomDataArr.map((kolomData, index) => (
-                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium dark:bg-zinc-700">
-                                                    {kolomData['keyName']}
-                                                    <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
-                                                        <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                <hr className="my-2 opacity-0" />
-                                <p className={`${jakarta.className} text-sm`}>Apakah anda sudah yakin?</p>
-                                <hr className="my-1 opacity-0" />
-                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
-                                    <button type="button" onClick={() => submitExportExcel('csv', 'export_csv')} className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2 text-sm">
-                                        <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
-                                        Ya, Saya Yakin
-                                    </button>
-                                    <button type="button" onClick={() => {document.getElementById(`export_csv`).close(); setExportExcel({allKolom: true, kolomDataArr: []})}} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2 text-sm">
-                                        <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
-                                        Tidak
-                                    </button>
-                                </div>
                             </div>
-                        </dialog>
-                        <dialog id="export_xlsx" className="modal">
-                            <div className="modal-box dark:bg-zinc-800 dark:text-zinc-200">
-                                <form method="dialog">
-                                    <button onClick={() => setExportExcel({allKolom: true, kolomDataArr: []})} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                                </form>
-                                <h3 className="font-bold text-lg">Export Data Excel</h3>
-                                <hr className="my-2 opacity-0" />
-                                <div className="flex flex-col md:flex-row md:items-center">
-                                    <p className="w-full text-sm opacity-70 md:w-2/5">
-                                        Semua Kolom Data?
-                                    </p>
-                                    <div className="flex w-full items-center gap-5 md:w-3/5">
-                                        <div className="flex items-center gap-2">
-                                            <input type="checkbox" checked={exportExcel['allKolom']} onChange={() => setExportExcel(state => ({...state, ['allKolom']: !state['allKolom']}))} className="cursor-pointer" id="export_xlsx_semua_kolom" />
-                                             <label htmlFor="export_xlsx_semua_kolom" className="text-sm cursor-pointer">Ya</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                {exportExcel.allKolom === false && (
-                                    <div className="">
-                                        <hr className="my-1 opacity-0" />
-                                        <div className="flex flex-col md:flex-row md:items-center">
-                                            <p className="w-full text-sm opacity-70 md:w-2/5">
-                                                Kolom
-                                            </p>
-                                            <select onChange={e => handleChangeExportExcel('kolomDataArr', e.target.value)} className="w-full text-sm md:w-3/5 py-2 px-3 border rounded-lg cursor-pointer focus:border-zinc-500 hover:border-zinc-500 max-h-[100px] dark:bg-zinc-700 dark:border-zinc-700">
-                                                {Object.keys(exportKolom).map((kolom, index) => (
-                                                    <option key={index} value={kolom}>{exportKolom[kolom]}</option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <hr className="my-1 opacity-0" />
-                                        <p className="text-sm opacity-70">
-                                            Daftar Kolom Data
-                                        </p>
-                                        <div className="p-3 rounded-lg border w-full flex flex-wrap gap-1 dark:border-zinc-600">
-                                            {exportExcel.kolomDataArr.map((kolomData, index) => (
-                                                <div key={`${index} - ${index}`} className="p-2 rounded bg-zinc-100 text-xs flex items-center justify-center gap-2 font-medium dark:bg-zinc-700 dark:border-zinc-700">
-                                                    {kolomData['keyName']}
-                                                    <button type="button" onClick={() => handleChangeExportExcel('kolomDataArr', kolomData.key)} className="flex items-center justify-center">
-                                                        <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-zinc-500 hover:text-zinc-700 focus:text-zinc-700" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                <hr className="my-2 opacity-0" />
-                                <p className={`${jakarta.className} text-sm`}>Apakah anda sudah yakin?</p>
-                                <hr className="my-1 opacity-0" />
-                                <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
-                                    <button type="button" onClick={() => submitExportExcel('xlsx', 'export_xlsx')} className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2 text-sm">
-                                        <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
-                                        Ya, Saya Yakin
-                                    </button>
-                                    <button type="button" onClick={() => {document.getElementById(`export_xlsx`).close(); setExportExcel({allKolom: true, kolomDataArr: []})}} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2 text-sm">
-                                        <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
-                                        Tidak
-                                    </button>
-                                </div>
+                            <div className="flex items-center gap-2 pl-3  w-full md:w-fit">
+                                <select value={totalList} onChange={e => setTotalList(e.target.value)} className="select select-bordered w-full select-sm dark:bg-zinc-800 bg-zinc-100">
+                                    <option value={10}>10</option>
+                                    <option value={20}>20</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                </select>
                             </div>
-                        </dialog>
-                    </div>
-                </div>
-                <div className="w-full md:w-fit flex items-center justify-center divide-x mt-2 md:mt-0">
-                    <p className={`${mont.className} px-2 text-xs dark:text-zinc-500`}>
-                        {(totalList * pagination) - totalList + 1} - {(totalList * pagination) > siswaList.length ? siswaList.length : totalList * pagination} dari {siswaList.length} data
-                    </p>
-                    <div className={`${mont.className} px-2 text-xs flex items-center justify-center gap-3`}>
-                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-orange-500">
-                            <FontAwesomeIcon icon={faAngleLeft} className="w-3 h-3 text-inherit" />
-                        </button>
-                        <p className="font-medium text-zinc-600 dark:text-orange-500">
-                            {pagination}
-                        </p>
-                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(siswaList.length / totalList) ? state + 1 : state)} className="w-6 h-6 bg-zinc-100 rounded flex items-center justify-center hover:bg-zinc-200 text-zinc-500 hover:text-amber-700 focus:bg-amber-100 focus:text-amber-700 outline-none dark:bg-zinc-700/50 dark:hover:bg-zinc-700 dark:hover:text-orange-500">
-                            <FontAwesomeIcon icon={faAngleRight} className="w-3 h-3 text-inherit" />
-                        </button>
-                    </div>
-                    <div className={`${mont.className} px-2 text-xs`}>
-                        <select  value={totalList} onChange={e => handleTotalList(e.target.value)} className="cursor-pointer px-2 py-1 hover:bg-zinc-100 rounded bg-transparent dark:hover:bg-zinc-800 dark:text-zinc-200">
-                            <option value={10}>10</option>
-                            <option value={20}>20</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                        </select>
+                        </div>
                     </div>
                 </div>
             </div>
-            <hr className="my-2 opacity-0" />
-            <div className="flex items-center gap-5">
-                <div className="flex items-center gap-3">
-                    <p className="text-xs opacity-70">
-                        Socket Server:
-                    </p>
-                    {statusSocket === '' && (
-                        <div className="loading loading-spinner loading-sm text-zinc-500"></div>
-                    )}
-                    {statusSocket === 'online' && (
-                        <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            Online
-                        </div>
-                    )}
-                    {statusSocket === 'offline' && (
-                        <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                            Offline
-                        </div>
-                    )}
-                </div>
-                <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
-                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
-                </button>
-            </div>
-            <dialog id="info_socket" className="modal">
-                <div className="modal-box">
-                    <form method="dialog">
-                    {/* if there is a button in form, it will close the modal */}
-                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                    </form>
-                    <h3 className="font-bold text-lg">Hello!</h3>
-                    <p className="py-4">Press ESC key or click on ✕ button to close</p>
-                </div>
-            </dialog>
             <hr className="my-3 opacity-0" />
-            <div className="md:p-5 mb-10 rounded-xl md:border border-zinc-400 flex flex-col md:flex-row gap-5 transition-all duration-300 dark:border-zinc-700">
-                
-                <form onSubmit={submitUpdateBersama} className="w-full md:w-1/2">
-                    <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-full bg-cyan-100 text-cyan-600 flex items-center justify-center dark:bg-cyan-500/10">
-                            <FontAwesomeIcon icon={faWandMagicSparkles} className="w-4 h-4 text-inherit" />
-                        </div>
-                        <h1 className={`${mont.className} font-medium text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-zinc-800 dark:to-white`}>
-                            Ubah Data Bersamaan
-                        </h1>
-                    </div>
-                    <hr className="my-2 opacity-0" />
-                    <div className={`${selectedSiswa && selectedSiswa.length < 1 ? 'flex' : 'hidden'} items-center gap-3`}>
-                        <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
-                        <h1 className="text-zinc-500">Silahkan pilih data diatas terlebih dahulu.</h1>
-                    </div>
-                    <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} gap-3 flex-col md:flex-row w-full`}>
-                        <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="kelas" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
-                                <option value="" disabled>-- Pilih Kelas --</option>
-                                <option value="X">X</option>
-                                <option value="XI">XI</option>
-                                <option value="XII">XII</option>
-                            </select>
-                            <select defaultValue={''} name="no_rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
-                                <option value="" disabled>-- Pilih No Rombel --</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                            </select>
-                            <input type="number" name="tahun_masuk" className="w-full border px-3 py-1 rounded-full bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200" placeholder="Tahun Masuk" />
-                            <div className="flex w-full items-center gap-2">
-                                <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-zinc-300" />
-                                <h1 className="text-zinc-500 text-xs">Jangan di isi jika tidak ingin mengubah tahun masuk</h1>
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
+                <div className={` text-zinc-700`} id="content-print">
+                    {printedData.map((value, index) => (
+                        <div key={index} ref={componentPDF.current[index]} style={{ 
+                            width: `${mmToPx(210) * 1.5}px`, 
+                            height: `${mmToPx(330) * 1.5}px`,
+                            fontFamily: jakarta.style.fontFamily
+                        }} className={`bg-white flex-shrink-0 text-zinc-700 text-lg px-3`}
+                        >
+                            <div className="flex items-center w-full px-20 pt-12">
+                                <div className="w-fit flex items-center justify-start">
+                                    <Image src={'/jabar.gif'} width={160} height={160} alt="Logo Jabar" />
+                                </div>
+                                <div className={`w-full font-bold tracking-tighter text-center space-y-1`}>
+                                    <h1 className=" tracking-tighter text-center text-2xl">
+                                        PEMERINTAH DAERAH PROVINSI JAWA BARAT
+                                    </h1>
+                                    <h2 className=" tracking-tighter text-center text-2xl">
+                                        DINAS PENDIDIKAN
+                                    </h2>
+                                    <h3 className=" tracking-tighter text-center text-2xl">
+                                        CABANG DINAS PENDIDIKAN WILAYAH VII
+                                    </h3>
+                                    <p className=" tracking-tighter text-center text-2xl">
+                                        SMK PEKERJAAN UMUM NEGERI BANDUNG
+                                    </p>
+                                    <p className="text-xl tracking-tight">
+                                        Jl. Garut No. 10 Telp./Fax (022) 7208317 BANDUNG 40271
+                                    </p>
+                                    <p className="text-xl tracking-tight">
+                                        Website : <span className="italic text-blue-600 underline decoration-blue-600">http://www.smkpunegerijabar.sch.id</span>
+                                    </p>
+                                    <p className="text-xl tracking-tight">
+                                        Email : <span className="italic text-blue-600 underline decoration-blue-600">info@smkpunegerijabar.sch.id</span>
+                                    </p>
+                                </div>
+                                <div className="w-fit flex items-center justify-end">
+                                    <Image src={'/logo-sekolah-2.png'} width={120} height={120} alt="logo sekolah" />
+                                </div>
+                            </div>
+                            <div className="px-10 pt-5 mb-10">
+                                <div className="w-full border-4 border-zinc-700"></div>
+                            </div>
+                            <h1 className="text-center font-extrabold text-2xl">LEMBAR BUKU INDUK SMK</h1>
+                            <h2 className="text-center font-extrabold text-2xl">TAHUN PELAJARAN {value['tahun_masuk']}/{Number(value['tahun_masuk']) + 1}</h2>
+                            <hr className="my-5 opacity-0" />
+                            <div className="px-20 text-2xl font-normal">
+                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                    <p className="w-2/3">Kompetensi Keahlian</p>
+                                    <p className="w-1/3 font-medium">
+                                        : {value['kelas']} {value['jurusan']} {value['rombel']}
+                                    </p>
+                                </div>
+                                <hr className="my-1 opacity-0" />
+                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                    <p className="w-2/3">No Induk Sekolah</p>
+                                    <p className="w-1/3 font-medium">: {value.nis || '-'}</p>
+                                </div>
+                                <hr className="my-1 opacity-0" />
+                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                    <p className="w-2/3">No Induk Siswa Nasional</p>
+                                    <p className="w-1/3 font-medium">: {value.nisn || '-'}</p>
+                                </div>
+                                <hr className="my-5 opacity-0" />
+                                <div className="px-10 text-2xl">
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>A.</p>
+                                        <p>KETERANGAN PRIBADI SISWA</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>1.</p>
+                                                <p>Nama</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.nama_siswa || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>2.</p>
+                                                <p>NIK</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.nik || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>3.</p>
+                                                <p>Jenis Kelamin</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.jenis_kelamin || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>4.</p>
+                                                <p>Tempat dan Tanggal Lahir</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.tempat_lahir || '-'}, {date_getDay(value['tanggal_lahir'])} {date_getMonth('string', value['tanggal_lahir'])} {date_getYear(value['tanggal_lahir'])}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>5.</p>
+                                                <p>Agama</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.agama || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>6.</p>
+                                                <p>Jumlah Saudara</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.jumlah_saudara || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>7.</p>
+                                                <p>Anak ke</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.anak_ke || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>8.</p>
+                                                <p className="">No Telp</p>
+                                            </div>
+                                            <p className="font-medium w-2/3">: {value.no_hp_siswa || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>B.</p>
+                                        <p>KETERANGAN TEMPAT TINGGAL</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex  gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex  gap-5 w-full">
+                                            <div className="flex gap-5 w-1/3">
+                                                <p>9.</p>
+                                                <p>Alamat</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.alamat || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-3 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>C.</p>
+                                        <p>KETERANGAN SEKOLAH SEBELUMNYA</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>10.</p>
+                                                <p>Asal Sekolah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.asal_sekolah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>11.</p>
+                                                <p>Tahun Masuk</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.tahun_masuk || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>12.</p>
+                                                <p>Jalur Masuk</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.kategori || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>D.</p>
+                                        <p>KETERANGAN ORANG TUA KANDUNG</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>13.</p>
+                                                <p>Nama Ayah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.nama_ayah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>14.</p>
+                                                <p>Pekerjaan Ayah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_ayah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>15.</p>
+                                                <p>No Telp Ayah</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.telp_ayah || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>16.</p>
+                                                <p>Nama Ibu</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.nama_ibu || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>17.</p>
+                                                <p>Pekerjaan Ibu</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_ibu || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>18.</p>
+                                                <p>No Telp Ibu</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.telp_ibu || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>19.</p>
+                                                <p>No Kartu Keluarga</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.no_kk || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="font-bold flex items-center gap-5">
+                                        <p>D.</p>
+                                        <p>KETERANGAN WALI</p>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>20.</p>
+                                                <p>Nama Wali</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.nama_wali || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>21.</p>
+                                                <p>Pekerjaan Wali</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_wali || '-'}</p>
+                                        </div>
+                                    </div>
+                                    <hr className="my-1 opacity-0" />
+                                    <div className="flex items-center gap-5 w-full">
+                                        <p className="opacity-0">A.</p>
+                                        <div className="flex items-center gap-5 w-full">
+                                            <div className="flex items-center gap-5 w-1/3">
+                                                <p>22.</p>
+                                                <p>No Telp Wali</p>
+                                            </div>
+                                            <p className="font-medium w-2/3 text-wrap">: {value.telp_wali || '-'}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr className="my-5 opacity-0" />
+                                    <div className="flex items-center w-full gap-5 h-full">
+                                        <div className="w-1/2 h-full"></div>
+                                        <div className="w-1/2 flex items-center justify-center gap-5 h-full">
+                                            <div className="w-[113.39px] h-[151.18px] border-2 border-zinc-700 flex items-center justify-center  font-bold flex-shrink-0">
+                                                <p className="text-zinc-500/0 text-3xl">3x4</p>
+                                            </div>
+                                            <div className="w-full flex flex-col justify-between h-60 ">
+                                                <p className="text-center">
+                                                    Bandung, ...................................
+                                                </p>
+                                                <p className="text-center font-bold">
+                                                    {value['nama_siswa']}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div className="w-full md:w-1/2 space-y-3">
-                            <select defaultValue={''} name="rombel" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
-                                <option value="" disabled>-- Pilih Rombel --</option>
-                                <option value="TKJ">TKJ</option>
-                                <option value="TITL">TITL</option>
-                                <option value="GEO">GEO</option>
-                                <option value="DPIB">DPIB</option>
-                                <option value="TKR">TKR</option>
-                                <option value="TPM">TPM</option>
-                            </select>
-                            <select defaultValue={''} name="status" className="w-full border px-3 py-1 rounded-full cursor-pointer bg-transparent dark:bg-zinc-800 dark:border-zinc-800 dark:text-zinc-200">
-                                <option value="" disabled>-- Pilih Status --</option>
-                                <option value="aktif">Aktif</option>
-                                <option value="tidak">Tidak Aktif</option>
-                            </select>
-                        </div>
-                    </div>
-                    <hr className="my-2 opacity-0" />
-                    <div className={`${selectedSiswa && selectedSiswa.length > 0 ? 'flex' : 'hidden'} items-center gap-3`}>
-                        <button type="submit"  className="px-3 py-2 rounded-full bg-green-100 text-green-700 font-medium flex items-center justify-center gap-3 text-sm hover:bg-green-600 hover:text-white dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:hover:text-green-500">
-                            <FontAwesomeIcon icon={faSave} className="w-4 h-4 text-inherit" />
-                            Simpan Perubahan
-                        </button>
-                        <button type="button" onClick={() => setSelectedSiswa([])}  className="px-3 py-2 rounded-full bg-zinc-100 text-zinc-700 font-medium md:hidden flex items-center justify-center gap-3 text-sm hover:bg-zinc-200 hover:text-zinc-800 dark:bg-zinc-100/10 dark:hover:bg-zinc-100/20 dark:text-zinc-200">
-                            <FontAwesomeIcon icon={faXmark} className="w-4 h-4 text-inherit" />
-                            Batalkan
-                        </button>
-                    </div>
-                </form>
-            </div>
+                    ))}
 
+                </div>
+            </div>  
         </MainLayoutPage>
-    )
-}
-
-function LoadingFetchSkeleton() {
-    return (
-        <div className="grid grid-cols-12 w-full  hover:bg-zinc-100 *:px-2 *:py-3 text-zinc-800 font-medium text-xs divide-x my-2">
-            <div className="flex items-center gap-3 col-span-8 md:col-span-4 place-items-center bg-zinc-600 rounded animate-pulse"></div>
-            <div className="hidden md:flex items-center col-span-2 bg-zinc-600 rounded animate-pulse"></div>
-            <div className="hidden md:flex items-center col-span-2 gap-3 bg-zinc-600 rounded animate-pulse"></div>
-            <div className="hidden md:flex items-center col-span-2 bg-zinc-600 rounded animate-pulse"></div>
-            <div className="flex justify-center items-center  col-span-4 md:col-span-2 gap-1 md:gap-2 bg-zinc-600 rounded animate-pulse"></div>
-        </div>
     )
 }
