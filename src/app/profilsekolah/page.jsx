@@ -4,7 +4,7 @@ import MainLayoutPage from "@/components/mainLayout"
 import { mont } from "@/config/fonts"
 import { getKepalaSekolah, getProfilSekolah } from "@/lib/model/profilSekolahModel"
 import { faEdit } from "@fortawesome/free-regular-svg-icons"
-import { faBookBookmark, faDownload, faIdBadge, faSearch } from "@fortawesome/free-solid-svg-icons"
+import { faBookBookmark, faDownload, faIdBadge, faSave, faSearch } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -51,59 +51,226 @@ export default function ProfilSekolahPage() {
     return (
         <MainLayoutPage>
             <Toaster />
-            <div className="mt-3">
-                <div className="flex items-center w-full gap-5 md:w-1/2">
-                    <button type="button" className="px-4 py-2 rounded-full bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-700 flex items-center justify-center md:w-fit gap-3 w-1/2 md:text-xl">
-                        <FontAwesomeIcon icon={faDownload} className="w-4 h-4 text-zinc-600" />
-                        Unduh Data
-                    </button>
-                    <button type="button" onClick={() => router.push('/profilsekolah/ubah')} className="px-4 py-2 rounded-full bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-700 flex items-center justify-center md:w-fit gap-3 w-1/2 md:text-xl">
-                        <FontAwesomeIcon icon={faEdit} className="w-4 h-4 text-zinc-600" />
-                        Ubah
-                    </button>
-                </div>
-                <hr className="my-3 opacity-0" />
-                <div className="relative overflow-hidden w-full rounded-lg border pb-6">
-                    <div className="w-full p-5 bg-gradient-to-r from-blue-500 to-cyan-500">
-                        <h1 className="text-white font-medium text-xl md:text-3xl flex items-center gap-5">
-                            <FontAwesomeIcon icon={faBookBookmark} className="w-5 h-5 text-inherit" />
-                            Data Identitas Sekolah
-                        </h1>
-                    </div>
-                    <hr className="my-2 opacity-0" />
-                    <div className="flex md:flex-row flex-col gap-5 px-3 md:px-8">
-                        <div className={`${mont.className} w-full md:w-1/2 bg-white  space-y-6`}>
-                            <div className="flex gap-1 md:gap-3 text-xs md:text-sm flex-col md:flex-row w-full">
-                                <p className="w-full md:w-2/6 opacity-60">Kepala Sekolah <span className="float-end hidden md:inline">:</span></p>
-                                <div className="w-full md:w-4/6">
-                                    {data['kepala_sekolah']}
-                                    <hr className="my-0.5 opacity-0" />
-                                    {data['id_kepala_sekolah'] && (
-                                        <button onClick={() => router.push(`/data/pegawai/id/${data['id_kepala_sekolah']}`)} type="button" className="flex items-center justify-center gap-2 text-xs px-3 py-1 font-medium bg-zinc-50 hover:bg-zinc-100 focus:bg-zinc-200 text-zinc-700 rounded-full">
-                                            <FontAwesomeIcon icon={faSearch} className="w-2 h-2 text-inherit" />
-                                            Lihat Profil
-                                        </button>
-                                    )}
+            <div className="p-5 border  dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
+                <button type="button" onClick={() => document.getElementById('ubah_profil').showModal()} className="px-3 rounded-md py-2 w-full md:w-fit flex items-center justify-center gap-3 border dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 ease-out duration-200">
+                    <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit opacity-50" />
+                    Ubah
+                </button>
+                <dialog id="ubah_profil" className="modal backdrop-blur">
+                    <div className="modal-box dark:bg-zinc-900 rounded-md border dark:border-zinc-700 md:max-w-[800px]">
+                        <form method="dialog">
+                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 className="font-bold text-lg">Ubah Profil Sekolah</h3>
+                        <hr className="my-3 dark:opacity-10" />
+                        <div className="grid md:grid-cols-2 grid-cols-1 gap-5">
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    NPSN
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
                                 </div>
                             </div>
-                            {formatDataArr.slice(0, formatDataArr.length / 2).map((format, index) => (
-                                <div key={`${format} - ${index}`} className="flex gap-1 md:gap-3 text-xs md:text-sm flex-col md:flex-row">
-                                    <p className="w-full md:w-2/6 opacity-60">{formatData[format]} <span className="float-end hidden md:inline">:</span></p>
-                                    <p className="w-full md:w-4/6">
-                                        {data[format] ? data[format] : '-'}
-                                    </p>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Status
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
                                 </div>
-                            ))}
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Bentuk Pendidikan
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Status Kepemilikan
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    SK Pendirian Sekolah
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Tanggal SK Pendirian Sekolah
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    SK Izin Operasional
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Tanggal SK Izin Operasional
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Operator
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Akreditasi
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Kurikulum
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                                <p className="w-full md:w-2/5 opacity-60">
+                                    Waktu
+                                </p>
+                                <div className="w-full md:w-3/5">
+                                    <input type="text" className="w-full px-2 py-1 rounded-md bg-transparent border dark:border-zinc-700 " />
+                                </div>
+                            </div>
+                            <button type="submit" className="px-3 py-2 w-full md:w-fit rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
+                                <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit opacity-50" />
+                                Simpan
+                            </button> 
                         </div>
-                        <div className={`${mont.className} w-full md:w-1/2 bg-white  space-y-6`}>
-                            {formatDataArr.slice(formatDataArr.length / 2, formatDataArr.length).map((format, index) => (
-                                <div key={`${format} - ${index}`} className="flex gap-1 md:gap-3 text-xs md:text-sm flex-col md:flex-row">
-                                    <p className="w-full md:w-2/6 opacity-60">{formatData[format]} <span className="float-end hidden md:inline">:</span></p>
-                                    <p className="w-full md:w-4/6">
-                                        {data[format] ? data[format] : '-'}
-                                    </p>
-                                </div>
-                            ))}
+                    </div>
+                </dialog>
+                <hr className="my-5 dark:opacity-10" />
+                <div className="grid md:grid-cols-2 grid-cols-1 gap-5">
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Kepala Sekolah
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            NPSN
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Status
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Bentuk Pendidikan
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Status Kepemilikan
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            SK Pendirian Sekolah
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Tanggal SK Pendirian Sekolah
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            SK Izin Operasional
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Tanggal SK Izin Operasional
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Operator
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Akreditasi
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Kurikulum
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
+                        </div>
+                    </div>
+                    <div className="flex w-full flex-col md:flex-row md:items-center gap-1">
+                        <p className="w-full md:w-2/5 opacity-60">
+                            Waktu
+                        </p>
+                        <div className="w-full md:w-3/5">
+                            <div className="loading loading-sm loading-spinner opacity-50"></div>
                         </div>
                     </div>
                 </div>
