@@ -138,15 +138,22 @@ export default function MainLayoutPage({children}) {
                         ):(
                             <div className="flex items-center gap-3">
                                 <div className="hidden md:flex items-center gap-3 ">
-                                    <p className="px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-500">
-                                        Admin
-                                    </p>
+                                    {loggedAkun['role_akun'] === 'Admin' && (
+                                        <p className="px-2 py-1 rounded-full text-xs font-medium border bg-red-500/20 text-red-500 border-red-500">
+                                            Admin
+                                        </p>
+                                    )}
+                                    {loggedAkun['role_akun'] === 'Operator' && (
+                                        <p className="px-2 py-1 rounded-full text-xs font-medium border bg-amber-500/20 text-amber-500 border-amber-500">
+                                            Operator
+                                        </p>
+                                    )}
                                     <article className="text-end">
                                         <p className="text-xs">
-                                            kakangtea74@gmail.com
+                                            {loggedAkun['email_akun']}
                                         </p>
                                         <p className="text-xs opacity-50">
-                                            Ziyad
+                                            {loggedAkun['nama_akun']}
                                         </p>
                                     </article>
                                 </div>
