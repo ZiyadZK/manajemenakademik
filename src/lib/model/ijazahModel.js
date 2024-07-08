@@ -13,18 +13,27 @@ export const getAllIjazah = async () => {
 }
 
 export const createMultiIjazah = async (payload) => {
-    const responseData = await urlPost('/v1/data/ijazah', payload)
-
-    await logRiwayat({
-        aksi: 'Tambah',
-        kategori: 'Data Ijazah',
-        keterangan: `Menambah ${Array.isArray(payload) ? payload.length : '1'} Data ke dalam Data Ijazah`,
-        records: `${JSON.stringify(Array.isArray(payload) ? payload : {...payload})}`
-    })
-
-    return {
-        success: responseData.success,
-        message: responseData.result
+    try {
+        
+        const responseData = await urlPost('/v1/data/ijazah', payload)
+    
+        await logRiwayat({
+            aksi: 'Tambah',
+            kategori: 'Data Ijazah',
+            keterangan: `Menambah ${Array.isArray(payload) ? payload.length : '1'} Data ke dalam Data Ijazah`,
+            records: `${JSON.stringify(Array.isArray(payload) ? payload : {...payload})}`
+        })
+    
+        return {
+            success: true,
+            message: responseData.result
+        }
+    } catch (error) {
+        console.log(error.result.data)
+        return {
+            success: false,
+            message: error.result.data.error
+        }
     }
 }
 
@@ -45,7 +54,7 @@ export const updateMultiIjazah = async (arrayNisn, payload) => {
 }
 
 export const deleteMultiIjazah = async (arrayNisn) => {
-    const responseData = await urlDelete('/v1/data/ijazah', arrayNisn)
+    const responseData = await urlDelete('/v1/data/ijazah', {arrayNisn})
 
     await logRiwayat({
         aksi: 'Hapus',
