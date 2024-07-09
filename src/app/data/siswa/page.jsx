@@ -588,7 +588,7 @@ export default function DataSiswaPage() {
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
-                        text: `Berhasil ${kelas !== 'XII' ? 'menaikkan kelas' : 'meluluskan'} siswa tersebut`,
+                        text: `Berhasil ${kriteria === 'naik' ? (kelas === 'XII' ? 'Meluluskan' : 'Menaikkan Kelas') : 'Menurunkan Kelas'} siswa tersebut`,
                         icon: 'success'
                     })
                 }else{
