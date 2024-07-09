@@ -1,553 +1,566 @@
 'use client'
 
 import MainLayoutPage from "@/components/mainLayout"
-import { jakarta, mont, nunito, rale } from "@/config/fonts"
-import { ioServer } from "@/lib/io"
-import { deleteGuruBK, deleteRoleKelas, deleteWaliKelas, getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
+import { deleteRoleKelas, getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
 import { getAllPegawai } from "@/lib/model/pegawaiModel"
 import { getAllSiswa } from "@/lib/model/siswaModel"
-import { faEdit, faFile, faTrashCan } from "@fortawesome/free-regular-svg-icons"
-import { faCircleCheck, faCircleXmark, faInfoCircle, faUser } from "@fortawesome/free-solid-svg-icons"
+import { faEdit, faSave, faUser, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useCallback, useEffect, useState } from "react"
-import toast, { Toaster } from "react-hot-toast"
+import { useEffect, useState } from "react"
+import { Toaster } from "react-hot-toast"
 import Swal from "sweetalert2"
 
-const warnaJurusan = {
-    TKJ: 'green',
-    GEO: 'red',
-    DPIB: 'amber',
-    TPM: 'orange',
-    TKR: 'blue',
-    TITL: 'zinc'
+const formatFormUbahWaliKelas = {
+    kelas: '',
+    jurusan: '',
+    rombel: '',
+    fk_walikelas_id_pegawai: '',
+    nama_wali_kelas: ''
+}
 
+const formatFormUbahGuruBK = {
+    kelas: '',
+    jurusan: '',
+    rombel: '',
+    fk_gurubk_id_pegawai: '',
+    nama_gurubk_kelas: ''
 }
 
 export default function DataKelasPage() {
+
+    const [formUbahWaliKelas, setFormUbahWaliKelas] = useState(formatFormUbahWaliKelas)
+    const [formUbahGuruBK, setFormUbahGuruBK] = useState(formatFormUbahGuruBK)
+
     const [kelasList, setKelasList] = useState([])
+    const [dataKelas, setDataKelas] = useState([])
+    const [siswaList, setSiswaList] = useState([])
     const [filteredKelasList, setFilteredKelasList] = useState([])
+    const [loadingFetch, setLoadingFetch] = useState({
+        kelas: '', pegawai: '', dataKelas: ''
+    })
+    const [filterData, setFilterData] = useState({
+        kelas: [], jurusan: [], rombel: [], nama_wali_kelas: '', nama_gurubk_kelas: ''
+    })
     const [pegawaiList, setPegawaiList] = useState([])
     const [filteredPegawaiList, setFilteredPegawaiList] = useState([])
-    const [dataKelas, setDataKelas] = useState([])
-    const [kelasListLoading, setKelasListLoading] = useState('')
-    const [filterKelas, setFilterKelas] = useState({
-        kelas: [], rombel: [], no_rombel: [], nama_walikelas: '', nama_guru_bk: ''
-    })
-    const [filterPegawai, setFilterPegawai] = useState('')
-
-    const [statusSocket, setStatusSocket] = useState('')
+    const [searchPegawaiList, setSearchPegawaiList] = useState('')
 
     useEffect(() => {
+        setFilteredPegawaiList(state => {
+            let updatedData = pegawaiList
 
-        if(ioServer.connected) {
-            setStatusSocket('online')
-        }else{
-            console.log('Socket Server is offline!')
-            setStatusSocket('offline')
-        }
+            if(searchPegawaiList !== '') {
+                updatedData = updatedData.filter(value => 
+                    value['nama_pegawai'].toLowerCase().includes(searchPegawaiList.toLowerCase())
+                )
+            }
 
-        ioServer.on('SIMAK_KELAS', () => {
-            getKelasList()
-            getPegawaiList()
-            getDataKelas()
+            return updatedData
         })
-    }, [])
+    }, [searchPegawaiList])
 
-    const submitFilterPegawai = () => {
-        let updatedData = pegawaiList
-
-        if(filterPegawai !== '') {
-            updatedData = updatedData.filter(pegawai => pegawai['nama_pegawai'].toLowerCase().includes(filterPegawai.toLowerCase()) ||
-                pegawai['nik'].toLowerCase().includes(filterPegawai.toLowerCase()) ||
-                pegawai['nip'].toLowerCase().includes(filterPegawai.toLowerCase())
-            )
+    const getKelasList = async () => {
+        setLoadingFetch(state => ({...state, kelas: 'loading'}))
+        const response = await getAllSiswa()
+        const data = Array.from(new Set(response.map(value => `${value['kelas']} ${value['jurusan']} ${value['rombel']}`))).map(value => value)
+        setKelasList(data)
+        setFilteredKelasList(data)
+        setSiswaList(response)
+        setLoadingFetch(state => ({...state, kelas: 'fetched'}))   
+    }
+    
+    const getPegawai = async () => {
+        setLoadingFetch(state => ({...state, pegawai: 'loading'}))
+        const response = await getAllPegawai()
+        if(response.success) {
+            setPegawaiList(response.data)
+            setFilteredPegawaiList(response.data)
         }
+        setLoadingFetch(state => ({...state, pegawai: 'fetched'}))
+    }
 
-        setFilteredPegawaiList(updatedData)
+    const getDataKelas = async () => {
+        setLoadingFetch(state => ({...state, dataKelas: 'loading'}))
+        const response = await getAllKelas()
+        if(response.success) {
+            setDataKelas(response.data)
+        }
+        setLoadingFetch(state => ({...state, dataKelas: 'fetched'}))
+    }
+
+    const countSiswaFromKelas = (kelas, jurusan, rombel) => {
+        return siswaList.filter(value => value['kelas'] === kelas).filter(value => value['jurusan'] === jurusan).filter(value => value['rombel'] === rombel).length
+    }
+
+    const getPegawaiFromDataKelas = (kelas, jurusan, rombel) => {
+        return dataKelas.find(value => value['kelas'] === kelas && value['jurusan'] === jurusan && value['rombel'] === rombel)
     }
 
     useEffect(() => {
-        submitFilterPegawai()
-    }, [filterPegawai])
+        getKelasList()
+        getPegawai()
+        getDataKelas()
+    }, [])
 
+    const handleFilterData = (kolom, value) => {
+        setFilterData(state => {
+            let updatedState
+            let updatedFilter
 
-    const getPegawaiList = useCallback(async () => {
-        const responseData = await getAllPegawai()
-        if(responseData.success) {
-            setPegawaiList(responseData.data)
-            setFilteredPegawaiList(responseData.data)
+            if(state[kolom].includes(value)) {
+                updatedFilter = state[kolom].filter(v => v !== value)
+                updatedState = {...state, [kolom]: updatedFilter}
+            }else{
+                updatedState = {...state, [kolom]: [...state[kolom], value]}
+            }
+
+            return updatedState
+        })
+    }
+
+    const handleEditKelas = (kelas, jurusan, rombel, type) => {
+        if(type == 'wali_kelas') {
+            setFormUbahWaliKelas(state => ({
+                ...state,
+                kelas,
+                jurusan,
+                rombel
+            }))
+            
+            document.getElementById('ubah_wali_kelas').showModal()
+        }else{
+            setFormUbahGuruBK(state => ({
+                ...state,
+                kelas,
+                jurusan,
+                rombel
+            }))
+            document.getElementById('ubah_gurubk_kelas').showModal()
         }
-    })
+    }
 
-    const submitSetRoleKelas = async (event, radioname, modal, kelas, rombel, no_rombel, role) => {
-        event.preventDefault()
+    const submitEditKelas = async (e, modal, type) => {
+        e.preventDefault()
+
+        if(type === 'wali_kelas') {
+            if(formUbahWaliKelas['fk_walikelas_id_pegawai'] === '') {
+                return
+            }
+        }else{
+            if(formUbahGuruBK['fk_gurubk_id_pegawai'] === '') {
+                return
+            }
+        }
 
         document.getElementById(modal).close()
-        const formData = new FormData(event.target)
-        const id = formData.get(radioname)
-
-        if(id === null) {
-            return toast.error('Anda harus memilih pegawai terlebih dahulu!')
-        }
 
         Swal.fire({
             title: 'Sedang memproses data',
-            allowOutsideClick: false,
             showConfirmButton: false,
-            timer: 15000,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            timer: 60000,
+            timerProgressBar: true,
             didOpen: async () => {
+                let response
 
-                const dataPegawai = pegawaiList.find(pegawai => pegawai.id_pegawai.toString() === id.toString())
-                
-                let responseData
-                if(role === 'Wali Kelas') {
-                    responseData = await setWaliKelas(kelas, rombel, no_rombel, {
-                        id_pegawai: String(dataPegawai.id_pegawai),
-                        nama_pegawai: dataPegawai.nama_pegawai,
-                        nik_pegawai: dataPegawai.nik,
-                        email_pegawai: dataPegawai.email_pegawai
-                    })
+                if(type === 'wali_kelas') {
+                    const {nama_pegawai, ...payload} = formUbahWaliKelas
+                    response = await setWaliKelas(payload['kelas'], payload['jurusan'], payload['rombel'], payload)
                 }else{
-                    responseData = await setGuruBK(kelas, rombel, no_rombel, {
-                        id_pegawai: String(dataPegawai.id_pegawai),
-                        nama_pegawai: dataPegawai.nama_pegawai,
-                        nik_pegawai: dataPegawai.nik,
-                        email_pegawai: dataPegawai.email_pegawai
-                    })
+                    const {nama_pegawai, ...payload} = formUbahGuruBK
+                    response = await setGuruBK(payload['kelas'], payload['jurusan'], payload['rombel'], payload)
                 }
 
-                if(responseData.success) {
-                    Swal.close()
-                    if(statusSocket !== 'online') {
-                        getKelasList()
-                        getPegawaiList()
-                        getDataKelas()
+                if(response.success) {
+                    await getDataKelas()
+                    if(type === 'wali_kelas') {
+                        setFormUbahWaliKelas(formatFormUbahWaliKelas)
+                    }else{
+                        setFormUbahGuruBK(formatFormUbahGuruBK)
                     }
-                    return toast.success(`Berhasil menambahkan data ${role} ${kelas} ${rombel} ${no_rombel}`)
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: 'Berhasil mengubah data kelas tersebut',
+                        icon: 'success'
+                    })
                 }else{
                     Swal.fire({
-                        title: 'Error',
-                        text: 'Gagal memproses data, terdapat error di saat memproses data',
+                        title: 'Gagal',
+                        text: "Terdapat kesalahan disaat memproses data, hubungi Administrator",
+                        icon: 'error'
+                    }).then(() => {
+                        document.getElementById(modal).showModal()
+                    })
+                }
+            }
+        })
+    }
+
+    const submitDeleteKelas = async (kelas, jurusan, rombel, type) => {
+        Swal.fire({
+            title: 'Sedang memproses data',
+            timer: 60000,
+            timerProgressBar: true,
+            showConfirmButton: false,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            didOpen: async () => {
+                const response = await deleteRoleKelas({ kelas, jurusan, rombel }, type)
+
+                if(response.success) {
+                    await getDataKelas()
+                    Swal.fire({
+                        title: 'Sukses',
+                        text: `Berhasil menghapus Data ${type} dari kelas tersebut`,
+                        icon: 'success'
+                    })
+                }else{
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: 'Terdapat kesalahan disaat memproses data, hubungi Administrator!',
                         icon: 'error'
                     })
                 }
             }
-        }) 
-    }
-
-    const submitDeleteRoleKelas = async (kelas, rombel, no_rombel, role) => {
-        Swal.fire({
-            title: `Apakah anda yakin?`,
-            text: `Anda akan mencabut status ${role} untuk kelas ${kelas} ${rombel} ${no_rombel}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Ya',
-            cancelButtonText: 'Tidak'
-        }).then(async result => {
-            if(result.isConfirmed) {
-                Swal.fire({
-                    title: 'Sedang memproses data',
-                    allowOutsideClick: false,
-                    showConfirmButton: false,
-                    timer: 10000,
-                    didOpen: async () => {
-                        const responseData = await deleteRoleKelas({kelas, rombel, no_rombel}, role)
-
-                        if(responseData.success) {
-                            if(statusSocket !== 'online') {
-                                getKelasList()
-                                getPegawaiList()
-                                getDataKelas()
-                            }
-                            Swal.fire({
-                                title: 'Sukses',
-                                text: `Berhasil menghapus data ${role} untuk kelas ${kelas} ${rombel} ${no_rombel}`,
-                                icon: 'success'
-                            })
-                        }else{
-                            Swal.fire({
-                                title: 'Gagal',
-                                text: 'Terdapat error disaat menghapus data, silahkan cek log server!',
-                                icon: 'error'
-                            })
-                        }
-                    }
-                })
-            }
         })
     }
 
-    const getDataKelas = useCallback(async() => {
-        const responseData = await getAllKelas()
+    useEffect(() => {
+        let updatedData = kelasList
 
-        if(responseData.success) {
-            setDataKelas(responseData.data)
-        } 
-    })
-
-    const submitFilterKelas = (data) => {
-
-        let updatedData
-        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
-            updatedData = kelasList
-        }else{
-            updatedData = data
+        if(filterData['kelas'].length > 0) {
+            updatedData = updatedData.filter(value =>
+                filterData['kelas'].includes(value.split(' ')[0]) 
+            )
         }
 
-        // Filter kelas
-        if(filterKelas['kelas'].length > 0) {
-            updatedData = updatedData.filter(data => filterKelas['kelas'].includes(data['kelas']))
+        if(filterData['jurusan'].length > 0) {
+            updatedData = updatedData.filter(value =>
+                filterData['jurusan'].includes(value.split(' ')[1]) 
+            )
         }
 
-        // Filter Jurusan
-        if(filterKelas['rombel'].length > 0) {
-            updatedData = updatedData.filter(data => filterKelas['rombel'].includes(data['rombel']))
+        if(filterData['rombel'].length > 0) {
+            updatedData = updatedData.filter(value =>
+                filterData['rombel'].includes(value.split(' ')[2]) 
+            )
         }
-
-        // Filter Rombel
-        if(filterKelas['no_rombel'].length > 0) {
-            updatedData = updatedData.filter(data => filterKelas['no_rombel'].includes(data['no_rombel']))
-        }
-
-        // Filter walikelas
-        if(filterKelas['nama_walikelas'] !== '') {
-            updatedData = updatedData.filter(data => data['nama_walikelas'].toLowerCase().includes(filterKelas['nama_walikelas'].toLowerCase()))
-        }
-
-        if(filterKelas['nama_guru_bk'] !== '') {
-            updatedData = updatedData.filter(data => data['nama_guru_bk'].toLowerCase().includes(filterKelas['nama_guru_bk'].toLowerCase()))
-        }
-
+        
         setFilteredKelasList(updatedData)
-    }
-
-    const changeFilterKelas = (field, value) => {
-        // Create a shallow copy of the filterKelas object
-        let updatedFilter = { ...filterKelas };
-    
-        if (Array.isArray(filterKelas[field])) {
-            if (updatedFilter[field].includes(value)) {
-                // Create a new array without the value
-                updatedFilter[field] = updatedFilter[field].filter(item => item !== value);
-            } else {
-                // Create a new array with the value added
-                updatedFilter[field].push(value);
-            }
-        } else {
-            // Directly assign the value if it's not an array
-            updatedFilter[field] = value;
-        }
-    
-        setFilterKelas(updatedFilter)
-    };
-
-    const getKelasList = useCallback(async () => {
-        const responseSiswa = await getAllSiswa()
-        const responseKelas = await getAllKelas()
-
-        let kelasCounts = {}
-        responseSiswa.forEach(({nisn, kelas, rombel, no_rombel}) => {
-            const key = `${kelas}-${rombel}-${no_rombel}`
-
-            kelasCounts[key] = (kelasCounts[key] || 0) + 1
-
-        })
-
-        let kelasOrder = []
-        let rombelOrder = []
-        let no_rombelOrder = []
-
-        responseSiswa.forEach(siswa => {
-            if(!kelasOrder.includes(siswa.kelas)) {
-                kelasOrder.push(siswa.kelas)
-            }
-
-            if(!rombelOrder.includes(siswa.rombel)) {
-                rombelOrder.push(siswa.rombel)
-            }
-
-            if(!no_rombelOrder.includes(siswa.no_rombel)) {
-                no_rombelOrder.push(siswa.no_rombel)
-            }
-        })
-
-        // Sort orders in descending order
-        kelasOrder.sort((a, b) => a.localeCompare(b));
-        rombelOrder.sort((a, b) => a.localeCompare(b));
-        no_rombelOrder.sort((a, b) => a.localeCompare(b));
-
-        const updatedKelasList = Object.keys(kelasCounts).map(key => {
-            const [kelas, rombel, no_rombel] = key.split('-')
-            return { kelas, rombel, no_rombel, length: kelasCounts[key]}
-        })
-
-        updatedKelasList.sort((a, b) => {
-            const kelasComparison = kelasOrder.indexOf(a.kelas) - kelasOrder.indexOf(b.kelas);
-            if (kelasComparison !== 0) return kelasComparison;
-      
-            const rombelComparison = rombelOrder.indexOf(a.rombel) - rombelOrder.indexOf(b.rombel);
-            if (rombelComparison !== 0) return rombelComparison;
-      
-            return no_rombelOrder.indexOf(a.no_rombel) - no_rombelOrder.indexOf(b.no_rombel);
-          });
-
-        const newUpdatedKelasList = updatedKelasList.map(valueKelasList => {
-            const dataKelasList = responseKelas.data.find(valueKelas => valueKelas.kelas === valueKelasList.kelas && valueKelas.rombel === valueKelasList.rombel && valueKelas.no_rombel === valueKelasList.no_rombel)
-            
-            if(dataKelasList) {
-                return {
-                    ...valueKelasList,
-                    nama_walikelas: dataKelasList.nama_walikelas ? dataKelasList.nama_walikelas : '',
-                    id_walikelas: dataKelasList.id_walikelas ? dataKelasList.id_walikelas : '',
-                    nik_walikelas: dataKelasList.nik_walikelas ? dataKelasList.nik_walikelas : '',
-                    nama_guru_bk: dataKelasList.nama_guru_bk ? dataKelasList.nama_guru_bk : '',
-                    id_guru_bk: dataKelasList.id_guru_bk ? dataKelasList.id_guru_bk : '',
-                    nik_guru_bk: dataKelasList.nik_guru_bk ? dataKelasList.nik_guru_bk : ''
-                }
-            }else{
-                return {
-                    ...valueKelasList,
-                    nama_walikelas: '',
-                    id_walikelas: '',
-                    nik_walikelas: '',
-                    nama_guru_bk: '',
-                    id_guru_bk: '',
-                    nik_guru_bk: ''
-                }
-            }
-        })
-
-        setKelasListLoading('fetched')
-
-        setKelasList(newUpdatedKelasList)
-        setFilteredKelasList(newUpdatedKelasList)
-    })
-
-    useEffect(() => {
-        getKelasList()
-        getPegawaiList()
-        getDataKelas()
-    }, [])
-
-    useEffect(() => {
-        submitFilterKelas()
-    }, [filterKelas])
+    }, [filterData])
 
     return (
         <MainLayoutPage>
             <Toaster />
-            <div className={`mt-3 ${jakarta.className}`}>
-                <div className="md:space-y-5 space-y-3">
-                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
-                        <p className="text-sm opacity-70 md:w-2/5">
-                            Pilih Kelas
-                        </p>
-                        <div className="flex items-center gap-3 md:w-3/5">
-                            <button type="button" onClick={() => changeFilterKelas('kelas', 'X')} className={` ${filterKelas['kelas'].includes('X') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                X
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('kelas', 'XI')} className={` ${filterKelas['kelas'].includes('XI') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                XI
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('kelas', 'XII')} className={` ${filterKelas['kelas'].includes('XII') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                XII
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
-                        <p className="text-sm opacity-70 md:w-2/5">
-                            Pilih Jurusan
-                        </p>
-                        <div className="flex items-center gap-3 md:w-3/5 relative overflow-auto">
-                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TKJ')} className={` ${filterKelas['rombel'].includes('TKJ') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                TKJ
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TITL')} className={` ${filterKelas['rombel'].includes('TITL') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                TITL 
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TPM')} className={` ${filterKelas['rombel'].includes('TPM') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                TPM
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('rombel', 'TKR')} className={` ${filterKelas['rombel'].includes('TKR') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                TKR
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('rombel', 'DPIB')} className={` ${filterKelas['rombel'].includes('DPIB') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                DPIB 
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('rombel', 'GEO')} className={` ${filterKelas['rombel'].includes('GEO') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                GEO
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
-                        <p className="text-sm opacity-70 md:w-2/5">
-                            Pilih Rombel
-                        </p>
-                        <div className="flex items-center gap-3 md:w-3/5">
-                            <button type="button" onClick={() => changeFilterKelas('no_rombel', '1')} className={` ${filterKelas['no_rombel'].includes('1') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                1
-                            </button>
-                            <button type="button"  onClick={() => changeFilterKelas('no_rombel', '2')} className={` ${filterKelas['no_rombel'].includes('2') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                2
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('no_rombel', '3')} className={` ${filterKelas['no_rombel'].includes('3') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                3
-                            </button>
-                            <button type="button" onClick={() => changeFilterKelas('no_rombel', '4')} className={` ${filterKelas['no_rombel'].includes('4') ? 'bg-blue-50/50 border-blue-500 text-blue-700 hover:bg-blue-50' : 'hover:bg-zinc-100 hover:text-zinc-700 text-zinc-500'}  rounded  border flex items-center justify-center text-sm px-3 h-10 `}>
-                                4
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
-                        <p className="text-sm opacity-70 md:w-2/5">
-                            Cari Walikelas
-                        </p>
-                        <div className="flex items-center gap-3 md:w-3/5">
-                            <input type="text" onChange={e => changeFilterKelas('nama_walikelas', e.target.value)} className="text-sm w-full border h-10 px-3 rounded bg-white" placeholder="Masukkan Nama di sini" />
-                        </div>
-                    </div>
-                    <div className="flex md:items-center flex-col md:flex-row w-full md:w-1/2">
-                        <p className="text-sm opacity-70 md:w-2/5">
-                            Cari Guru BK
-                        </p>
-                        <div className="flex items-center gap-3 md:w-3/5">
-                            <input type="text" onChange={e => changeFilterKelas('nama_guru_bk', e.target.value)} className="text-sm w-full border h-10 px-3 rounded bg-white" placeholder="Masukkan Nama di sini" />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-5">
-                        <div className="flex items-center gap-3">
-                            <p className="text-xs opacity-70">
-                                Socket Server:
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
+                {loadingFetch['kelas'] !== 'fetched' && (
+                    <div className="loading loading-spinner loading-sm opacity-50"></div>
+                )}
+                {loadingFetch['kelas'] === 'fetched' && siswaList.length > 0 && (
+                    <div className="space-y-2">
+                        <div className="flex md:items-center flex-col md:flex-row gap-1">
+                            <p className="opacity-70 w-full md:w-1/6">
+                                Kelas
                             </p>
-                            {statusSocket === '' && (
-                                <div className="loading loading-spinner loading-sm text-zinc-500"></div>
-                            )}
-                            {statusSocket === 'online' && (
-                                <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
-                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                    Online
-                                </div>
-                            )}
-                            {statusSocket === 'offline' && (
-                                <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
-                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                    Offline
-                                </div>
-                            )}
+                            <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                {Array.from(new Set(siswaList.map(value => value['kelas']))).map((value, index) => (
+                                    <button key={index} onClick={() => handleFilterData('kelas', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['kelas'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                        {value}
+                                    </button>
+                                ))}      
+                            </div>
                         </div>
-                        <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
-                            <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
-                        </button>
-                    </div>
-                    <dialog id="info_socket" className="modal">
-                        <div className="modal-box">
-                            <form method="dialog">
-                            {/* if there is a button in form, it will close the modal */}
-                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                            </form>
-                            <h3 className="font-bold text-lg">Hello!</h3>
-                            <p className="py-4">Press ESC key or click on ✕ button to close</p>
+                        <div className="flex md:items-center flex-col md:flex-row gap-1">
+                            <p className="opacity-70 w-full md:w-1/6">
+                                Jurusan
+                            </p>
+                            <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                {Array.from(new Set(siswaList.map(value => value['jurusan']))).map((value, index) => (
+                                    <button key={index} onClick={() => handleFilterData('jurusan', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['jurusan'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                        {value}
+                                    </button>
+                                ))}      
+                            </div>
                         </div>
-                    </dialog>
-                </div>
-                <hr className="my-3" />
-                {kelasListLoading !== 'fetched' && (
-                    <div className="flex w-full h-screen  gap-5 items-center justify-center text-blue-400">
-                        <div className="loading loading-spinner loading-lg text-inherit"></div>
-                        Sedang mendapatkan data
+                        <div className="flex md:items-center flex-col md:flex-row gap-1">
+                            <p className="opacity-70 w-full md:w-1/6">
+                                Rombel
+                            </p>
+                            <div className="flex w-full md:w-5/6 items-center gap-2 relative overflow-auto *:flex-shrink-0">
+                                {Array.from(new Set(siswaList.map(value => value['rombel']))).map((value, index) => (
+                                    <button key={index} onClick={() => handleFilterData('rombel', value)} type="button" className={`px-3 py-2 rounded-md ${filterData['rombel'].includes(value) ? 'bg-zinc-100 dark:bg-zinc-800' : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'} ease-out duration-200`}>
+                                        {value}
+                                    </button>
+                                ))}      
+                            </div>
+                        </div>
                     </div>
                 )}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {filteredKelasList.map((dataKelasList, index) => (
-                        <div key={index} className="w-full p-5 rounded-lg border hover:shadow-lg transition-all duration-300 hover:border-white/0">                       
-                            <div className="flex items-center justify-between">
-                                <div className=" flex items-center gap-3">
-                                    <h1 className={`font-medium text-lg lg:text-xl text-transparent bg-clip-text bg-gradient-to-l from-zinc-600 to-zinc-700 `}>
-                                        {dataKelasList.kelas} {dataKelasList.rombel} {dataKelasList.no_rombel}
-                                    </h1>
-                                    <p className={`px-2 py-1 rounded-full flex items-center w-fit gap-1 text-xs tracking-tighter bg-${warnaJurusan[dataKelasList.rombel]}-100 text-${warnaJurusan[dataKelasList.rombel]}-600`}>
-                                        <FontAwesomeIcon icon={faUser} className="w-2 h-2 text-inherit " />
-                                        {dataKelasList.length} Siswa
-                                    </p>
+
+                <hr className="my-5 dark:opacity-10" />
+
+                <div className="grid md:grid-cols-3 gap-2 grid-cols-1">
+                    {filteredKelasList.map(value => (
+                        <div className="w-full p-2 rounded-md border dark:border-zinc-700">
+                            <div className="flex justify-between items-center p-2 rounded-md border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
+                                <h1 className="text-lg md:text-2xl font-extrabold dark:text-zinc-300 text-zinc-600">
+                                    {value}
+                                </h1>
+                                <div className="px-2 py-1 flex items-center gap-3 justify-center w-fit rounded-full bg-white text-zinc-800 dark:bg-zinc-950 dark:text-amber-200">
+                                    <FontAwesomeIcon icon={faUser} className="w-2 h-2 text-inherit opacity-70" />
+                                    {countSiswaFromKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2])}
                                 </div>
                             </div>
                             <hr className="my-1 opacity-0" />
-                            <div className="bg-zinc-50 p-5 md:p-2 rounded-lg">
-                            {['Wali Kelas', 'Guru BK'].map((role, i) => (
-                                <div key={i} className="flex md:items-center md:flex-row flex-col gap-1">
-                                <div className="text-xs opacity-60 w-full md:w-2/5 flex justify-between items-center">
-                                    {role}
-                                    <div className="hidden md:block">:</div>
-                                </div>
-                                <div className="flex justify-between items-center w-full md:w-3/5 group">
-                                    <p className="font-medium text-sm">
-                                        {role === 'Wali Kelas' ? (
-                                            <span>{dataKelasList.nama_walikelas}</span>
-                                        ):(
-                                            <span>{dataKelasList.nama_guru_bk}</span>
-                                        )}
-                                    </p>
-                                    <div className="flex items-center gap-3">
-                                        <button type="button" onClick={() => submitDeleteRoleKelas(dataKelasList.kelas, dataKelasList.rombel, dataKelasList.no_rombel, role)} className="hover:text-red-600 text-zinc-400 opacity-100 md:opacity-0 group-hover:opacity-100">
-                                            <FontAwesomeIcon icon={faTrashCan} className="w-3 h-3 text-inherit" />
-                                        </button>
-                                        
-                                        <button type="button" onClick={() => document.getElementById(`modal_ubah_${index}_${i}`).showModal()} className="hover:text-blue-600 text-zinc-400 opacity-100 md:opacity-0 group-hover:opacity-100">
-                                            <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
-                                        </button>
-                                        <dialog id={`modal_ubah_${index}_${i}`} className="modal">
-                                            <div className="modal-box bg-white">
-                                                <form method="dialog">
-                                                    <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                                                </form>
-                                                <h3 className="font-bold text-lg">Ubah {role} {dataKelasList.kelas} {dataKelasList.rombel} {dataKelasList.no_rombel}</h3>
-                                                <hr className="my-2 opacity-0" />
-                                                <input type="text" value={filterPegawai} onChange={e => setFilterPegawai(e.target.value)} className="px-3 py-2 bg-white rounded border w-full text-xs md:text-sm" placeholder="Cari data guru disini" />
-                                                <hr className="my-1 opacity-0" />
-                                                <form onSubmit={e => submitSetRoleKelas(e, `ubah_${role}_${index}_${i}`, `modal_ubah_${index}_${i}`, dataKelasList.kelas, dataKelasList.rombel, dataKelasList.no_rombel, role)}>
-                                                    <div className="relative w-full h-80 overflow-auto space-y-1">
-                                                        {filteredPegawaiList.slice(0, 20).map((pegawai, indexPegawai) => (
-                                                            <div key={indexPegawai} className="p-3 rounded border flex items-center justify-between has-[:checked]:border-blue-400 has-[:checked]:text-blue-600 has-[:checked]:bg-blue-50">
-                                                                <div className="">
-                                                                    <h1 className="font-medium md:text-lg">
-                                                                        {pegawai.nama_pegawai}
-                                                                    </h1>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <p className="text-xs md:text-sm opacity-60">
-                                                                            {pegawai.jabatan}
-                                                                        </p>
-                                                                        -
-                                                                        <p className="text-xs md:text-sm opacity-60">
-                                                                            {pegawai.nik}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                                <input type="radio" name={`ubah_${role}_${index}_${i}`} defaultChecked={role === 'Wali Kelas' ? (pegawai.id_pegawai === dataKelasList.id_walikelas) : (pegawai.id_pegawai === dataKelasList.id_guru_bk)} value={`${pegawai.id_pegawai}`} />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                    <hr className="my-2 opacity-0" />
-                                                    <div className="flex w-full md:w-fit gap-2 md:items-center md:justify-start">
-                                                        <button type="submit"  className="p-2 rounded-full bg-green-700 hover:shadow-lg hover:bg-green-600 text-white flex items-center justify-center gap-2">
-                                                            <FontAwesomeIcon icon={faCircleCheck} className="w-3 h-3 text-inherit" />
-                                                            Ya, Saya Yakin
-                                                        </button>
-                                                        <button type="button" onClick={() => document.getElementById(`modal_ubah_${index}_${i}`).close()} className="p-2 rounded-full bg-red-700 hover:shadow-lg hover:bg-red-600 text-white flex items-center justify-center gap-2">
-                                                            <FontAwesomeIcon icon={faCircleXmark} className="w-3 h-3 text-inherit" />
-                                                            Tidak
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </dialog>
+                            <div className="space-y-0">
+                                <div className="flex flex-col md:flex-row gap-1 md:items-center px-2 py-3 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 rounded-md ease-out duration-200">
+                                    <div className="w-full md:w-1/5 flex justify-between items-center">
+                                        <div className="w-full opacity-60">
+                                            Wali Kelas
+                                        </div>
+                                        <div className="flex md:hidden items-center gap-2">
+                                            <button type="button" onClick={() => handleEditKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'wali_kelas', '')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                            <button type="button" onClick={() => submitDeleteKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'Wali Kelas')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="w-full md:w-4/5 flex justify-between items-center">
+                                        <p className="w-full">
+                                            {loadingFetch['dataKelas'] !== 'fetched' && (
+                                                <div className="loading loading-dots loading-xs opacity-50"></div>
+                                            )}
+                                            {getPegawaiFromDataKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2])?.nama_wali_kelas}
+                                        </p>
+                                        <div className="hidden md:flex items-center gap-1">
+                                            <button type="button" onClick={() => handleEditKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'wali_kelas', '')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                            <button type="button" onClick={() => submitDeleteKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'Wali Kelas')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
+                                <div className="flex flex-col md:flex-row gap-1 md:items-center px-2 py-3 hover:bg-zinc-100/50 dark:hover:bg-zinc-800/50 rounded-md ease-out duration-200">
+                                    <div className="w-full md:w-1/5 flex justify-between items-center">
+                                        <div className="w-full opacity-60">
+                                            Guru BK
+                                        </div>
+                                        <div className="flex md:hidden items-center gap-2">
+                                            <button type="button" onClick={() => handleEditKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'gurubk_kelas', '')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                            <button type="button" onClick={() => submitDeleteKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'Guru BK')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="w-full md:w-4/5 flex justify-between items-center">
+                                        <p className="w-full">
+                                            {loadingFetch['dataKelas'] !== 'fetched' && (
+                                                <div className="loading loading-dots loading-xs opacity-50"></div>
+                                            )}
+                                            {getPegawaiFromDataKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2])?.nama_gurubk_kelas}
+                                        </p>
+                                        <div className="hidden md:flex items-center gap-1">
+                                            <button type="button"  onClick={() => handleEditKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'gurubk_kelas', '')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faEdit} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                            <button type="button" onClick={() => submitDeleteKelas(value.split(' ')[0], value.split(' ')[1], value.split(' ')[2], 'Guru BK')} className="opacity-50 hover:opacity-100">
+                                                <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-inherit" />
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
+                                
                             </div>
                         </div>
                     ))}
                 </div>
+                <dialog id="ubah_wali_kelas" className="modal backdrop-blur bg-gradient-to-t from-white dark:from-black">
+                    <div className="modal-box dark:bg-zinc-900 border dark:border-zinc-700 rounded-md md:max-w-[800px]">
+                        <form method="dialog">
+                            <button onClick={() => setFormUbahWaliKelas(formatFormUbahWaliKelas)} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 className="font-bold text-lg">Ubah Wali Kelas</h3>
+                        <hr className="my-2 opacity-0" />
+                        <div className="flex flex-col md:flex-row gap-1">
+                            <div className="w-full md:w-1/2">
+                                <input type="text" value={searchPegawaiList} onChange={e => setSearchPegawaiList(e.target.value)} className="w-full border bg-transparent dark:border-zinc-700 px-2 py-1 rounded-md" placeholder="Cari data pegawai disini" />
+                                <hr className="my-2 opacity-0" />
+                                <div className="relative overflow-auto max-h-[300px] space-y-2">
+                                    {loadingFetch['pegawai'] !== 'fetched' && (
+                                        <div className="w-full flex justify-center items-center">
+                                            <div className="loading loading-sm text-zinc-500 loading-spinner"></div>
+                                        </div>
+                                    )}
+                                    {loadingFetch['pegawai'] === 'fetched' && pegawaiList.length < 1 && (
+                                        <div className="w-full flex justify-center items-center text-zinc-500">
+                                            Data Pegawai Kosong!
+                                        </div>
+                                    )}
+
+                                    {filteredPegawaiList.slice(0, 20).map((value, index) => (
+                                        <label key={index} htmlFor={index} className="flex items-center w-full justify-between p-3 border dark:border-zinc-800 hover:border-zinc-700 dark:hover:border-zinc-400 rounded-lg text-xs cursor-pointer ease-out duration-200 has-[:checked]:border-zinc-400">
+                                            <p>
+                                                {value['nama_pegawai']}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="opacity-50">
+                                                    {value['jabatan']}
+                                                </p>
+                                                <input type="radio" id={index} value={value['id_pegawai']} checked={formUbahWaliKelas['fk_walikelas_id_pegawai'] == value['id_pegawai']} onChange={() => setFormUbahWaliKelas(state => ({...state, nama_wali_kelas: value['nama_pegawai'], fk_walikelas_id_pegawai: Number(value['id_pegawai'])}))} name="radio" className="" />
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <form onSubmit={(e) => submitEditKelas(e, 'ubah_wali_kelas', 'wali_kelas')} className="w-full md:w-1/2">
+                                <div className="px-2 divide-y dark:divide-zinc-800">
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Kelas
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahWaliKelas['kelas']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Jurusan
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahWaliKelas['jurusan']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Rombel
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahWaliKelas['rombel']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            ID Pegawai
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahWaliKelas['fk_walikelas_id_pegawai']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Nama Pegawai
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" defaultValue={formUbahWaliKelas['nama_wali_kelas']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="w-full md:w-fit px-3 py-2 rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
+                                        <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit opacity-60" />
+                                        Simpan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
+                <dialog id="ubah_gurubk_kelas" className="modal backdrop-blur bg-gradient-to-t from-white dark:from-black">
+                    <div className="modal-box dark:bg-zinc-900 border dark:border-zinc-700 rounded-md md:max-w-[800px]">
+                        <form method="dialog">
+                            <button onClick={() => setFormUbahGuruBK(formatFormUbahGuruBK)} className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                        </form>
+                        <h3 className="font-bold text-lg">Ubah Guru BK Kelas</h3>
+                        <hr className="my-2 opacity-0" />
+                        <div className="flex flex-col md:flex-row gap-1">
+                            <div className="w-full md:w-1/2">
+                                <input type="text" value={searchPegawaiList} onChange={e => setSearchPegawaiList(e.target.value)} className="w-full border bg-transparent dark:border-zinc-700 px-2 py-1 rounded-md" placeholder="Cari data pegawai disini" />
+                                <hr className="my-2 opacity-0" />
+                                <div className="relative overflow-auto max-h-[300px] space-y-2">
+                                    {loadingFetch['pegawai'] !== 'fetched' && (
+                                        <div className="w-full flex justify-center items-center">
+                                            <div className="loading loading-sm text-zinc-500 loading-spinner"></div>
+                                        </div>
+                                    )}
+                                    {loadingFetch['pegawai'] === 'fetched' && pegawaiList.length < 1 && (
+                                        <div className="w-full flex justify-center items-center text-zinc-500">
+                                            Data Pegawai Kosong!
+                                        </div>
+                                    )}
+
+                                    {filteredPegawaiList.slice(0, 20).map((value, index) => (
+                                        <label key={index} htmlFor={`cb_gurubk_${index}`} className="flex items-center w-full justify-between p-3 border dark:border-zinc-800 hover:border-zinc-700 dark:hover:border-zinc-400 rounded-lg text-xs cursor-pointer ease-out duration-200 has-[:checked]:border-zinc-400">
+                                            <p>
+                                                {value['nama_pegawai']}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="opacity-50">
+                                                    {value['jabatan']}
+                                                </p>
+                                                <input type="radio" id={`cb_gurubk_${index}`} value={value['id_pegawai']} checked={formUbahGuruBK['fk_gurubk_id_pegawai'] == value['id_pegawai']} onChange={() => setFormUbahGuruBK(state => ({...state, nama_gurubk_kelas: value['nama_pegawai'], fk_gurubk_id_pegawai: Number(value['id_pegawai'])}))} name="radio_gurubk" className="" />
+                                            </div>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <form onSubmit={(e) => submitEditKelas(e, 'ubah_gurubk_kelas', 'gurubk')} className="w-full md:w-1/2">
+                                <div className="px-2 divide-y dark:divide-zinc-800">
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Kelas
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahGuruBK['kelas']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Jurusan
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahGuruBK['jurusan']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Rombel
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahGuruBK['rombel']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            ID Pegawai
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" value={formUbahGuruBK['fk_gurubk_id_pegawai']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center gap-1 py-2">
+                                        <div className="w-full md:w-1/3 opacity-60">
+                                            Nama Pegawai
+                                        </div>
+                                        <div className="w-full md:w-2/3">
+                                            <input required readOnly type="text" defaultValue={formUbahGuruBK['nama_gurubk_kelas']} className="w-full px-3 py-2 border bg-transparent dark:border-zinc-800 rounded-md" />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="w-full md:w-fit px-3 py-2 rounded-md bg-green-500 hover:bg-green-400 focus:bg-green-600 flex items-center justify-center gap-3 text-white">
+                                        <FontAwesomeIcon icon={faSave} className="w-3 h-3 text-inherit opacity-60" />
+                                        Simpan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </dialog>
             </div>
         </MainLayoutPage>
     )
