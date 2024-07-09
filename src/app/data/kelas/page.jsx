@@ -303,8 +303,8 @@ export default function DataKelasPage() {
                 <hr className="my-5 dark:opacity-10" />
 
                 <div className="grid md:grid-cols-3 gap-2 grid-cols-1">
-                    {filteredKelasList.map(value => (
-                        <div className="w-full p-2 rounded-md border dark:border-zinc-700">
+                    {filteredKelasList.map((value, index) => (
+                        <div key={index} className="w-full p-2 rounded-md border dark:border-zinc-700">
                             <div className="flex justify-between items-center p-2 rounded-md border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
                                 <h1 className="text-lg md:text-2xl font-extrabold dark:text-zinc-300 text-zinc-600">
                                     {value}
