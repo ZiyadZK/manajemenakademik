@@ -175,7 +175,7 @@ export default function MainLayoutPage({children}) {
                         <div className="flex items-center gap-2 overflow-auto relative w-full pb-2">
                             <Link
                                 href={'/profilsekolah'}
-                                className={`px-4 py-2 rounded-md text-xs font-medium ${filteredPath && filteredPath.url.startsWith('/profilsekolah') ? 'text-zinc-800 dark:text-zinc-100' : 'text-zinc-400'} hover:text-zinc-700 dark:hover:text-zinc-200 relative no-underline duration-300 ease-in z-[100]`}
+                                className={`px-4 py-2 rounded-md text-xs font-medium flex-shrink-0 ${filteredPath && filteredPath.url.startsWith('/profilsekolah') ? 'text-zinc-800 dark:text-zinc-100' : 'text-zinc-400'} hover:text-zinc-700 dark:hover:text-zinc-200 relative no-underline duration-300 ease-in z-[100]`}
                                 onMouseOver={() => setHoveredPath('/profilsekolah')}
                                 onMouseLeave={() => setHoveredPath(path)}
                             >
@@ -205,7 +205,7 @@ export default function MainLayoutPage({children}) {
                                 <Link
                                     key={index} 
                                     href={nav.url}
-                                    className={`px-4 py-2 rounded-md text-xs font-medium ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'text-zinc-800 dark:text-zinc-100' : 'text-zinc-400'} hover:text-zinc-700 dark:hover:text-zinc-200 relative no-underline duration-300 ease-in z-[100]`}
+                                    className={`px-4 py-2 rounded-md text-xs font-medium  flex-shrink-0 ${filteredPath && filteredPath.url.startsWith(nav.url) ? 'text-zinc-800 dark:text-zinc-100' : 'text-zinc-400'} hover:text-zinc-700 dark:hover:text-zinc-200 relative no-underline duration-300 ease-in z-[100]`}
                                     onMouseOver={() => setHoveredPath(nav.url)}
                                     onMouseLeave={() => setHoveredPath(path)}
                                 >
@@ -241,12 +241,49 @@ export default function MainLayoutPage({children}) {
             </div> 
             <div className="drawer-side">
                 <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
-                <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-                {/* Sidebar content here */}
-                <li><a>Sidebar Item 1</a></li>
-                <li><a>Sidebar Item 2</a></li>
-                
-                </ul>
+                <div className="text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 min-h-full w-80 text-xs">
+                    <hr className="my-12 opacity-0" />
+                    {loggedAkun && (
+                        <div className="p-5">
+                            <h1>
+                                {loggedAkun['email_akun']}
+                            </h1>
+                            <h2 className="opacity-50">
+                                {loggedAkun['nama_akun']}
+                            </h2>
+                            <hr className="my-3 dark:opacity-10" />
+                            {loggedAkun['role_akun'] === 'Admin' && (
+                                <p className="px-2 py-1 rounded-full w-fit text-xs font-medium border bg-red-500/20 text-red-500 border-red-500">
+                                    Admin
+                                </p>
+                            )}
+                            {loggedAkun['role_akun'] === 'Operator' && (
+                                <p className="px-2 py-1 rounded-full w-fit text-xs font-medium border bg-amber-500/20 text-amber-500 border-amber-500">
+                                    Operator
+                                </p>
+                            )}
+                            <hr className="my-3 dark:opacity-10" />
+                            <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <p className="opacity-60">
+                                        Tema
+                                    </p>
+                                    <button type="button" onClick={() => toggleTheme()} className="rounded-full border w-8 h-8 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all duration-300 flex items-center justify-center group text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200">
+                                        <FontAwesomeIcon icon={theme === 'light' ? faMoon : faSun} className="w-4 h-4 text-inherit group-hover:-rotate-45 transition-all duration-300" />
+                                    </button>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <p className="opacity-60">
+                                        Keluar
+                                    </p>
+                                    <button type="button" onClick={() => submitLogout()} className="rounded-full border w-8 h-8 dark:border-zinc-700 hover:bg-zinc-50 transition-all duration-300 dark:hover:bg-zinc-900 flex items-center justify-center group text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-200">
+                                        <FontAwesomeIcon icon={faSignOut} className="w-4 h-4 text-inherit transition-all duration-300" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
