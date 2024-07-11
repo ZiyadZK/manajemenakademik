@@ -40,13 +40,6 @@ export const createMultiIjazah = async (payload) => {
 export const updateMultiIjazah = async (arrayNisn, payload) => {
     const responseData = await urlPut('/v1/data/ijazah', {arrayNisn, payload})
 
-    await logRiwayat({
-        aksi: 'Ubah',
-        kategori: 'Data Ijazah',
-        keterangan: `Mengubah ${Array.isArray(arrayNisn) ? arrayNisn.length : '1'} Data ke dalam Data Ijazah`,
-        records: `${JSON.stringify({arrayNisn, payload})}`
-    })
-
     return {
         success: responseData.success,
         message: responseData.result

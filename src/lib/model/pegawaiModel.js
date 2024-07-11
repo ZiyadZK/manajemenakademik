@@ -26,13 +26,6 @@ export const getSinglePegawai = async ({id_pegawai, nip, nuptk}) => {
 export const updateSinglePegawai = async (id_pegawai, payload) => {
     const responseData = await urlPut('/v1/data/pegawai', {arrayId_pegawai: id_pegawai, payload})
 
-    await logRiwayat({
-        aksi: 'Ubah',
-        kategori: 'Data Pegawai',
-        keterangan: `Mengubah ${Array.isArray(id_pegawai) ? id_pegawai.length : '1'} Data ke dalam Data Pegawai`,
-        records: `${JSON.stringify({arrayId_pegawai: id_pegawai, payload})}`
-    })
-
     return {
         success: responseData.success,
         data: responseData.data,
@@ -42,13 +35,6 @@ export const updateSinglePegawai = async (id_pegawai, payload) => {
 
 export const deleteSinglePegawai = async (id_pegawai) => {
     const responseData = await urlDelete('/v1/data/pegawai', {arrayId_pegawai: id_pegawai})
-
-    await logRiwayat({
-        aksi: 'Hapus',
-        kategori: 'Data Pegawai',
-        keterangan: `Menghapus ${Array.isArray(id_pegawai) ? id_pegawai.length : '1'} Data dari Data Pegawai`,
-        records: `${JSON.stringify({arrayId_pegawai: id_pegawai})}`
-    })
 
     return {
         success: responseData.success,
@@ -60,13 +46,6 @@ export const deleteSinglePegawai = async (id_pegawai) => {
 export const deleteManyPegawai = async (arrayOfID_Pegawai) => {
     const responseData = await urlDelete('/v1/data/pegawai', {arrayId_pegawai: arrayOfID_Pegawai})
 
-    await logRiwayat({
-        aksi: 'Hapus',
-        kategori: 'Data Pegawai',
-        keterangan: `Menghapus ${Array.isArray(arrayOfID_Pegawai) ? arrayOfID_Pegawai.length : '1'} Data dari Data Pegawai`,
-        records: `${JSON.stringify({arrayOfID_Pegawai})}`
-    })
-
     return {
         success: responseData.success,
         data: responseData.data,
@@ -77,13 +56,6 @@ export const deleteManyPegawai = async (arrayOfID_Pegawai) => {
 export const createSinglePegawai = async (payload) => {
     const responseData = await urlPost('/v1/data/pegawai', payload)
 
-    await logRiwayat({
-        aksi: 'Tambah',
-        kategori: 'Data Pegawai',
-        keterangan: `Menambah ${Array.isArray(payload) ? payload.length : '1'} Data ke dalam Data Pegawai`,
-        records: `${JSON.stringify(Array.isArray(payload) ? payload : {...payload})}`
-    })
-
     return {
         success: responseData.success,
         message: responseData.result
@@ -92,13 +64,6 @@ export const createSinglePegawai = async (payload) => {
 
 export const createMultiPegawai = async (arrayDataPegawai) => {
     const responseData = await urlPost('/v1/data/pegawai', arrayDataPegawai)
-
-    await logRiwayat({
-        aksi: 'Tambah',
-        kategori: 'Data Pegawai',
-        keterangan: `Menambah ${Array.isArray(arrayDataPegawai) ? arrayDataPegawai.length : '1'} Data ke dalam Data Pegawai`,
-        records: `${JSON.stringify(Array.isArray(arrayDataPegawai) ? arrayDataPegawai : {...arrayDataPegawai})}`
-    })
 
     return {
         success: responseData.success,

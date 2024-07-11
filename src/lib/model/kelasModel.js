@@ -58,13 +58,6 @@ export const setGuruBK = async (kelas, rombel, no_rombel, payload) => {
 export const deleteRoleKelas = async (parameter, role) => {
     const responseData = await urlDelete('/v1/data/kelas', {parameter, role})
 
-    await logRiwayat({
-        aksi: 'Hapus',
-        kategori: 'Data Kelas',
-        keterangan: `Menghapus 1 Data ${role} dari Data Kelas`,
-        records: `${JSON.stringify({parameter, role})}`
-    })
-
     return {
         success: responseData.success,
         message: responseData.result

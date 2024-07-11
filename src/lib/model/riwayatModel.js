@@ -19,10 +19,8 @@ export const getAllRiwayat = async () => {
 export const logRiwayat = async ({aksi, kategori, keterangan, records}) => {
     const userdata = await getLoggedUserdata()
     const updatedData = {
+        fk_riwayat_id_akun: userdata.id_akun,
         aksi, kategori, keterangan, records,
-        username: userdata.nama_akun,
-        nama: userdata.nama_akun,
-        email: userdata.email_akun,
         tanggal: `${new Date().toLocaleString('id-ID').split(', ')[0]}`,
         waktu: `${new Date().toLocaleString('id-ID').split(', ')[1].replace('.', ':')}`
     }
