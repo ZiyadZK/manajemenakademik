@@ -30,7 +30,9 @@ export const urlPost = async (url, payload) => {
         await axios.post(`${process.env.API_URL}${url}`, payload, {
             headers: {
                 'X-API-KEY': process.env.API_KEY
-            }
+            },
+            maxContentLength: Infinity,
+            maxBodyLength: Infinity
         }).then(response => {
             const responseData = response.data
             resolve({

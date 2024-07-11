@@ -1186,7 +1186,10 @@ export default function DataMutasiSiswaPage() {
                     )}
 
                     <hr className="my-5 dark:opacity-10" />
-                    
+                    <p>
+                        Hasil pencarian ditemukan {filteredData.length} data
+                    </p>
+                    <hr className="my-1 opacity-0" />  
                     <div className="relative overflow-auto w-full max-h-[400px]">
                         <div className="grid grid-cols-12 p-3 rounded-lg border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky top-0 mb-2">
                             <div className="col-span-7 md:col-span-2 flex items-center gap-3">
