@@ -1,348 +1,287 @@
 'use client'
 
-import MainLayoutPage from "@/components/mainLayout"
-import { jakarta } from "@/config/fonts"
-import { formattedDateTime } from "@/lib/dateConvertes"
-import { ioServer } from "@/lib/io"
+import MainLayoutPage, { useContextLoggedData } from "@/components/mainLayout"
+import { date_getDay, date_getMonth, date_getYear } from "@/lib/dateConvertes"
 import { getAllRiwayat } from "@/lib/model/riwayatModel"
-import { faEdit } from "@fortawesome/free-regular-svg-icons"
-import { faArrowUp, faEllipsisH, faExclamationCircle, faInfoCircle, faMinus, faPlus, faTable, faTimeline } from "@fortawesome/free-solid-svg-icons"
+import { faExclamationCircle, faFile, faRefresh, faSearch, faUpload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
 
-const aksiIcon = {
-    'Tambah': faPlus,
-    'Hapus': faMinus,
-    'Ubah': faEdit,
-    'Naik Kelas': faArrowUp
-}
-
-const aksiColor = {
-    'Tambah': 'green',
-    'Hapus': 'red',
-    'Ubah': 'amber',
-    'Naik Kelas': 'blue'
-}
-
 export default function DataRiwayatPage() {
-
-    const router = useRouter()
-
-    const [dataRiwayat, setDataRiwayat] = useState([])
-    const [filteredDataRiwayat, setFilteredDataRiwayat] = useState([])
-
+    const [data, setData] = useState([])
     const [loadingFetch, setLoadingFetch] = useState('')
+    const [pagination, setPagination] = useState(1)
+    const [totalList, setTotalList] = useState(10)
 
-    const [filterDataRiwayat, setFilterDataRiwayat] = useState({
-        aksi: [], kategori: [], usernameOrName: ''
-    })
-
-    const [statusSocket, setStatusSocket] = useState('')
-
-    useEffect(() => {
-
-        if(ioServer.connected) {
-            setStatusSocket('online')
-        }else{
-            console.log('Socket Server is offline!')
-            setStatusSocket('offline')
-        }
-
-        ioServer.on('SIMAK_RIWAYAT', (data) => {
-            setDataRiwayat(data);
-
-            submitFilterDataRiwayat(data)
-        })
-    }, [])
-
-    const getDataRiwayat = async () => {
-        const responseData = await getAllRiwayat()
-        if(responseData.success) {
-            setDataRiwayat(responseData.data)
-            setFilteredDataRiwayat(responseData.data)
-
+    const getData = async () => {
+        setLoadingFetch('loading')
+        const response = await getAllRiwayat()
+        console.log(response)
+        if(response.success) {
+            setData(response.data)
         }
         setLoadingFetch('fetched')
     }
 
     useEffect(() => {
-        getDataRiwayat()
+        getData()
     }, [])
-
-    const changeFilterRiwayat = (field, value) => {
-        // Create a shallow copy of the filterKelas object
-        let updatedFilter = { ...filterDataRiwayat };
-    
-        if (Array.isArray(filterDataRiwayat[field])) {
-            if (updatedFilter[field].includes(value)) {
-                // Create a new array without the value
-                updatedFilter[field] = updatedFilter[field].filter(item => item !== value);
-            } else {
-                // Create a new array with the value added
-                updatedFilter[field].push(value);
-            }
-        } else {
-            // Directly assign the value if it's not an array
-            updatedFilter[field] = value;
-        }
-    
-        setFilterDataRiwayat(updatedFilter)
-    };
-
-    const submitFilterDataRiwayat =  (data) => {
-        let updatedData
-        if(!data || typeof(data) === 'undefined' || data === null || data.length < 1) {
-            updatedData = dataRiwayat
-        }else{
-            updatedData = data
-        }
-
-        if(filterDataRiwayat['aksi'].length > 0) {
-            updatedData = updatedData.filter(data => filterDataRiwayat['aksi'].includes(data['aksi']))
-        }
-
-        if(filterDataRiwayat['kategori'].length > 0) {
-            updatedData = updatedData.filter(data => filterDataRiwayat['kategori'].includes(data['kategori']))
-        }
-
-        if(filterDataRiwayat['usernameOrName'] !== '') {
-            updatedData = updatedData.filter(data => 
-                data['nama'].toLowerCase().includes(filterDataRiwayat['usernameOrName'].toLowerCase()) ||
-                data['email'].toLowerCase().includes(filterDataRiwayat['usernameOrName'].toLowerCase())
-            )
-        }
-
-        setFilteredDataRiwayat(updatedData)
-    }
-
-    useEffect(() => {
-        submitFilterDataRiwayat()
-    }, [filterDataRiwayat])
 
     return (
         <MainLayoutPage>
             <Toaster />
-            <div className={`mt-3 ${jakarta.className}`}>
-                <hr className="my-3 opacity-0" />
-                <div className="w-full md:w-1/2 space-y-3">
-                    <div className="flex md:items-center flex-col md:flex-row">
-                        <p className="font-medium opacity-50 text-xs md:text-sm w-full md:w-2/5">
-                            Pilih Aksi
-                        </p>
-                        <div className="flex items-center gap-2  relative overflow-auto w-full md:w-3/5">
-                            <button type="button" onClick={() => changeFilterRiwayat('aksi', 'Tambah')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['aksi'].includes('Tambah') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Tambah
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('aksi', 'Hapus')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['aksi'].includes('Hapus') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Hapus
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('aksi', 'Ubah')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['aksi'].includes('Ubah') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Ubah
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('aksi', 'Naik Kelas')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['aksi'].includes('Naik Kelas') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Naik Kelas
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex md:items-center flex-col md:flex-row">
-                        <p className="font-medium opacity-50 text-xs md:text-sm w-full md:w-2/5">
-                            Pilih Kategori Data
-                        </p>
-                        <div className="flex items-center gap-2  relative overflow-auto w-full md:w-3/5">
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Siswa')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Siswa') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Siswa
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Mutasi Siswa')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Mutasi Siswa') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Mutasi Siswa
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Alumni')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Alumni') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Alumni
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Pegawai')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Pegawai') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Pegawai
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Ijazah')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Ijazah') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Ijazah
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Kelas')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Kelas') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Kelas
-                            </button>
-                            <button type="button" onClick={() => changeFilterRiwayat('kategori', 'Data Akun')} className={`px-3 py-2 rounded border text-sm font-medium flex-shrink-0 ${filterDataRiwayat['kategori'].includes('Data Akun') ? 'text-blue-500 hover:text-blue-700 bg-blue-50 border-blue-500' : 'text-zinc-500 hover:text-zinc-700'}`}>
-                                Akun
-                            </button>
-                        </div>
-                    </div>
-                    <div className="flex md:items-center flex-col md:flex-row">
-                        <p className="font-medium opacity-50 text-xs md:text-sm w-full md:w-2/5">
-                            Cari Nama
-                        </p>
-                        <input type="text" value={filterDataRiwayat['usernameOrName']} onChange={e => changeFilterRiwayat('usernameOrName', e.target.value)} className="px-3 py-2 bg-white rounded text-sm border w-full md:w-3/5" placeholder="Cari di sini" />
-                    </div>
-                    <div className="flex items-center gap-5">
-                        <div className="flex items-center gap-3">
-                            <p className="text-xs opacity-70">
-                                Socket Server:
-                            </p>
-                            {statusSocket === '' && (
-                                <div className="loading loading-spinner loading-sm text-zinc-500"></div>
-                            )}
-                            {statusSocket === 'online' && (
-                                <div className="flex items-center gap-2 p-2 rounded-full bg-green-500/10 text-green-600 text-xs">
-                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                    Online
-                                </div>
-                            )}
-                            {statusSocket === 'offline' && (
-                                <div className="flex items-center gap-2 p-2 rounded-full bg-red-500/10 text-red-600 text-xs">
-                                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                                    Offline
-                                </div>
-                            )}
-                        </div>
-                        <button type="button" onClick={() => document.getElementById('info_socket').showModal()}>
-                            <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-zinc-500" />
+            <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
+                {loadingFetch !== 'fetched' && (
+                    <div className="flex items-center gap-2">
+                        <button type="button" disabled className="rounded-md border dark:border-zinc-700 bg-zinc-300 dark:bg-zinc-700 px-3 py-2 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200 animate-pulse">
+                            <FontAwesomeIcon icon={faRefresh} className="w-3 h-3 text-inherit opacity-0" />
+                            <span className="opacity-0">Bersihkan</span>
+                        </button>
+                        <button type="button" disabled className="rounded-md border dark:border-zinc-700 bg-zinc-300 dark:bg-zinc-700 px-3 py-2 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200 animate-pulse">
+                            <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit opacity-0" />
+                            <span className="opacity-0">Backup</span>
                         </button>
                     </div>
-                    <dialog id="info_socket" className="modal">
-                        <div className="modal-box">
-                            <form method="dialog">
-                            {/* if there is a button in form, it will close the modal */}
-                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                            </form>
-                            <h3 className="font-bold text-lg">Hello!</h3>
-                            <p className="py-4">Press ESC key or click on ✕ button to close</p>
-                        </div>
-                    </dialog>
-                </div>
-                <hr className="my-2" />
-                <div className="grid grid-cols-12 w-full  bg-blue-500 *:px-2 *:py-3 text-white text-sm">
-                    <div className="hidden md:block items-center gap-3 col-span-1 place-items-center">
-                        Tanggal, Waktu
+                )}
+                {loadingFetch === 'fetched' && data.length > 0 && (
+                    <div className="flex items-center gap-2">
+                        <button type="button" className="rounded-md border dark:border-zinc-700 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200">
+                            <FontAwesomeIcon icon={faRefresh} className="w-3 h-3 text-inherit opacity-60" />
+                            Bersihkan
+                        </button>
+                        <button type="button" className="rounded-md border dark:border-zinc-700 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200">
+                            <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit opacity-60" />
+                            Backup
+                        </button>
                     </div>
-                    <div className="hidden md:flex items-center col-span-1">
+                )}
+                <hr className="my-5 dark:opacity-10" />
+                <div className="grid grid-cols-12 p-3 rounded-md border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800">
+                    <div className="col-span-2 hidden md:flex items-center font-semibold">
+                        Waktu
+                    </div>
+                    <div className="col-span-7 md:col-span-2 flex items-center font-semibold">
+                        User
+                    </div>
+                    <div className="col-span-2 hidden md:flex items-center font-semibold">
                         Aksi
                     </div>
-                    <div className="hidden md:flex items-center gap-3 col-span-1">
+                    <div className="col-span-2 hidden md:flex items-center font-semibold">
                         Kategori
                     </div>
-                    <div className="hidden md:flex items-center col-span-4">
+                    <div className="col-span-2 hidden md:flex items-center font-semibold">
                         Keterangan
                     </div>
-                    <div className="flex items-center md:col-span-2 col-span-8">
-                        Nama
+                    <div className="col-span-5 md:col-span-2 flex items-center justify-center">
+                        <input type="text" className="w-full bg-white dark:bg-zinc-900 px-2 py-1 rounded-md border dark:border-zinc-700" placeholder="Cari disini" />
                     </div>
-                    <div className="col-span-2 hidden md:flex items-center">
-                        Email
-                    </div>
-                    <div className="col-span-1 hidden md:flex items-center">
-                        Records
-                    </div>
-                    <div className="md:col-span-1 md:hidden block col-span-4">Detail</div>
                 </div>
                 {loadingFetch !== 'fetched' && (
-                    <div className="flex justify-center w-full items-center gap-5 py-5 text-blue-600/50">
-                        <span className="loading loading-spinner loading-md "></span>
-                        Sedang mendapatkan data
+                    <div className="w-full py-2 flex items-center justify-center">
+                        <div className="loading loading-sm opacity-50 loading-spinner"></div>
                     </div>
                 )}
-                {loadingFetch === 'fetched' && dataRiwayat.length < 1 && (
-                    <div className="flex justify-center w-full items-center gap-5 py-5 text-zinc-600/50">
-                        <FontAwesomeIcon icon={faExclamationCircle} className="w-4 h-4 text-inherit" />
-                        Data Kosong
-                    </div>
-                )}
-                <div className="divide-y relative overflow-auto w-full max-h-[600px]">                    
-                    {filteredDataRiwayat.map((data, index) => (
-                        <div key={index} className="grid grid-cols-12 w-full divide-x *:px-2 *:py-3 text-zinc-600 text-sm">
-                            <div className="col-span-1 hidden md:block">
-                                <p>{data.tanggal}</p>
-                                <p className="text-xs">{data.waktu}</p>
-                            </div>
-                            <div className="col-span-1 hidden md:block">
-                                <div className={`flex items-center rounded-full px-2 py-1 text-xs w-fit bg-${aksiColor[data.aksi]}-100 text-${aksiColor[data.aksi]}-600 gap-2`}>
-                                    <FontAwesomeIcon icon={aksiIcon[data.aksi]} className="w-2 h-2 text-inherit" />
-                                    {data.aksi}
+                <div className="py-2 relative overflow-auto max-h-[600px]">
+                    {data.slice(0, 30).map((value, index) => (
+                        <div key={index} className="grid grid-cols-12 px-3 py-2 rounded-md">
+                            <div className="col-span-2 hidden md:flex items-center">
+                                <div className="space-y-1">
+                                    <p>
+                                        {date_getDay(value['tanggal'])} {date_getMonth('string', value['tanggal'])} {date_getYear(value['tanggal'])}
+                                     </p>
+                                    <p className="opacity-60">
+                                        {value['waktu']}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="col-span-1 hidden md:block">
-                                <div className="px-2 py-1 text-xs font-medium text-zinc-700 w-fit rounded-full">
-                                    {data.kategori}
+                            <div className="col-span-7 md:col-span-2 flex items-center">
+                                <div className="space-y-1">
+                                    <p>
+                                        {value['nama_akun']}
+                                    </p>
+                                    <p className="opacity-60">
+                                        {value['email_akun']}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="col-span-4 text-zinc-700 text-sm hidden md:block">
-                                {data.keterangan}
+                            <div className="col-span-2 hidden md:flex items-center gap-1">
+                                {value['aksi'] === 'Tambah' && (
+                                    <p className="px-2 py-1 rounded-full bg-green-500 text-white border border-green-500 dark:bg-green-500/10 dark:text-green-500">
+                                        Tambah
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Hapus' && (
+                                    <p className="px-2 py-1 rounded-full bg-red-500 text-white border border-red-500 dark:bg-red-500/10 dark:text-red-500">
+                                        Hapus
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Ubah' && (
+                                    <p className="px-2 py-1 rounded-full bg-amber-500 text-white border border-amber-500 dark:bg-amber-500/10 dark:text-amber-500">
+                                        Ubah
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Naikkan Kelas' && (
+                                    <p className="px-2 py-1 rounded-full bg-cyan-500 text-white border border-cyan-500 dark:bg-cyan-500/10 dark:text-cyan-500">
+                                        Naikkan Kelas
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Turunkan Kelas' && (
+                                    <p className="px-2 py-1 rounded-full bg-red-500 text-white border border-red-500 dark:bg-red-500/10 dark:text-red-500">
+                                        Turunkan Kelas
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Export' && (
+                                    <p className="px-2 py-1 rounded-full bg-rose-500 text-white border border-rose-500 dark:bg-rose-500/10 dark:text-rose-500">
+                                        Export
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Import' && (
+                                    <p className="px-2 py-1 rounded-full bg-fuchsia-500 text-white border border-fuchsia-500 dark:bg-fuchsia-500/10 dark:text-fuchsia-500">
+                                        Import
+                                    </p>
+                                )}
+                                {value['aksi'] === 'Mutasi' && (
+                                    <p className="px-2 py-1 rounded-full bg-violet-500 text-white border border-violet-500 dark:bg-violet-500/10 dark:text-violet-500">
+                                        Mutasi
+                                    </p>
+                                )}
                             </div>
-                            <div className="md:col-span-2 col-span-8 text-zinc-700 text-sm ">
-                                <p>{data.nama}</p>
+                            <div className="col-span-2 hidden md:flex items-center">
+                                {value['kategori']}
                             </div>
-                            <div className="col-span-2 text-zinc-700 text-sm hidden md:flex">
-                                {data.email}
+                            <div className="col-span-2 hidden md:flex items-center">
+                                {value['keterangan']}
                             </div>
-                            <div className="col-span-1 hidden md:flex">
-                                <button type="button" onClick={() => router.push(`/data/riwayat/detail/${data.id_riwayat}`)}  className="px-2 py-2 bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 flex items-center justify-center gap-3 text-xs rounded-full">
-                                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-inherit" />
-                                    Lihat Data
+                            <div className="col-span-5 md:col-span-2 flex items-center justify-center gap-1">
+                                <button type="button" onClick={() => document.getElementById(`info_${value['id_riwayat']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex md:hidden items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
+                                    <FontAwesomeIcon icon={faSearch} className="w-3 h-3 text-inherit" />
                                 </button>
-                            </div>
-                            <div className="md:col-span-1 md:hidden block col-span-4">
-                                <button type="button" onClick={() => document.getElementById(`detail_modal_${data.id_riwayat}`).showModal()} className="px-2 py-2 bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 flex items-center justify-center gap-3 text-xs rounded-full">
-                                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-inherit" />
-                                    Detail
-                                </button>
-                                <dialog id={`detail_modal_${data.id_riwayat}`} className="modal">
-                                    <div className="modal-box bg-white">
+                                <dialog id={`info_${value['id_riwayat']}`} className="modal backdrop-blur">
+                                    <div className="modal-box rounded-md border dark:border-zinc-700 dark:bg-zinc-900">
                                         <form method="dialog">
                                             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
                                         </form>
-                                        <h3 className="font-bold text-lg">Detail</h3>
-                                        <hr className="my-2 opacity-0" />
-                                        <div className="space-y-4">
-                                            <div className="space-y-0">
-                                                <p className="text-xs opacity-60">Tanggal, Waktu</p>
-                                                <p className="font-medium">{data.tanggal}, {data.waktu}</p>
+                                        <h3 className="font-bold text-lg">Info Riwayat</h3>
+                                        <hr className="my-3 dark:opacity-10" />
+                                        <div className="divide-y dark:divide-zinc-800">
+                                            <div className="space-y-1 py-3">
+                                                <p className="opacity-60">
+                                                    Tanggal & Waktu
+                                                </p>
+                                                <p>
+                                                    {date_getDay(value['tanggal'])} {date_getMonth('string', value['tanggal'])} {date_getYear(value['tanggal'])} {value['waktu']}
+                                                </p>
                                             </div>
-                                            <div className="space-y-0">
-                                                <p className="text-xs opacity-60">Aksi</p>
-                                                <div className={`flex items-center rounded-full px-2 py-1 text-xs w-fit bg-${aksiColor[data.aksi]}-100 text-${aksiColor[data.aksi]}-600 gap-2`}>
-                                                    <FontAwesomeIcon icon={aksiIcon[data.aksi]} className="w-2 h-2 text-inherit" />
-                                                    {data.aksi}
+                                            <div className="space-y-1 py-3">
+                                                <p className="opacity-60">
+                                                    Nama
+                                                </p>
+                                                <p>
+                                                    {value['nama_akun']}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1 py-3">
+                                                <p className="opacity-60">
+                                                    Email
+                                                </p>
+                                                <p>
+                                                    {value['email_akun']}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1 py-3">
+                                                <p className="opacity-60">
+                                                    Aksi
+                                                </p>
+                                                <div className="w-fit">
+                                                    {value['aksi'] === 'Tambah' && (
+                                                        <p className="px-2 py-1 rounded-full bg-green-500 text-white border border-green-500 dark:bg-green-500/10 dark:text-green-500">
+                                                            Tambah
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Hapus' && (
+                                                        <p className="px-2 py-1 rounded-full bg-red-500 text-white border border-red-500 dark:bg-red-500/10 dark:text-red-500">
+                                                            Hapus
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Ubah' && (
+                                                        <p className="px-2 py-1 rounded-full bg-amber-500 text-white border border-amber-500 dark:bg-amber-500/10 dark:text-amber-500">
+                                                            Ubah
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Naikkan Kelas' && (
+                                                        <p className="px-2 py-1 rounded-full bg-cyan-500 text-white border border-cyan-500 dark:bg-cyan-500/10 dark:text-cyan-500">
+                                                            Naikkan Kelas
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Turunkan Kelas' && (
+                                                        <p className="px-2 py-1 rounded-full bg-red-500 text-white border border-red-500 dark:bg-red-500/10 dark:text-red-500">
+                                                            Turunkan Kelas
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Export' && (
+                                                        <p className="px-2 py-1 rounded-full bg-rose-500 text-white border border-rose-500 dark:bg-rose-500/10 dark:text-rose-500">
+                                                            Export
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Import' && (
+                                                        <p className="px-2 py-1 rounded-full bg-fuchsia-500 text-white border border-fuchsia-500 dark:bg-fuchsia-500/10 dark:text-fuchsia-500">
+                                                            Import
+                                                        </p>
+                                                    )}
+                                                    {value['aksi'] === 'Mutasi' && (
+                                                        <p className="px-2 py-1 rounded-full bg-violet-500 text-white border border-violet-500 dark:bg-violet-500/10 dark:text-violet-500">
+                                                            Mutasi
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
-                                            <div className="space-y-0">
-                                                <p className="text-xs opacity-60">Kategori</p>
-                                                <div className=" text-xs font-medium text-zinc-700 w-fit rounded-full">
-                                                    {data.kategori}
-                                                </div>
+                                            <div className="space-y-1 py-3">
+                                                <p className="opacity-60">
+                                                    Kategori
+                                                </p>
+                                                <p>
+                                                    {value['kategori']}
+                                                </p>
                                             </div>
-                                            <div className="space-y-0">
-                                                <p className="text-xs opacity-60">Keterangan</p>
-                                                <div className=" text-xs text-zinc-700 w-fit rounded-full">
-                                                    {data.keterangan}
-                                                </div>
+                                            <div className="space-y-1 py-3">
+                                                <p className="opacity-60">
+                                                    Keterangan
+                                                </p>
+                                                <p>
+                                                    {value['keterangan']}
+                                                </p>
                                             </div>
-                                            <div className="space-y-0">
-                                                <p className="text-xs opacity-60">Email</p>
-                                                <div className=" text-xs font-medium text-zinc-700 w-fit rounded-full">
-                                                    {data.email}
-                                                </div>
-                                            </div>
-                                            <div className="space-y-0">
-                                                <p className="text-xs opacity-60">Records</p>
-                                                <button type="button" onClick={() => router.push(`/data/riwayat/detail/${data.id_riwayat}`)}  className="px-2 py-2 bg-zinc-100 hover:bg-zinc-200 focus:bg-zinc-300 flex items-center justify-center gap-3 text-xs rounded-full">
-                                                    <FontAwesomeIcon icon={faInfoCircle} className="w-4 h-4 text-inherit" />
-                                                    Lihat Data
-                                                </button>
-                                            </div>
+                                        </div>
+                                    </div>
+                                </dialog>
+                                {value['records'] !== null && (
+                                    <button type="button" onClick={() => document.getElementById(`records_${value['id_riwayat']}`).showModal()} className="w-6 h-6 rounded border dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center hover:border-blue-500 dark:hover:border-blue-500/50 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-600 dark:hover:text-blue-500 ease-out duration-200">
+                                        <FontAwesomeIcon icon={faFile} className="w-3 h-3 text-inherit" />
+                                    </button>
+                                )}
+                                <dialog id={`records_${value['id_riwayat']}`} className="modal backdrop-blur">
+                                    <div className="modal-box rounded-md border dark:border-zinc-700 dark:bg-zinc-900">
+                                        <form method="dialog">
+                                            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+                                        </form>
+                                        <h3 className="font-bold text-lg">Records Data</h3>
+                                        <hr className="my-3 dark:opacity-10" />
+                                        <div className="p-3 rounded-md border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950">
+                                            <pre>
+                                                {JSON.stringify(JSON.parse(value['records']), null, 2)}
+                                            </pre>
                                         </div>
                                     </div>
                                 </dialog>
                             </div>
                         </div>
-                    )).reverse()}
+                    ))}
+
                 </div>
+                
             </div>
+
         </MainLayoutPage>
     )
 }
