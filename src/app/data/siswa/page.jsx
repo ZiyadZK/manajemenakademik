@@ -5,6 +5,7 @@ import { jakarta, mont, quicksand, rale } from "@/config/fonts"
 import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/lib/dateConvertes"
 import { model_createAlumni } from "@/lib/model/alumniModel"
 import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
+import { logRiwayat } from "@/lib/model/riwayatModel"
 import { createMultiSiswa, createSingleSiswa, deleteMultiSiswaByNis, deleteSingleSiswaByNis, getAllSiswa, naikkanKelasSiswa, naikkanKelasSiswa_selected, updateSiswaByNIS } from "@/lib/model/siswaModel"
 import { exportToXLSX, xlsx_export, xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
 import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheck, faCheckDouble, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPowerOff, faPrint, faSave, faSearch, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
@@ -162,6 +163,12 @@ export default function DataSiswaPage() {
                 const response = await createSingleSiswa(payload)
 
                 if(response) {
+                    await logRiwayat({
+                        aksi: 'Tambah',
+                        kategori: 'Data Siswa',
+                        keterangan: `Mengimport 1 data`,
+                        records: JSON.stringify({...payload})
+                    })
                     for(let i = 0; i < 25; i++) {
                         e.target[i].value = ''
                     }
@@ -205,6 +212,12 @@ export default function DataSiswaPage() {
                 }
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Siswa',
+                        keterangan: `Menghapus ${nis ? '1' : selectedData.length} Data`,
+                        records: JSON.stringify(nis ? {nis} : {nis: selectedData})
+                    })
                     setSelectedData([])
                     await getData()
                     Swal.fire({
@@ -280,6 +293,12 @@ export default function DataSiswaPage() {
                 const response = await updateSiswaByNIS(nis, payload)
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Ubah',
+                        kategori: 'Data Siswa',
+                        keterangan: `Menghapus 1 Data`,
+                        records: JSON.stringify({nis, payload})
+                    })
                     setSelectedData([])
                     setSelectAll(false)
                     await getData()
@@ -413,6 +432,12 @@ export default function DataSiswaPage() {
                     const response = await createMultiSiswa(dataImport)
 
                     if(response.success) {
+                        await logRiwayat({
+                            aksi: 'Tambah',
+                            kategori: 'Data Siswa',
+                            keterangan: `Menambah ${dataImport.length} data`,
+                            records: JSON.stringify(dataImport)
+                        })
                         await getData()
                         Swal.fire({
                             title: 'Sukses',
@@ -499,6 +524,12 @@ export default function DataSiswaPage() {
                                 // Insert the data into mutasi
                                 const response = await createMutasiSiswa({...dataSiswa, ...payload})
                                 if(response.success) {
+                                    await logRiwayat({
+                                        aksi: 'Mutasi',
+                                        kategori: 'Data Siswa',
+                                        keterangan: `Menonaktifkan 1 Data ke Data Mutasi Siswa`,
+                                        records: JSON.stringify({...dataSiswa, ...payload})
+                                    })
                                     setSelectAll(false)
                                     setSelectedData([])
                                     await getData()
@@ -583,6 +614,19 @@ export default function DataSiswaPage() {
                 }
 
                 if(response.success) {
+                    if(kriteria === 'naik') {
+                        await logRiwayat({
+                            aksi: 'Naikkan Kelas',
+                            kategori: 'Data Siswa',
+                            keterangan: `Menaikkan Kelas Siswa dari Data Siswa kelas ${kelas} untuk nis ${nis}`
+                        })
+                    }else{
+                        await logRiwayat({
+                            aksi: 'Turunkan Kelas',
+                            kategori: 'Data Siswa',
+                            keterangan: `Menurunkan Kelas Siswa dari Data Siswa kelas ${kelas} untuk nis ${nis}`
+                        })
+                    }
                     setSelectAll(false)
                     setSelectedData([])
                     await getData()
@@ -628,8 +672,29 @@ export default function DataSiswaPage() {
                 }else if(type === 'hanya') {
                     response = await naikkanKelasSiswa_selected(selectedData)
                 }
-
+                
                 if(response.success) {
+                    if(type === 'semua kelas') {
+                        await logRiwayat({
+                            aksi: 'Naikkan Kelas',
+                            kategori: 'Data Siswa',
+                            keterangan: `Menaikkan Semua Kelas Data Siswa`
+                        })
+                    }else if(type === 'kecuali') {
+                        await logRiwayat({
+                            aksi: 'Naikkan Kelas',
+                            kategori: 'Data Siswa',
+                            keterangan: `Menaikkan Semua Kelas Data Siswa kecuali ${selectedData.length} Siswa`,
+                            records: JSON.stringify({nis: selectedData})
+                        })
+                    }else if(type === 'hanya') {
+                        await logRiwayat({
+                            aksi: 'Naikkan Kelas',
+                            kategori: 'Data Siswa',
+                            keterangan: `Menaikkan Kelas hanya untuk ${selectedData.length} Siswa`,
+                            records: JSON.stringify({nis: selectedData})
+                        })
+                    }
                     setSelectAll(false)
                     setSelectedData([])
                     await getData()
@@ -721,6 +786,12 @@ export default function DataSiswaPage() {
                         timer: 3000,
                         timerProgressBar: true,
                         didOpen: async () => {
+                            await logRiwayat({
+                                aksi: 'Export',
+                                kategori: 'Data Siswa',
+                                keterangan: `Mengexport 1 Data Siswa sebagai EXCEL`,
+                                records: JSON.stringify({nis: dataSiswa[0]['nis']})
+                            })
                             setPrintedData([])
                             const newTab = window.open();
                             newTab.document.write(`<iframe src="${pdfDataUri}" width="100%" height="100%"></iframe>`);
@@ -795,6 +866,12 @@ export default function DataSiswaPage() {
                         timer: 3000,
                         timerProgressBar: true,
                         didOpen: async () => {
+                            await logRiwayat({
+                                aksi: 'Export',
+                                kategori: 'Data Siswa',
+                                keterangan: `Mengexport ${dataSiswa.length} Data Siswa sebagai EXCEL`,
+                                records: JSON.stringify({nis: dataSiswa.map(value => value['nis'])})
+                            })
                             setPrintedData([])
                             const newTab = window.open();
                             newTab.document.write(`<iframe src="${pdfDataUri}" width="100%" height="100%"></iframe>`);
@@ -818,12 +895,24 @@ export default function DataSiswaPage() {
 
         if(exportAll) {
             if(selectedData.length < 1) {
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Siswa',
+                    keterangan: `Mengexport ${data.length} Data Siswa sebagai EXCEL`,
+                    records: JSON.stringify({nis: data.map(value => value['nis'])})
+                })
                 return await exportToXLSX(data, 'SIMAK - Data SIswa', {
                     header: Object.keys(data[0]),
                     sheetName: 'DATA SISWA'
                 })
             }else{
                 const dataImport = data.filter(value => selectedData.includes(value['nis']))
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Siswa',
+                    keterangan: `Mengexport ${dataImport.length} Data Siswa sebagai Excel`,
+                    records: JSON.stringify({nis: dataImport.map(value => value['nis'])})
+                })
 
                 return await exportToXLSX(dataImport, 'SIMAK - Data SIswa', {
                     header: Object.keys(dataImport[0]),
@@ -841,6 +930,12 @@ export default function DataSiswaPage() {
                 return obj
             })
             if(selectedData.length < 1) {
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Siswa',
+                    keterangan: `Mengexport ${dataImport.length} Data Siswa sebagai Excel`,
+                    records: JSON.stringify(dataImport)
+                })
                 return await exportToXLSX(dataImport, 'SIMAK - Data SIswa', {
                     header: Object.keys(dataImport[0]),
                     sheetName: 'DATA SISWA'
@@ -854,6 +949,13 @@ export default function DataSiswaPage() {
                         }
                     })
                     return obj
+                })
+
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Siswa',
+                    keterangan: `Mengexport ${dataImport.length} Data Siswa sebagai Excel`,
+                    records: JSON.stringify(dataImport)
                 })
 
                 return await exportToXLSX(dataImport, 'SIMAK - Data SIswa', {

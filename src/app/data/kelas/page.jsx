@@ -174,6 +174,23 @@ export default function DataKelasPage() {
                 }
 
                 if(response.success) {
+
+                    if(type === 'wali_kelas') {
+                        await logRiwayat({
+                            aksi: 'Ubah',
+                            kategori: 'Data Kelas',
+                            keterangan: `Mengubah Wali Kelas`,
+                            records: JSON.stringify({...formUbahWaliKelas})
+                        })
+                    }else{
+                        await logRiwayat({
+                            aksi: 'Ubah',
+                            kategori: 'Data Kelas',
+                            keterangan: `Mengubah Guru BK`,
+                            records: JSON.stringify({...formUbahGuruBK})
+                        })
+                    }
+
                     await getDataKelas()
                     if(type === 'wali_kelas') {
                         setFormUbahWaliKelas(formatFormUbahWaliKelas)
@@ -211,6 +228,12 @@ export default function DataKelasPage() {
                 const response = await deleteRoleKelas({ kelas, jurusan, rombel }, type)
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Kelas',
+                        keterangan: `Menghapus Data ${type}`,
+                        records: JSON.stringify({ kelas, jurusan, rombel, type })
+                    })
                     await getDataKelas()
                     Swal.fire({
                         title: 'Sukses',

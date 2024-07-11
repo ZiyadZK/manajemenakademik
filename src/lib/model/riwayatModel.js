@@ -1,5 +1,6 @@
 'use server'
 
+import { date_getDay, date_getMonth, date_getYear } from "../dateConvertes"
 import { decryptKey } from "../encrypt"
 import { urlGet, urlPost } from "../fetcher"
 import { getLoggedUserdata } from "./akunModel"
@@ -21,7 +22,7 @@ export const logRiwayat = async ({aksi, kategori, keterangan, records}) => {
     const updatedData = {
         fk_riwayat_id_akun: userdata.id_akun,
         aksi, kategori, keterangan, records,
-        tanggal: `${new Date().toLocaleString('id-ID').split(', ')[0]}`,
+        tanggal: `${date_getYear()}-${date_getMonth()}-${date_getDay()}`,
         waktu: `${new Date().toLocaleString('id-ID').split(', ')[1].replace('.', ':')}`
     }
 

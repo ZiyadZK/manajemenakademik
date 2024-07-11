@@ -6,6 +6,7 @@ import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/
 import { model_createAlumni, model_deleteAlumni, model_getAllAlumni, model_updateAlumni } from "@/lib/model/alumniModel"
 import { createMultiIjazah, deleteMultiIjazah, getAllIjazah, updateMultiIjazah } from "@/lib/model/ijazahModel"
 import { createMutasiSiswa } from "@/lib/model/mutasiSiswaModel"
+import { logRiwayat } from "@/lib/model/riwayatModel"
 import { createMultiSiswa, createSingleSiswa } from "@/lib/model/siswaModel"
 import { exportToXLSX,  xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
 import {  faAnglesLeft, faAnglesRight, faArrowDown,  faArrowUp, faArrowsUpDown, faCheck, faCheckDouble, faCheckSquare,  faDownload, faEdit, faFile, faPlus, faPowerOff, faPrint, faSave, faTrash, faUpload, faXmark } from "@fortawesome/free-solid-svg-icons"
@@ -143,8 +144,13 @@ export default function DataIjazahPage() {
             showConfirmButton: false,
             didOpen: async () => {
                 const response = await createMultiIjazah([formTambah])
-
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Tambah',
+                        kategori: 'Data Ijazah',
+                        keterangan: `Menambahkan 1 Data`,
+                        records: JSON.stringify({...formTambah})
+                    })
 
                     setFormTambah(formatTambahForm)
 
@@ -188,6 +194,12 @@ export default function DataIjazahPage() {
                 }
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Ijazah',
+                        keterangan: `Menghapus ${nis ? '1' : selectedData.length} Data`,
+                        records: JSON.stringify(nis ? {nis} : {nis: selectedData})
+                    })
                     setSelectedData([])
                     await getData()
                     Swal.fire({
@@ -239,6 +251,12 @@ export default function DataIjazahPage() {
                 const response = await updateMultiIjazah([nis], payload)
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Ubah',
+                        kategori: 'Data Ijazah',
+                        keterangan: `Mengubah 1 Data`,
+                        records: JSON.stringify({nis, data: payload})
+                    })
                     setSelectedData([])
                     setSelectAll(false)
                     await getData()
@@ -367,6 +385,12 @@ export default function DataIjazahPage() {
                     const response = await createMultiIjazah(dataImport)
 
                     if(response.success) {
+                        await logRiwayat({
+                            aksi: 'Import',
+                            kategori: 'Data Ijazah',
+                            keterangan: `Mengimport ${dataImport.length} Data`,
+                            records: JSON.stringify({...dataImport})
+                        })
                         await getData()
                         Swal.fire({
                             title: 'Sukses',
@@ -441,12 +465,25 @@ export default function DataIjazahPage() {
 
         if(exportAll) {
             if(selectedData.length < 1) {
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Ijazah',
+                    keterangan: `Mengexport ${data.length} Data sebagai EXCEL`,
+                    records: JSON.stringify({nis: data.map(value => value['nis'])})
+                })
                 return await exportToXLSX(data, 'SIMAK - Data Ijazah', {
                     header: Object.keys(data[0]),
                     sheetName: 'DATA IJAZAH'
                 })
             }else{
                 const dataImport = data.filter(value => selectedData.includes(value['nis']))
+
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Ijazah',
+                    keterangan: `Mengexport ${dataImport.length} Data sebagai EXCEL`,
+                    records: JSON.stringify({nis: dataImport.map(value => value['nis'])})
+                })
 
                 return await exportToXLSX(dataImport, 'SIMAK - Data Ijazah', {
                     header: Object.keys(dataImport[0]),
@@ -464,6 +501,13 @@ export default function DataIjazahPage() {
                 return obj
             })
             if(selectedData.length < 1) {
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Ijazah',
+                    keterangan: `Mengexport ${dataImport.length} Data sebagai EXCEL`,
+                    records: JSON.stringify({nis: dataImport.map(value => value['nis'])})
+                })
+
                 return await exportToXLSX(dataImport, 'SIMAK - Data Ijazah', {
                     header: Object.keys(dataImport[0]),
                     sheetName: 'DATA IJAZAH'
@@ -477,6 +521,12 @@ export default function DataIjazahPage() {
                         }
                     })
                     return obj
+                })
+                await logRiwayat({
+                    aksi: 'Export',
+                    kategori: 'Data Ijazah',
+                    keterangan: `Mengexport ${dataImport.length} Data sebagai EXCEL`,
+                    records: JSON.stringify({nis: dataImport.map(value => value['nis'])})
                 })
 
                 return await exportToXLSX(dataImport, 'SIMAK - Data Ijazah', {
@@ -518,6 +568,12 @@ export default function DataIjazahPage() {
                 }
 
                 const response = await updateMultiIjazah(nis ? [nis] : selectedData, payload)
+                await logRiwayat({
+                    aksi: 'Ubah',
+                    kategori: 'Data Ijazah',
+                    keterangan: `Mengubah ${nis ? '1' : selectedData.length} Status Data`,
+                    records: JSON.stringify(nis ? {nis, payload} : {nis: selectedData, payload})
+                })
 
                 if(response.success) {
                     setSelectedData([])

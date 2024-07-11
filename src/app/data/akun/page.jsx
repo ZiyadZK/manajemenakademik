@@ -5,6 +5,7 @@ import { jakarta, mont, rale } from "@/config/fonts";
 import { downloadCSV } from "@/lib/csvDownload";
 import { createAkun, deleteMultipleAkunById, deleteSingleAkunById, getAllAkun, updateSingleAkun } from "@/lib/model/akunModel";
 import { getAllPegawai } from "@/lib/model/pegawaiModel";
+import { logRiwayat } from "@/lib/model/riwayatModel";
 import { faAlignLeft, faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowUp, faArrowsUpDown, faCheck, faCheckSquare, faClockRotateLeft, faDownload, faEdit, faEllipsis, faEllipsisH, faEye, faFile, faFilter, faInfo, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSpinner, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { nanoid } from "nanoid";
@@ -54,10 +55,8 @@ export default function DataAkunPage() {
     })
 
     const getData = async () => {
-        console.log('get data')
         setLoadingFetch(state => ({...state, data: 'loading'}))
         const response = await getAllAkun()
-        console.log(response)
         setData(response)
         setFilteredData(response)
         setLoadingFetch(state => ({...state, data: 'fetched'}))
@@ -102,6 +101,13 @@ export default function DataAkunPage() {
                     role_akun: formTambah['role_akun']
                 })
 
+                await logRiwayat({
+                    aksi: 'Tambah',
+                    kategori: 'Data Akun',
+                    keterangan: 'Menambahkan 1 Data',
+                    records: JSON.stringify(formTambah)
+                })
+
                 if(response) {
                     setSearchDataPegawai('')
                     setFormTambah(formatForm)
@@ -139,10 +145,21 @@ export default function DataAkunPage() {
 
                 if(id_akun) {
                     response = await deleteSingleAkunById(id_akun)
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Akun',
+                        keterangan: 'Menghapus 1 Data',
+                        records: JSON.stringify({ id_akun })
+                    })
                 }else{
                     response = await deleteMultipleAkunById(selectedData)
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Akun',
+                        keterangan: `Menghapus ${selectedData.length} Data`,
+                        records: JSON.stringify({ id_akun })
+                    })
                 }
-                console.log(response)
 
                 if(response) {
                     setSelectedData([])
@@ -202,6 +219,13 @@ export default function DataAkunPage() {
             allowEscapeKey: false,
             didOpen: async () => {
                 const response = await updateSingleAkun({...payload, id_akun})
+
+                await logRiwayat({
+                    aksi: 'Ubah',
+                    kategori: 'Data Akun',
+                    keterangan: 'Mengubah 1 Data',
+                    records: JSON.stringify({...payload, id_akun})
+                })
 
                 if(response) {
                     setSelectedData([])

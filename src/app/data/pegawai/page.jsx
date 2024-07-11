@@ -6,6 +6,7 @@ import { exportToCSV } from "@/lib/csvLibs"
 import { date_getDay, date_getMonth, date_getYear, date_integerToDate } from "@/lib/dateConvertes"
 import { createMultiPegawai, createSinglePegawai, deleteManyPegawai, deleteSinglePegawai, getAllPegawai, updateSinglePegawai } from "@/lib/model/pegawaiModel"
 import { createPendidikan, deletePendidikan, updatePendidikan } from "@/lib/model/pendidikanModel"
+import { logRiwayat } from "@/lib/model/riwayatModel"
 import { createSertifikat, deleteSertifikat, updateSertifikat } from "@/lib/model/sertifikatModel"
 import { exportToXLSX, xlsx_getData, xlsx_getSheets } from "@/lib/xlsxLibs"
 import { faAngleLeft, faAngleRight, faAnglesLeft, faAnglesRight, faArrowDown, faArrowRight, faArrowUp, faArrowsUpDown, faCheckSquare, faCircleCheck, faCircleXmark, faDownload, faEdit, faEllipsisH, faEllipsisV, faExclamationCircle, faEye, faFile, faFilter, faInfoCircle, faPlus, faPlusSquare, faPrint, faSave, faSearch, faTrash, faXmark } from "@fortawesome/free-solid-svg-icons"
@@ -169,6 +170,12 @@ export default function DataPegawaiPage() {
 
                 if(response) {
                     setSearchDataPegawai('')
+                    await logRiwayat({
+                        aksi: 'Tambah',
+                        kategori: 'Data Pegawai',
+                        keterangan: `Menambahkan 1 data`,
+                        records: JSON.stringify({...payload})
+                    })
                     for(let i = 0; i < 10; i++) {
                         e.target[i].value = ''
                     }
@@ -212,6 +219,12 @@ export default function DataPegawaiPage() {
                 }
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Pegawai',
+                        keterangan: `Menghapus ${id_pegawai ? '1' : selectedData.length} data`,
+                        records: JSON.stringify(id_pegawai ? {id_pegawai} : {id_pegawai: selectedData})
+                    })
                     setSelectedData([])
                     await getData()
                     Swal.fire({
@@ -271,6 +284,12 @@ export default function DataPegawaiPage() {
                 const response = await updateSinglePegawai(id_pegawai, payload)
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Ubah',
+                        kategori: 'Data Pegawai',
+                        keterangan: `Mengubah 1 data`,
+                        records: JSON.stringify({id_pegawai, payload})
+                    })
                     setSelectedData([])
                     setSelectAll(false)
                     await getData()
@@ -361,6 +380,12 @@ export default function DataPegawaiPage() {
                 const response = await updateSertifikat(payload, Number(no_sertifikat))
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Ubah',
+                        kategori: 'Data Pegawai - Sertifikat',
+                        keterangan: `Mengubah 1 data`,
+                        records: JSON.stringify({id_pegawai, no_sertifikat, payload})
+                    })
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
@@ -407,6 +432,12 @@ export default function DataPegawaiPage() {
                 const response = await deleteSertifikat(Number(no_sertifikat))
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Pegawai - Sertifikat',
+                        keterangan: `Menghapus 1 data`,
+                        records: JSON.stringify({no_sertifikat})
+                    })
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
@@ -459,6 +490,12 @@ export default function DataPegawaiPage() {
                 const response = await updatePendidikan(payload, Number(no_pendidikan))
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Ubah',
+                        kategori: 'Data Pegawai - Pendidikan',
+                        keterangan: `Mengubah 1 data`,
+                        records: JSON.stringify({no_pendidikan, payload})
+                    })
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
@@ -514,6 +551,12 @@ export default function DataPegawaiPage() {
                 const response = await createSertifikat(payload)
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Tambah',
+                        kategori: 'Data Pegawai - Sertifikat',
+                        keterangan: `Menambah 1 data`,
+                        records: JSON.stringify({...payload})
+                    })
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
@@ -574,6 +617,12 @@ export default function DataPegawaiPage() {
                 const response = await createPendidikan(payload)
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Tambah',
+                        kategori: 'Data Pegawai - Pendidikan',
+                        keterangan: `Menambah 1 data`,
+                        records: JSON.stringify({...payload})
+                    })
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
@@ -621,6 +670,12 @@ export default function DataPegawaiPage() {
                 const response = await deletePendidikan(Number(no_pendidikan))
 
                 if(response.success) {
+                    await logRiwayat({
+                        aksi: 'Hapus',
+                        kategori: 'Data Pegawai - Pendidikan',
+                        keterangan: `Menghapus 1 data`,
+                        records: JSON.stringify({no_pendidikan})
+                    })
                     await getData()
                     Swal.fire({
                         title: 'Sukses',
@@ -708,8 +763,35 @@ export default function DataPegawaiPage() {
                     if(importTab === 'pendidikan') {
                         response = await createPendidikan(dataImport)
                     }
-
+                    
                     if(response.success) {
+                        if(importTab === 'pegawai') {
+                            await logRiwayat({
+                                aksi: 'Import',
+                                kategori: 'Data Pegawai',
+                                keterangan: `Mengimport ${dataImport.length} data`,
+                                records: JSON.stringify(dataImport)
+                            })
+                        }
+    
+                        if(importTab === 'sertifikat') {
+                            await logRiwayat({
+                                aksi: 'Import',
+                                kategori: 'Data Pegawai - Sertifikat',
+                                keterangan: `Mengimport ${dataImport.length} data`,
+                                records: JSON.stringify(dataImport)
+                            })
+                        }
+    
+                        if(importTab === 'pendidikan') {
+                            await logRiwayat({
+                                aksi: 'Import',
+                                kategori: 'Data Pegawai - Pendidikan',
+                                keterangan: `Mengimport ${dataImport.length} data`,
+                                records: JSON.stringify(dataImport)
+                            })
+                        }
+
                         await getData()
                         Swal.fire({
                             title: 'Sukses',

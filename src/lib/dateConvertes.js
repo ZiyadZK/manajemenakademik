@@ -110,7 +110,7 @@ export const date_getTime = (type) => {
         hour12: false
     };
 
-    const formatter = new Intl.DateTimeFormat('en-US', options);
+    const formatter = new Intl.DateTimeFormat('id-ID', options);
     const parts = formatter.formatToParts(currentDate);
 
     let time;
