@@ -42,7 +42,9 @@ export default function VerifyPage() {
         e.preventDefault()
 
         if(loginForm.pin === userdata.userdataToken) {
-            await setCookie('userdataToken', loginForm.pin)
+            await setCookie('userdataToken', loginForm.pin, {
+                maxAge: 7 * 24 * 60 * 60 * 1000
+            })
             toast.success('Berhasil, PIN Anda cocok!')
             router.push('/')
         }else{
