@@ -28,19 +28,27 @@ export default function Home() {
     const response = await getAllDashboard()
     if(response.success) {
       setData(response.data)
-      setTahunList(state => ({
-        data_mutasi_siswa: Array.from(new Set(response.data['data_mutasi_siswa']['rekap'].map(value => value['tahun']))).map(tahun => tahun).sort(),
-        data_alumni: Array.from(new Set(response.data['data_alumni']['rekap'].map(value => value['tahun']))).map(tahun => tahun).sort()
-      }))
-      setPagination(state => ({
-        data_mutasi_siswa: Array.from(new Set(response.data['data_mutasi_siswa']['rekap'].map(value => value['tahun']))).map(tahun => tahun).length - 1,
-        data_alumni: Array.from(new Set(response.data['data_alumni']['rekap'].map(value => value['tahun']))).map(tahun => tahun).length - 1
-      }))
-
-      console.log({
-        data_mutasi_siswa: Array.from(new Set(response.data['data_mutasi_siswa']['rekap'].map(value => value['tahun']))).map(tahun => tahun).sort(),
-        data_alumni: Array.from(new Set(response.data['data_alumni']['rekap'].map(value => value['tahun']))).map(tahun => tahun).sort()
-      })
+      if(response.data['data_mutasi_siswa']['exist']) {
+        setTahunList(state => ({
+          ...state,
+          data_mutasi_siswa: Array.from(new Set(response.data['data_mutasi_siswa']['rekap'].map(value => value['tahun']))).map(tahun => tahun).sort(),
+        }))
+        setPagination(state => ({
+          ...state,
+          data_mutasi_siswa: Array.from(new Set(response.data['data_mutasi_siswa']['rekap'].map(value => value['tahun']))).map(tahun => tahun).length - 1
+        }))
+      }
+      
+      if(response.data['data_alumni']['exist']) {
+        setTahunList(state => ({
+          ...state,
+          data_alumni: Array.from(new Set(response.data['data_alumni']['rekap'].map(value => value['tahun']))).map(tahun => tahun).sort()
+        }))
+        setPagination(state => ({
+          ...state,
+          data_alumni: Array.from(new Set(response.data['data_alumni']['rekap'].map(value => value['tahun']))).map(tahun => tahun).length - 1
+        }))
+      }
     }
     setLoadingFetch('fetched')
   }
