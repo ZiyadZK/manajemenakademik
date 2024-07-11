@@ -3,6 +3,7 @@
 import MainLayoutPage from "@/components/mainLayout"
 import { deleteRoleKelas, getAllKelas, setGuruBK, setWaliKelas } from "@/lib/model/kelasModel"
 import { getAllPegawai } from "@/lib/model/pegawaiModel"
+import { logRiwayat } from "@/lib/model/riwayatModel"
 import { getAllSiswa } from "@/lib/model/siswaModel"
 import { faEdit, faSave, faUser, faXmark } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
