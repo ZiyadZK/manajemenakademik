@@ -2019,35 +2019,35 @@ export default function DataSiswaPage() {
                 <div className={` text-zinc-700`} id="content-print">
                     {printedData.map((value, index) => (
                         <div key={index} ref={componentPDF.current[index]} style={{ 
-                            width: `${mmToPx(210) * 1.5}px`, 
-                            height: `${mmToPx(330) * 1.5}px`,
+                            width: `${49.6 * 1.5}rem`, 
+                            height: `${78 * 1.5}rem`,
                             fontFamily: jakarta.style.fontFamily
-                        }} className={`bg-white flex-shrink-0 text-zinc-700 text-lg px-3`}
+                        }} className={`bg-white flex-shrink-0 text-zinc-700 text-lg`}
                         >
-                            <div className="flex items-center w-full px-20 pt-12">
+                            <div className="flex items-center w-full px-20 pt-10">
                                 <div className="w-fit flex items-center justify-start">
                                     <Image src={'/jabar.gif'} width={160} height={160} alt="Logo Jabar" />
                                 </div>
-                                <div className={`w-full font-bold tracking-tighter text-center space-y-1`}>
-                                    <h1 className=" tracking-tighter text-center text-2xl">
+                                <div className={`w-full font-bold tracking-tighter text-center`}>
+                                    <h1 className=" tracking-tighter text-center ">
                                         PEMERINTAH DAERAH PROVINSI JAWA BARAT
                                     </h1>
-                                    <h2 className=" tracking-tighter text-center text-2xl">
+                                    <h2 className=" tracking-tighter text-center ">
                                         DINAS PENDIDIKAN
                                     </h2>
-                                    <h3 className=" tracking-tighter text-center text-2xl">
+                                    <h3 className=" tracking-tighter text-center ">
                                         CABANG DINAS PENDIDIKAN WILAYAH VII
                                     </h3>
-                                    <p className=" tracking-tighter text-center text-2xl">
+                                    <p className=" tracking-tighter text-center ">
                                         SMK PEKERJAAN UMUM NEGERI BANDUNG
                                     </p>
-                                    <p className="text-xl tracking-tight">
+                                    <p className="text-sm tracking-tight">
                                         Jl. Garut No. 10 Telp./Fax (022) 7208317 BANDUNG 40271
                                     </p>
-                                    <p className="text-xl tracking-tight">
+                                    <p className="text-sm tracking-tight">
                                         Website : <span className="italic text-blue-600 underline decoration-blue-600">http://www.smkpunegerijabar.sch.id</span>
                                     </p>
-                                    <p className="text-xl tracking-tight">
+                                    <p className="text-sm tracking-tight">
                                         Email : <span className="italic text-blue-600 underline decoration-blue-600">info@smkpunegerijabar.sch.id</span>
                                     </p>
                                 </div>
@@ -2055,36 +2055,33 @@ export default function DataSiswaPage() {
                                     <Image src={'/logo-sekolah-2.png'} width={120} height={120} alt="logo sekolah" />
                                 </div>
                             </div>
-                            <div className="px-10 pt-5 mb-10">
+                            <div className="px-10 pt-5 mb-8">
                                 <div className="w-full border-4 border-zinc-700"></div>
                             </div>
-                            <h1 className="text-center font-extrabold text-2xl">LEMBAR BUKU INDUK SMK</h1>
-                            <h2 className="text-center font-extrabold text-2xl">TAHUN PELAJARAN {value['tahun_masuk']}/{Number(value['tahun_masuk']) + 1}</h2>
-                            <hr className="my-5 opacity-0" />
-                            <div className="px-20 text-2xl font-normal">
-                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                            <h1 className="text-center font-extrabold text-lg">LEMBAR BUKU INDUK SMK</h1>
+                            <h2 className="text-center font-extrabold text-lg">TAHUN PELAJARAN {value['tahun_masuk']}/{Number(value['tahun_masuk']) + 1}</h2>
+                            <hr className="my-3 opacity-0" />
+                            <div className="px-20">
+                                <div className="flex w-1/2 items-center gap-2 text-lg">
                                     <p className="w-2/3">Kompetensi Keahlian</p>
                                     <p className="w-1/3 font-medium">
                                         : {value['kelas']} {value['jurusan']} {value['rombel']}
                                     </p>
                                 </div>
-                                <hr className="my-1 opacity-0" />
-                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                <div className="flex w-1/2 items-center gap-2 text-lg">
                                     <p className="w-2/3">No Induk Sekolah</p>
                                     <p className="w-1/3 font-medium">: {value.nis || '-'}</p>
                                 </div>
-                                <hr className="my-1 opacity-0" />
-                                <div className="flex w-1/2 items-center gap-2 text-2xl">
+                                <div className="flex w-1/2 items-center gap-2 text-lg">
                                     <p className="w-2/3">No Induk Siswa Nasional</p>
                                     <p className="w-1/3 font-medium">: {value.nisn || '-'}</p>
                                 </div>
-                                <hr className="my-5 opacity-0" />
-                                <div className="px-10 text-2xl">
+                                <hr className="my-3 opacity-0" />
+                                <div className="px-10 text-lg">
                                     <div className="font-bold flex items-center gap-5">
                                         <p>A.</p>
                                         <p>KETERANGAN PRIBADI SISWA</p>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2095,7 +2092,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.nama_siswa || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2106,7 +2102,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.nik || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2117,7 +2112,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.jenis_kelamin || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2128,7 +2122,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.tempat_lahir || '-'}, {date_getDay(value['tanggal_lahir'])} {date_getMonth('string', value['tanggal_lahir'])} {date_getYear(value['tanggal_lahir'])}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2139,7 +2132,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.agama || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2150,7 +2142,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.jumlah_saudara || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2161,7 +2152,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.anak_ke || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2172,12 +2162,11 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3">: {value.no_hp_siswa || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-5 opacity-0" />
+                                    <hr className="my-3 opacity-0" />
                                     <div className="font-bold flex items-center gap-5">
                                         <p>B.</p>
                                         <p>KETERANGAN TEMPAT TINGGAL</p>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex  gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex  gap-5 w-full">
@@ -2193,7 +2182,6 @@ export default function DataSiswaPage() {
                                         <p>C.</p>
                                         <p>KETERANGAN SEKOLAH SEBELUMNYA</p>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2204,7 +2192,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.asal_sekolah || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2215,7 +2202,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.tahun_masuk || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2226,7 +2212,7 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.kategori || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-5 opacity-0" />
+                                    <hr className="my-3 opacity-0" />
                                     <div className="font-bold flex items-center gap-5">
                                         <p>D.</p>
                                         <p>KETERANGAN ORANG TUA KANDUNG</p>
@@ -2242,7 +2228,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.nama_ayah || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2253,7 +2238,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_ayah || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2264,7 +2248,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.telp_ayah || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2275,7 +2258,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.nama_ibu || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2286,7 +2268,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_ibu || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2297,7 +2278,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.telp_ibu || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2308,12 +2288,11 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.no_kk || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-5 opacity-0" />
+                                    <hr className="my-3 opacity-0" />
                                     <div className="font-bold flex items-center gap-5">
                                         <p>D.</p>
                                         <p>KETERANGAN WALI</p>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2324,7 +2303,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.nama_wali || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2335,7 +2313,6 @@ export default function DataSiswaPage() {
                                             <p className="font-medium w-2/3 text-wrap">: {value.pekerjaan_wali || '-'}</p>
                                         </div>
                                     </div>
-                                    <hr className="my-1 opacity-0" />
                                     <div className="flex items-center gap-5 w-full">
                                         <p className="opacity-0">A.</p>
                                         <div className="flex items-center gap-5 w-full">
@@ -2347,7 +2324,7 @@ export default function DataSiswaPage() {
                                         </div>
                                     </div>
                                     
-                                    <hr className="my-5 opacity-0" />
+                                    <hr className="my-3 opacity-0" />
                                     <div className="flex items-center w-full gap-5 h-full">
                                         <div className="w-1/2 h-full"></div>
                                         <div className="w-1/2 flex items-center justify-center gap-5 h-full">
