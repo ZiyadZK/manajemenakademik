@@ -26,13 +26,6 @@ export const getDetailKelas = async (kelas, rombel, no_rombel) => {
 export const setWaliKelas = async (kelas, rombel, no_rombel, payload) => {
     const responseData = await urlPost(`/v1/data/kelas/${kelas}/${rombel}/${no_rombel}/walikelas`, payload)
 
-    await logRiwayat({
-        aksi: 'Ubah',
-        kategori: 'Data Kelas',
-        keterangan: `Mengubah 1 Data Wali Kelas ke dalam Data Kelas`,
-        records: `${JSON.stringify({kelas, rombel, no_rombel, payload})}`
-    })
-
     return {
         success: responseData.success,
         message: responseData.result
@@ -41,13 +34,6 @@ export const setWaliKelas = async (kelas, rombel, no_rombel, payload) => {
 
 export const setGuruBK = async (kelas, rombel, no_rombel, payload) => {
     const responseData = await urlPost(`/v1/data/kelas/${kelas}/${rombel}/${no_rombel}/gurubk`, payload)
-
-    await logRiwayat({
-        aksi: 'Ubah',
-        kategori: 'Data Kelas',
-        keterangan: `Mengubah 1 Data Guru BK ke dalam Data Kelas`,
-        records: `${JSON.stringify({kelas, rombel, no_rombel, payload})}`
-    })
 
     return {
         success: responseData.success,

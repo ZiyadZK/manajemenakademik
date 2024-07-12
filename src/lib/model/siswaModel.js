@@ -69,11 +69,19 @@ export const createSingleSiswa = async (payload) => {
 }
 
 export const createMultiSiswa = async (payload) => {
-    const responseData = await urlPost('/v1/data/siswa', payload)
-
-    return {
-        success: responseData.success,
-        message: responseData.result
+    try {
+        const responseData = await urlPost('/v1/data/siswa', payload)
+        
+        return {
+            success: true,
+            message: responseData.result
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false,
+            message: error.result.data
+        }
     }
 }
 

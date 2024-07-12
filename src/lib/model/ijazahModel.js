@@ -17,13 +17,6 @@ export const createMultiIjazah = async (payload) => {
         
         const responseData = await urlPost('/v1/data/ijazah', payload)
     
-        await logRiwayat({
-            aksi: 'Tambah',
-            kategori: 'Data Ijazah',
-            keterangan: `Menambah ${Array.isArray(payload) ? payload.length : '1'} Data ke dalam Data Ijazah`,
-            records: `${JSON.stringify(Array.isArray(payload) ? payload : {...payload})}`
-        })
-    
         return {
             success: true,
             message: responseData.result
@@ -48,13 +41,6 @@ export const updateMultiIjazah = async (arrayNisn, payload) => {
 
 export const deleteMultiIjazah = async (arrayNisn) => {
     const responseData = await urlDelete('/v1/data/ijazah', {arrayNisn})
-
-    await logRiwayat({
-        aksi: 'Hapus',
-        kategori: 'Data Ijazah',
-        keterangan: `Menghapus ${Array.isArray(arrayNisn) ? arrayNisn.length : '1'} Data ke dalam Data Ijazah`,
-        records: `${JSON.stringify({arrayNisn})}`
-    })
 
     return {
         success: responseData.success,
