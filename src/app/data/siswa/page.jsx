@@ -869,7 +869,7 @@ export default function DataSiswaPage() {
                             await logRiwayat({
                                 aksi: 'Export',
                                 kategori: 'Data Siswa',
-                                keterangan: `Mengexport ${dataSiswa.length} Data Siswa sebagai EXCEL`,
+                                keterangan: `Mengexport ${dataSiswa.length} Data Siswa sebagai PDF`,
                                 records: JSON.stringify({nis: dataSiswa.map(value => value['nis'])})
                             })
                             setPrintedData([])
