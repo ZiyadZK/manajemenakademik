@@ -116,7 +116,7 @@ export default function DataRiwayatPage() {
                     </div>
                 )}
                 <div className="py-2 relative overflow-auto max-h-[600px]">
-                    {data.slice(0, 10).map((value, index) => (
+                    {data.slice(pagination === 1 ? totalList - totalList : (totalList * pagination) - totalList, totalList * pagination).map((value, index) => (
                         <div key={index} className="grid grid-cols-12 px-3 py-2 rounded-md">
                             <div className="col-span-2 hidden md:flex items-center">
                                 <div className="space-y-1">
