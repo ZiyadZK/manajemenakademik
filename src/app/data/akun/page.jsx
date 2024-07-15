@@ -282,6 +282,29 @@ export default function DataAkunPage() {
         })
     }
 
+    const handleSelectAll = () => {
+        if(filteredData.length > 0) {
+            setSelectAll(state => {
+                if(state) {
+                    setSelectedData([])
+                }else{
+                    setSelectedData(state => filteredData.map(value => value['id_akun']))    
+                }
+                return !state
+            })
+        }
+    }
+
+    useEffect(() => {
+        if(data.length > 0) {
+            if(selectedData.length === filteredData.length || selectedData.length >= filteredData.length) {
+                setSelectAll(true)
+            }else{
+                setSelectAll(false)
+            }
+        }
+    }, [selectedData, filteredData, data])
+
     return (
         <MainLayoutPage>
             <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
@@ -423,7 +446,7 @@ export default function DataAkunPage() {
                     <div className="relative overflow-auto w-full max-h-[400px]">
                         <div className="grid grid-cols-12 p-3 rounded-lg border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 sticky top-0 mb-2">
                             <div className="col-span-7 md:col-span-2 flex items-center gap-3">
-                                <input type="checkbox" className="cursor-pointer" />
+                                <input type="checkbox" checked={selectAll} onChange={() => handleSelectAll()} className="cursor-pointer" />
                                 Nama Pegawai
                             </div>
                             <div className="col-span-2 hidden md:flex items-center gap-3">
