@@ -2,7 +2,7 @@
 
 import { date_getDay, date_getMonth, date_getTime, date_getYear } from "../dateConvertes"
 import { decryptKey } from "../encrypt"
-import { urlGet, urlPost } from "../fetcher"
+import { urlDelete, urlGet, urlPost } from "../fetcher"
 import { getLoggedUserdata } from "./akunModel"
 
 export const getAllRiwayat = async () => {
@@ -42,5 +42,21 @@ export const getSingleRiwayat = async (id_riwayat) => {
         success: responseData.success,
         data: responseData.data,
         message: responseData.result
+    }
+}
+
+export const resetRiwayat = async () => {
+    try {
+        await urlDelete('/v1/data/riwayat', { all: true })
+
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false,
+            message: error.message
+        }
     }
 }
