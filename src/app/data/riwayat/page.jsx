@@ -2,12 +2,13 @@
 
 import MainLayoutPage, { useContextLoggedData } from "@/components/mainLayout"
 import { date_getDay, date_getMonth, date_getYear } from "@/lib/dateConvertes"
-import { getAllRiwayat } from "@/lib/model/riwayatModel"
-import { faExclamationCircle, faFile, faRefresh, faSearch, faUpload } from "@fortawesome/free-solid-svg-icons"
+import { getAllRiwayat, logRiwayat, resetRiwayat } from "@/lib/model/riwayatModel"
+import { faAnglesLeft, faAnglesRight, faExclamationCircle, faFile, faRefresh, faSearch, faUpload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import prettyJs from "pretty-js"
 import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
+import Swal from "sweetalert2"
 
 export default function DataRiwayatPage() {
     const [data, setData] = useState([])
@@ -18,7 +19,6 @@ export default function DataRiwayatPage() {
     const getData = async () => {
         setLoadingFetch('loading')
         const response = await getAllRiwayat()
-        console.log(response)
         if(response.success) {
             setData(response.data)
         }
@@ -29,32 +29,44 @@ export default function DataRiwayatPage() {
         getData()
     }, [])
 
-    const jsonHighlight = (json = "") => {
-        if(!json) return ""
+    const deleteRiwayat = async () => {
+        Swal.fire({
+            title: 'Apakah anda yakin?',
+            text: 'Anda akan membersihkan riwayat data, namun anda tetap akan masuk ke data riwayat.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Ya',
+            cancelButtonText: 'Tidak'
+        }).then(answer => {
+            if(answer.isConfirmed) {
+                Swal.fire({
+                    title: 'Sedang memproses data',
+                    allowOutsideClick: false,
+                    allowEnterKey: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    timer: 60000,
+                    didOpen: async () => {
+                        // Bersihin riwayat
+                        const responseDelete = await resetRiwayat()
 
-        json = json
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-
-        return json.replace(
-            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
-            (match) => {
-                let cls = 'number'
-                if (/^"/.test(match)) {
-                    if (/:$/.test(match)) {
-                        cls = "text-red-500";
-                    } else {
-                        cls = "text-green-500";
+                        if(responseDelete.success) {
+                            await logRiwayat({
+                                aksi: 'Hapus',
+                                kategori: 'Data Riwayat',
+                                keterangan: 'Mereset semua data riwayat'
+                            })
+                            await getData()
+                            Swal.fire({
+                                title: 'Sukses',
+                                text: 'Berhasil membersihkan riwayat',
+                                icon: 'success'
+                            })
+                        }
                     }
-                } else if (/true|false/.test(match)) {
-                    cls = "text-blue-500";
-                } else if (/null/.test(match)) {
-                    cls = "text-violet-500";
-                }
-                return '<span class="' + cls + '">' + match + "</span>";
+                })
             }
-        )
+        })
     }
 
     return (
@@ -63,25 +75,17 @@ export default function DataRiwayatPage() {
             <div className="p-5 border dark:border-zinc-800 bg-white dark:bg-zinc-900 md:rounded-xl rounded-md text-xs">
                 {loadingFetch !== 'fetched' && (
                     <div className="flex items-center gap-2">
-                        <button type="button" disabled className="rounded-md border dark:border-zinc-700 bg-zinc-300 dark:bg-zinc-700 px-3 py-2 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200 animate-pulse">
+                        <button type="button"  disabled className="rounded-md border dark:border-zinc-700 bg-zinc-300 dark:bg-zinc-700 px-3 py-2 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200 animate-pulse">
                             <FontAwesomeIcon icon={faRefresh} className="w-3 h-3 text-inherit opacity-0" />
                             <span className="opacity-0">Bersihkan</span>
-                        </button>
-                        <button type="button" disabled className="rounded-md border dark:border-zinc-700 bg-zinc-300 dark:bg-zinc-700 px-3 py-2 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200 animate-pulse">
-                            <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit opacity-0" />
-                            <span className="opacity-0">Backup</span>
                         </button>
                     </div>
                 )}
                 {loadingFetch === 'fetched' && data.length > 0 && (
                     <div className="flex items-center gap-2">
-                        <button type="button" className="rounded-md border dark:border-zinc-700 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200">
+                        <button type="button" onClick={() => deleteRiwayat()} className="rounded-md border dark:border-zinc-700 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200">
                             <FontAwesomeIcon icon={faRefresh} className="w-3 h-3 text-inherit opacity-60" />
                             Bersihkan
-                        </button>
-                        <button type="button" className="rounded-md border dark:border-zinc-700 px-3 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center gap-3 w-1/2 md:w-fit ease-out duration-200">
-                            <FontAwesomeIcon icon={faUpload} className="w-3 h-3 text-inherit opacity-60" />
-                            Backup
                         </button>
                     </div>
                 )}
@@ -112,7 +116,7 @@ export default function DataRiwayatPage() {
                     </div>
                 )}
                 <div className="py-2 relative overflow-auto max-h-[600px]">
-                    {data.slice(0, 30).map((value, index) => (
+                    {data.slice(0, 10).map((value, index) => (
                         <div key={index} className="grid grid-cols-12 px-3 py-2 rounded-md">
                             <div className="col-span-2 hidden md:flex items-center">
                                 <div className="space-y-1">
@@ -297,14 +301,28 @@ export default function DataRiwayatPage() {
                                         <h3 className="font-bold text-lg">Records Data</h3>
                                         <hr className="my-3 dark:opacity-10" />
                                         <div className="p-3 rounded-md border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950">
-                                            <textarea value={prettyJs(JSON.parse(value['records']))} readOnly className="bg-transparent outline-none w-full h-80"></textarea>
+                                            <textarea value={value['records'] && prettyJs(JSON.parse(value['records']))} readOnly className="bg-transparent outline-none w-full h-80"></textarea>
                                         </div>
                                     </div>
                                 </dialog>
                             </div>
                         </div>
                     ))}
-
+                </div>
+                <hr className="my-2 dark:opacity-10" />
+                <div className="p-2 rounded-md border dark:border-zinc-800 w-fit flex items-center gap-3">
+                    <div className="flex items-center gap-2  w-full md:w-fit">
+                        <button type="button" onClick={() => setPagination(state => state > 1 ? state - 1 : state)} className="w-5 h-5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center">
+                            <FontAwesomeIcon icon={faAnglesLeft} className="w-2 h-2 text-inherit" />
+                        </button>
+                        {pagination}
+                        <button type="button" onClick={() => setPagination(state => state < Math.ceil(data.length / totalList) ? state + 1 : state)} className="w-5 h-5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center">
+                            <FontAwesomeIcon icon={faAnglesRight} className="w-2 h-2 text-inherit" />
+                        </button>
+                    </div>
+                    <p>
+                        {data.length} Riwayat
+                    </p>
                 </div>
                 
             </div>
