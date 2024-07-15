@@ -5,6 +5,7 @@ import { date_getDay, date_getMonth, date_getYear } from "@/lib/dateConvertes"
 import { getAllRiwayat } from "@/lib/model/riwayatModel"
 import { faExclamationCircle, faFile, faRefresh, faSearch, faUpload } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import prettyJs from "pretty-js"
 import { useEffect, useState } from "react"
 import { Toaster } from "react-hot-toast"
 
@@ -27,6 +28,34 @@ export default function DataRiwayatPage() {
     useEffect(() => {
         getData()
     }, [])
+
+    const jsonHighlight = (json = "") => {
+        if(!json) return ""
+
+        json = json
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+        return json.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+            (match) => {
+                let cls = 'number'
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = "text-red-500";
+                    } else {
+                        cls = "text-green-500";
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = "text-blue-500";
+                } else if (/null/.test(match)) {
+                    cls = "text-violet-500";
+                }
+                return '<span class="' + cls + '">' + match + "</span>";
+            }
+        )
+    }
 
     return (
         <MainLayoutPage>
@@ -268,9 +297,7 @@ export default function DataRiwayatPage() {
                                         <h3 className="font-bold text-lg">Records Data</h3>
                                         <hr className="my-3 dark:opacity-10" />
                                         <div className="p-3 rounded-md border dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950">
-                                            <pre>
-                                                {JSON.stringify(JSON.parse(value['records']), null, 2)}
-                                            </pre>
+                                            <textarea value={prettyJs(JSON.parse(value['records']))} readOnly className="bg-transparent outline-none w-full h-80"></textarea>
                                         </div>
                                     </div>
                                 </dialog>
