@@ -1650,7 +1650,7 @@ export default function DataMutasiSiswaPage() {
                                                         Jenis Kelamin
                                                     </p>
                                                     <div className="w-full md:w-2/3">
-                                                        <select required defaultValue={value['jurusan']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                        <select required defaultValue={value['jenis_kelamin']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
                                                             <option value="" disabled>-- Pilih Jenis Kelamin --</option>
                                                             <option value="Laki-laki">Laki-laki</option>
                                                             <option value="Perempuan">Perempuan</option>
@@ -1662,7 +1662,7 @@ export default function DataMutasiSiswaPage() {
                                                         Agama
                                                     </p>
                                                     <div className="w-full md:w-2/3">
-                                                        <select required defaultValue={value['jurusan']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                        <select required defaultValue={value['agama']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
                                                             <option value="" disabled>-- Pilih Agama --</option>
                                                             <option value="Islam">Islam</option>
                                                             <option value="Protestan">Protestan</option>
