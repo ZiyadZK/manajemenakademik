@@ -254,10 +254,10 @@ export default function DataSiswaPage() {
         const payload = {
             nama_siswa: e.target[0].value,
             nis: e.target[1].value,
-            nisn: e.target[5].value,
             kelas: e.target[2].value,
             jurusan: e.target[3].value,
             rombel: e.target[4].value,
+            nisn: e.target[5].value,
             nik: e.target[6].value,
             no_kk: e.target[7].value,
             tempat_lahir: e.target[8].value,
@@ -1786,7 +1786,7 @@ export default function DataSiswaPage() {
                                                         Agama
                                                     </p>
                                                     <div className="w-full md:w-2/3">
-                                                        <select required defaultValue={value['jurusan']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
+                                                        <select required defaultValue={value['agama']} className="px-3 py-2 rounded-md w-full dark:bg-zinc-900 border dark:border-zinc-800">
                                                             <option value="" disabled>-- Pilih Agama --</option>
                                                             <option value="Islam">Islam</option>
                                                             <option value="Protestan">Protestan</option>
@@ -1906,6 +1906,14 @@ export default function DataSiswaPage() {
                                                     </p>
                                                     <div className="w-full md:w-2/3">
                                                         <input required defaultValue={value['pekerjaan_ayah']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ayah" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex flex-col md:flex-row md:items-center gap-2">
+                                                    <p className="opacity-60 w-full md:w-1/3">
+                                                        Pekerjaan Ibu
+                                                    </p>
+                                                    <div className="w-full md:w-2/3">
+                                                        <input required defaultValue={value['pekerjaan_ibu']} type="text" className="px-3 py-2 rounded-md w-full bg-transparent border dark:border-zinc-800" placeholder="Pekerjaan Ayah" />
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-col md:flex-row md:items-center gap-2">
