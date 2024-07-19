@@ -296,7 +296,7 @@ export default function DataSiswaPage() {
                     await logRiwayat({
                         aksi: 'Ubah',
                         kategori: 'Data Siswa',
-                        keterangan: `Menghapus 1 Data`,
+                        keterangan: `Mengubah 1 Data`,
                         records: JSON.stringify({nis, payload})
                     })
                     setSelectedData([])
