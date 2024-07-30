@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { decryptKey } from "./lib/encrypt";
 
 const adminPath = [
-    '/data/akun', '/data/riwayat'
+    '/data/akun', '/data/riwayat', '/data/matapelajaran'
 ]
 
 export async function middleware(request) {

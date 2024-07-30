@@ -3,7 +3,7 @@
 import { mont, rale, open, quicksand, jakarta } from "@/config/fonts";
 // import { nunito, quicksand } from "@/config/fonts";
 import { getLoggedUserdata, logoutAkun } from "@/lib/model/akunModel";
-import { faBars, faBook, faCertificate, faClipboard, faCog, faCogs, faDatabase, faFolderTree, faHouse, faLayerGroup, faMoon, faPrint, faQuidditchBroomBall, faSignOut, faSpinner, faSun, faTimeline, faUserGraduate, faUserLock, faUserShield, faUserTie, faUserXmark, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faBook, faBookmark, faCertificate, faClipboard, faCog, faCogs, faDatabase, faFolderTree, faHouse, faLayerGroup, faMoon, faPrint, faQuidditchBroomBall, faSignOut, faSpinner, faSun, faTimeline, faUserGraduate, faUserLock, faUserShield, faUserTie, faUserXmark, faUsersBetweenLines, faUsersRectangle, faUsersViewfinder, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { motion } from "framer-motion";
 import Image from "next/image";
@@ -23,6 +23,8 @@ const navLinkMasterData = [
     { title: 'Alumni', icon: faUserGraduate, url: '/data/alumni', page: 'Data Alumni', role: ['Operator', 'Admin']},
     { title: 'Pegawai', icon: faUserTie, url: '/data/pegawai', page: 'Data Pegawai', role: ['Operator', 'Admin']},
     { title: 'Ijazah', icon: faCertificate, url: '/data/ijazah', page: 'Data Ijazah', role: ['Operator', 'Admin']},
+    { title: 'Nilai', icon: faBook, url: '/data/nilai', page: 'Data Nilai', role: ['Operator', 'Admin']},
+    { title: 'Mata Pelajaran', icon: faBookmark, url: '/data/matapelajaran', page: 'Data Mata Pelajaran', role: ['Operator', 'Admin']},
     { title: 'Kelas', icon: faUsersRectangle, url: '/data/kelas', page: 'Data Kelas', role: ['Operator', 'Admin']},
     { title: 'Akun', icon: faUserShield, url: '/data/akun', page: 'Data Akun', role: ['Admin']},
     { title: 'Riwayat', icon: faTimeline, url: '/data/riwayat', page: 'Data Riwayat Perubahan Data', role: ['Admin']}
@@ -175,7 +177,7 @@ export default function MainLayoutPage({children}) {
                         {!filteredPath ? (
                             <div className="loading loading-spinner loading-sm text-zinc-400 py-4"></div>
                         ):(
-                            <div className="flex items-center gap-2 overflow-auto relative w-full pb-2">
+                            <div className="flex items-center overflow-auto relative w-full pb-2">
                                 <Link
                                     href={'/profilsekolah'}
                                     className={`px-4 py-2 rounded-md text-xs font-medium flex-shrink-0 ${filteredPath && filteredPath.url.startsWith('/profilsekolah') ? 'text-zinc-800 dark:text-zinc-100' : 'text-zinc-400'} hover:text-zinc-700 dark:hover:text-zinc-200 relative no-underline duration-300 ease-in z-[100]`}
@@ -187,6 +189,7 @@ export default function MainLayoutPage({children}) {
                                     </span>
                                     {hoveredPath.startsWith('/profilsekolah') && (
                                         <motion.div
+                                            
                                             className="absolute bottom-0 left-0 h-full bg-zinc-100 dark:bg-zinc-800 rounded-md -z-10 text-zinc-700 dark:text-zinc-200"
                                             layoutId="navbar"
                                             aria-hidden="true"
