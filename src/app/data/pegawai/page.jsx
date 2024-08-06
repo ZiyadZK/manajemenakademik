@@ -734,9 +734,7 @@ export default function DataPegawaiPage() {
 
             if(importTab === 'pegawai') {
                 dataImport = dataImport.map(state => ({
-                    ...state,
-                    ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir']),
-                    ['tmt']: date_integerToDate(state['tmt'])
+                    ...state
                 }))
             }
 

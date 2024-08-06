@@ -417,7 +417,6 @@ export default function DataSiswaPage() {
 
             const dataImport = response.data.map(state => ({
                 ...state,
-                ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir'])
             }))
 
             Swal.fire({

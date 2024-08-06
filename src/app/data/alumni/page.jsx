@@ -420,8 +420,7 @@ export default function DataAlumniPage() {
             }
 
             const dataImport = response.data.map(state => ({
-                ...state,
-                ['tanggal_lahir']: date_integerToDate(state['tanggal_lahir'])
+                ...state
             }))
 
             Swal.fire({
